@@ -106,7 +106,7 @@
                                     <property name="max-width-chars">20</property>
                                     <property name="wrap">True</property>
                                     <property name="wrap-mode">word</property>
-                                    <property name="label" translatable="yes">Sets the order of physical buttons on mice and touchpads.</property>
+                                    <property name="label" translatable="yes">How your device appears to others</property>
                                     <style>
                                       <class name="dim-label"/>
                                     </style>
@@ -346,7 +346,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
-                    <property name="label" translatable="yes">Touchpad</property>
+                    <property name="label" translatable="yes">Other devices on o2-WLAN09</property>
                     <attributes>
                       <attribute name="weight" value="bold"/>
                     </attributes>
