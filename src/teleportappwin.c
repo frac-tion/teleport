@@ -13,7 +13,6 @@ G_DEFINE_TYPE(TeleportAppWindow, teleport_app_window, GTK_TYPE_APPLICATION_WINDO
   static void
 teleport_app_window_init (TeleportAppWindow *win)
 {
-  gtk_widget_init_template (GTK_WIDGET (win));
   GtkBuilder *builder;
   GMenuModel *menu;
   GAction *action;
