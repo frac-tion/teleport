@@ -304,13 +304,14 @@
                                     <property name="margin_bottom">6</property>
                                     <property name="valign">center</property>
                                     <child>
-                                      <object class="GtkLabel" id="touchpad-natural-scrolling-label">
+                                      <object class="GtkLabel" id="remote-devics-description-2">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="hexpand">True</property>
                                         <property name="xalign">0</property>
-                                        <property name="label" translatable="yes">Progressbar</property>
-                                        <property name="use_underline">True</property>
+                                        <property name="label" translatable="yes">Sending app-mockup.png</property>
+                                        <attributes>
+                                          <attribute name="scale" value="0.9"/>
+                                        </attributes>
                                       </object>
                                       <packing>
                                         <property name="left_attach">0</property>
@@ -319,12 +320,28 @@
                                         <property name="height">1</property>
                                       </packing>
                                     </child>
+
+
                                     <child>
-                                      <object class="GtkSwitch" id="touchpad-natural-scrolling-switch">
+                                      <object class="GtkProgressBar" id="touchpad-natural-scrolling-label">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="hexpand">True</property>
+                                      </object>
+                                      <packing>
+                                        <property name="left_attach">0</property>
+                                        <property name="top_attach">1</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkButton" id="touchpad-natural-scrolling-switch">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="halign">end</property>
                                         <property name="valign">center</property>
+                                        <property name="label" translatable="yes">Cancel</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">1</property>
