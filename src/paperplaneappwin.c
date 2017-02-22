@@ -14,6 +14,16 @@ G_DEFINE_TYPE(PaperplaneAppWindow, paperplane_app_window, GTK_TYPE_APPLICATION_W
 paperplane_app_window_init (PaperplaneAppWindow *win)
 {
   gtk_widget_init_template (GTK_WIDGET (win));
+  GtkBuilder *builder;
+  GMenuModel *menu;
+  GAction *action;
+
+  gtk_widget_init_template (GTK_WIDGET (win));
+
+  builder = gtk_builder_new_from_resource ("/org/gtk/paperplaneapp/settings.ui");
+  menu = G_MENU_MODEL (gtk_builder_get_object (builder, "menu"));
+  g_object_unref (builder);
+
 }
 
   static void
