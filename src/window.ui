@@ -207,7 +207,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="activatable">false</property>
                                 <child>
-                                  <object class="GtkGrid" id="remote-devices-toggle-grid">
+                                  <object class="GtkGrid" id="remote-devices-grid">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="row_spacing">0</property>
@@ -218,13 +218,13 @@
                                     <property name="margin_bottom">6</property>
                                     <property name="valign">center</property>
                                     <child>
-                                      <object class="GtkLabel" id="remote-devices-toggle-label">
+                                      <object class="GtkLabel" id="remote-devices-name-1">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="hexpand">True</property>
                                         <property name="xalign">0</property>
                                         <property name="valign">end</property>
-                                        <property name="label" translatable="yes">Kim's Librem</property>
+                                        <property name="label" translatable="yes">Jan's Librem</property>
                                         <property name="use_underline">True</property>
                                       </object>
                                       <packing>
@@ -239,7 +239,7 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="xalign">0</property>
-                                        <property name="label" translatable="yes">Drag and drop files here to send it</property>
+                                        <property name="label" translatable="yes">Drop here to send</property>
                                         <style>
                                           <class name="dim-label"/>
                                         </style>
@@ -261,7 +261,7 @@
                                         <property name="can_focus">True</property>
                                         <property name="halign">end</property>
                                         <property name="valign">center</property>
-                                        <property name="label" translatable="yes">send File</property>
+                                        <property name="label" translatable="yes">Send file</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">1</property>
