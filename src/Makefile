@@ -11,7 +11,7 @@ OBJS = $(BUILT_SRC:.c=.o) $(SRC:.c=.o)
 
 all: teleportapp
 
-resources.c: teleportapp.gresource.xml window.ui
+resources.c: teleportapp.gresource.xml window.ui settings.ui
 	$(GLIB_COMPILE_RESOURCES) teleportapp.gresource.xml --target=$@ --sourcedir=. --generate-source
 
 %.o: %.c

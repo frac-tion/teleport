@@ -23,15 +23,16 @@ teleport_app_window_init (TeleportAppWindow *win)
 {
   TeleportAppWindowPrivate *priv;
   GtkBuilder *builder;
-  GMenuModel *menu;
+  GtkWidget *menu;
   //GAction *action;
 
   priv = teleport_app_window_get_instance_private (win);
   gtk_widget_init_template (GTK_WIDGET (win));
 
   builder = gtk_builder_new_from_resource ("/org/gtk/teleportapp/settings.ui");
-  menu = G_MENU_MODEL (gtk_builder_get_object (builder, "menu"));
-  gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (priv->gears), menu);
+  menu = GTK_WIDGET (gtk_builder_get_object (builder, "settings"));
+
+  gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
 
   //action = g_settings_create_action (priv->settings, "show-words");
   //g_action_map_add_action (G_ACTION_MAP (win), action);
