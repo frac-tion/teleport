@@ -3,7 +3,7 @@
   <!-- interface-requires gtk+ 3.8 -->
   <template class="TeleportAppWindow" parent="GtkApplicationWindow">
     <property name="title" translatable="yes">Teleport</property>
-    <property name="default_width">700</property>
+    <property name="default_width">1000</property>
     <property name="default_height">500</property>
     <child>
       <object class="GtkAdjustment" id="adjustment1">
@@ -34,6 +34,7 @@
             <property name="margin_top">12</property>
             <property name="margin_bottom">12</property>
             <property name="orientation">vertical</property>
+            <property name="width-request">700</property>
             <child>
               <object class="GtkFrame" id="general-frame">
                 <property name="visible">True</property>
@@ -327,6 +328,7 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="hexpand">True</property>
+                                        <property name="fraction">0.80</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">0</property>
