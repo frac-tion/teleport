@@ -19,12 +19,9 @@ static GMainLoop *loop;
 static gboolean debug;
 
   static void
-//finished (SoupSession *session, SoupMessage *msg, gpointer loop)
-finished (GObject *session, GAsyncResult *res, gpointer loop)
+finished (SoupSession *session, SoupMessage *msg, gpointer loop)
 {
-  SoupMessage *msg = g_async_result_get_user_data(res);
-  g_print("Output %s", soup_message_get_uri (msg)->path);
-  //g_main_loop_quit (loop);
+  g_main_loop_quit (loop);
 }
 
   char* 
@@ -71,8 +68,7 @@ get (char *url, const gchar *output_file_path)
   soup_message_set_flags (msg, SOUP_MESSAGE_NO_REDIRECT);
 
   g_object_ref (msg);
-  //instate of NULL it should have a gcancellable object
-  soup_session_send_async (session, msg, NULL, finished, loop);
+  soup_session_queue_message (session, msg, finished, loop);
   g_main_loop_run (loop);
 
   name = soup_message_get_uri (msg)->path;
@@ -81,7 +77,7 @@ get (char *url, const gchar *output_file_path)
     g_print ("%s: %d %s\n", name, msg->status_code, msg->reason_phrase);
 
   if (SOUP_STATUS_IS_REDIRECTION (msg->status_code)) {
-      g_print ("%s: %d %s\n", name, msg->status_code, msg->reason_phrase);
+    g_print ("%s: %d %s\n", name, msg->status_code, msg->reason_phrase);
   } else if (SOUP_STATUS_IS_SUCCESSFUL (msg->status_code)) {
     output_file = fopen (concat(output_file_path, name), "w");
     if (!output_file)
