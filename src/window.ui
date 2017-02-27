@@ -27,7 +27,7 @@
         <property name="shadow_type">none</property>
         <property name="hscrollbar_policy">never</property>
         <child>
-          <object class="GtkBox" id="prefs_widget">
+          <object class="GtkBox" id="general-container">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="halign">center</property>
@@ -45,7 +45,7 @@
                 <property name="label_yalign">0.45</property>
                 <property name="shadow_type">none</property>
                 <child type="label">
-                  <object class="GtkLabel" id="label1">
+                  <object class="GtkLabel" id="this-device-label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
@@ -63,17 +63,17 @@
                     <property name="margin_bottom">6</property>
                     <property name="shadow_type">in</property>
                     <child>
-                      <object class="GtkListBox" id="general-listbox">
+                      <object class="GtkListBox" id="this-device-listbox">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="selection_mode">none</property>
                         <child>
-                          <object class="GtkListBoxRow" id="primary-button-row">
+                          <object class="GtkListBoxRow" id="this-device-row">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="activatable">false</property>
                             <child>
-                              <object class="GtkGrid" id="primary-button-grid">
+                              <object class="GtkGrid" id="this-device-grid">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="row_spacing">0</property>
@@ -83,7 +83,7 @@
                                 <property name="margin_top">6</property>
                                 <property name="margin_bottom">6</property>
                                 <child>
-                                  <object class="GtkLabel" id="device-name-lable">
+                                  <object class="GtkLabel" id="this-device-name-label">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="hexpand">True</property>
@@ -131,7 +131,7 @@
                                       <class name="linked"/>
                                     </style>
                                     <child>
-                                      <object class="GtkMenuButton" id="localSettings">
+                                      <object class="GtkMenuButton" id="this-device-settings-button">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="use-popover">True</property>
@@ -203,12 +203,12 @@
                             <property name="can_focus">True</property>
                             <property name="selection_mode">none</property>
                             <child>
-                              <object class="GtkListBoxRow" id="remote-devices-toggle-row">
+                              <object class="GtkListBoxRow" id="remote-device-1-row">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="activatable">false</property>
                                 <child>
-                                  <object class="GtkGrid" id="remote-devices-grid">
+                                  <object class="GtkGrid" id="remote-device-1-grid">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="row_spacing">0</property>
@@ -219,7 +219,7 @@
                                     <property name="margin_bottom">6</property>
                                     <property name="valign">center</property>
                                     <child>
-                                      <object class="GtkLabel" id="remote-devices-name-1">
+                                      <object class="GtkLabel" id="remote-device-1-name">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="hexpand">True</property>
@@ -236,7 +236,7 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkLabel" id="remote-devics-description-1">
+                                      <object class="GtkLabel" id="remote-device-1-description">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="xalign">0</property>
@@ -257,12 +257,12 @@
                                     </child>
 
                                     <child>
-                                      <object class="GtkButton" id="remote-devices-send-file-btn">
+                                      <object class="GtkButton" id="remote-device-1-send-file-btn">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="halign">end</property>
                                         <property name="valign">center</property>
-                                        <property name="label" translatable="yes">Send file</property>
+                                        <property name="label" translatable="yes">Send File</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">1</property>
@@ -284,17 +284,17 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkListBox" id="touchpad-options-listbox">
+                          <object class="GtkListBox" id="remote-device-1-files-listbox">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="selection_mode">none</property>
                             <child>
-                              <object class="GtkListBoxRow" id="touchpad-natural-scrolling-row">
+                              <object class="GtkListBoxRow" id="remote-device-1-file-1">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="activatable">false</property>
                                 <child>
-                                  <object class="GtkGrid" id="touchpad-natural-scrolling-grid">
+                                  <object class="GtkGrid" id="remote-device-1-file-1-grid">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="row_spacing">0</property>
@@ -305,7 +305,7 @@
                                     <property name="margin_bottom">6</property>
                                     <property name="valign">center</property>
                                     <child>
-                                      <object class="GtkLabel" id="remote-devics-description-2">
+                                      <object class="GtkLabel" id="remote-device-1-file-1-title">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="xalign">0</property>
@@ -321,10 +321,8 @@
                                         <property name="height">1</property>
                                       </packing>
                                     </child>
-
-
                                     <child>
-                                      <object class="GtkProgressBar" id="touchpad-natural-scrolling-label">
+                                      <object class="GtkProgressBar" id="remote-device-1-file-1-progress">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="hexpand">True</property>
@@ -338,7 +336,7 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkLabel" id="remote-devics-description-3">
+                                      <object class="GtkLabel" id="remote-device-1-file-1-progress-label">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="xalign">0</property>
@@ -360,7 +358,7 @@
 
 
                                     <child>
-                                      <object class="GtkButton" id="touchpad-natural-scrolling-switch">
+                                      <object class="GtkButton" id="remote-device-1-file-1-button-cancel">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="halign">end</property>
@@ -398,7 +396,7 @@
         <property name="decoration_layout">:close</property>
         <property name="title" translatable="yes">Teleport</property>
         <child>
-          <object class="GtkSwitch" id="powerSwitch">
+          <object class="GtkSwitch" id="visible-on-network-switch">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
           </object>
@@ -408,7 +406,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="lines_label">
+          <object class="GtkLabel" id="visible-on-network-label">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label" translatable="yes">Visible on network</property>
