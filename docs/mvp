@@ -1,0 +1,17 @@
+scope for mvp
+
+features
+- turn daemon on and off in headerbar
+- click "send file" and select file in file chooser to send file
+- notification on receiver side to confirm
+- notification on receiver side when transfer is complete
+
+- avahi service publishing and discovery
+- open and close http server
+- download from url
+
+
+not in scope
+- popovers for settings and name
+- displaying files in ui
+- drag and drop to send
