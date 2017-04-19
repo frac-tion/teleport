@@ -14,6 +14,7 @@ struct _TeleportAppWindowPrivate
 {
   GSettings *settings;
   GtkWidget *gears;
+  GtkWidget *remote_devices_list;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(TeleportAppWindow, teleport_app_window, GTK_TYPE_APPLICATION_WINDOW);
@@ -23,7 +24,12 @@ teleport_app_window_init (TeleportAppWindow *win)
 {
   TeleportAppWindowPrivate *priv;
   GtkBuilder *builder;
+  GtkBuilder *builder_remote_list;
   GtkWidget *menu;
+  GtkWidget *remote_list_row;
+  GtkLabel *remote_name;
+  GtkWidget *line;
+  GtkListStore *store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_BOOLEAN);
   //GAction *action;
 
   priv = teleport_app_window_get_instance_private (win);
@@ -34,30 +40,28 @@ teleport_app_window_init (TeleportAppWindow *win)
 
   gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
 
-  //action = g_settings_create_action (priv->settings, "show-words");
-  //g_action_map_add_action (G_ACTION_MAP (win), action);
-  /*
-     const gchar *authors[] = {
-     "Julian Sparber <julian@sparber.net>",
-     NULL
-     };
+  builder_remote_list = gtk_builder_new_from_resource ("/org/gtk/teleportapp/remote_list.ui");
 
-     gtk_show_about_dialog (parent,
-     "authors", authors,
-     "comments", "",
-     "copyright", "Copyright \xc2\xa9 2017 Julian Sparber",
-     "license-type", GTK_LICENSE_AGPL_3_0,
-     "logo-icon-name", "",
-     "program-name", "",
-     "translator-credits", "translator-credits",
-     "version", "20",
-     "website", "https://wiki.gnome.org/Apps/teleport",
-     "website-label", "Teleport website",
-     NULL);
-     */
+  remote_list_row = GTK_WIDGET (gtk_builder_get_object (builder_remote_list, "remote_device_row"));
+  remote_name = GTK_LABEL (gtk_builder_get_object (builder_remote_list, "device_name"));
+  gtk_label_set_text(remote_name, "Tobias's Laptop");
+  gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), remote_list_row, -1);
 
-  //g_object_unref (action);
-  //g_object_unref (builder);
+
+  line = GTK_WIDGET (gtk_builder_get_object (builder_remote_list, "remote_space_row"));
+  gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), line, -1);
+
+builder_remote_list = gtk_builder_new_from_resource ("/org/gtk/teleportapp/remote_list.ui");
+
+  remote_list_row = GTK_WIDGET (gtk_builder_get_object (builder_remote_list, "remote_device_row"));
+  remote_name = GTK_LABEL (gtk_builder_get_object (builder_remote_list, "device_name"));
+  gtk_label_set_text(remote_name, "Tobias's Laptop");
+  gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), remote_list_row, -1);
+
+
+  g_object_unref (builder);
+  g_object_unref (menu);
+  g_object_unref (remote_list_row);
 }
 
   static void
@@ -83,6 +87,8 @@ teleport_app_window_class_init (TeleportAppWindowClass *class)
       "/org/gtk/teleportapp/window.ui");
 
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, gears);
+  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, remote_devices_list);
+
 }
 
   TeleportAppWindow *

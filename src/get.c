@@ -100,6 +100,7 @@ get (char *url, const gchar *output_file_path)
 
 int main ()
 {
+  //url and absoulte path to download dir
   get ("http://juliansparber.com/index.html", "./test_download");
   return 0;
 }

@@ -3,5 +3,6 @@
   <gresource prefix="/org/gtk/teleportapp">
     <file preprocess="xml-stripblanks">window.ui</file>
     <file preprocess="xml-stripblanks">settings.ui</file>
+    <file preprocess="xml-stripblanks">remote_list.ui</file>
   </gresource>
 </gresources>
