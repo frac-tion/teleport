@@ -38,7 +38,6 @@ teleport_app_window_init (TeleportAppWindow *win)
   gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
   //update_remote_device_list(win, "Jan");
 
-  g_object_unref (menu);
   g_object_unref (builder);
 }
 
