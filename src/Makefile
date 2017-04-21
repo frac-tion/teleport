@@ -1,10 +1,10 @@
 CC ?= gcc
 PKGCONFIG = $(shell which pkg-config)
-CFLAGS = $(shell $(PKGCONFIG) --cflags gtk+-3.0)
-LIBS = $(shell $(PKGCONFIG) --libs gtk+-3.0)
+CFLAGS = $(shell $(PKGCONFIG) --cflags gtk+-3.0 avahi-client)
+LIBS = $(shell $(PKGCONFIG) --libs gtk+-3.0 avahi-client)
 GLIB_COMPILE_RESOURCES = $(shell $(PKGCONFIG) --variable=glib_compile_resources gio-2.0)
 
-SRC = teleportapp.c teleportappwin.c main.c
+SRC = teleportapp.c teleportappwin.c main.c browser.c
 BUILT_SRC = resources.c
 
 OBJS = $(BUILT_SRC:.c=.o) $(SRC:.c=.o)

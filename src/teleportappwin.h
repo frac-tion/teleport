@@ -11,6 +11,8 @@ G_DECLARE_FINAL_TYPE (TeleportAppWindow, teleport_app_window, TELEPORT, APP_WIND
   TeleportAppWindow       *teleport_app_window_new          (TeleportApp *app);
   void                    teleport_app_window_open         (TeleportAppWindow *win,
       GFile            *file);
+  extern void update_remote_device_list(TeleportAppWindow *, char *);
+  extern void update_remote_device_list_remove(TeleportAppWindow *, char *);
 
 
 #endif /* __TELEPORTAPPWIN_H */
