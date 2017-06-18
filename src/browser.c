@@ -159,6 +159,7 @@ fail:
 */
 
 int run_avahi_service() {
+
    /* Call this when the application starts up. */
     int error;
 
