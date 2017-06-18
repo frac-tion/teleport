@@ -1,30 +1,16 @@
 #include <gtk/gtk.h>
 
 #include "teleportapp.h"
+#include "teleportpeer.h"
 #include "teleportappwin.h"
 #include "browser.h"
 
-enum {
-  ADDPEER, REMOVEPEER
-};
-
 static TeleportAppWindow *win;
-static TeleportApp *mainApp;
-static gint signalIds [2];
-
 
 struct _TeleportApp
 {
   GtkApplication parent;
 };
-
-typedef struct Peers {
-  char *name;
-  char *ip;
-  int port;
-} Peer;
-
-static Peer remote_peers[100];
 
 G_DEFINE_TYPE(TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
 
@@ -50,7 +36,6 @@ void callback_remove_peer(GObject * instance, char * name, TeleportAppWindow * w
   static void
 teleport_app_init (TeleportApp *app)
 {
-  mainApp = app;
 
 }
 
@@ -58,12 +43,19 @@ teleport_app_init (TeleportApp *app)
 teleport_app_activate (GApplication *app)
 {
   //TeleportAppWindow *win;
+  TeleportPeer *peerList = g_object_new (TELEPORT_TYPE_PEER, NULL);
 
   win = teleport_app_window_new (TELEPORT_APP (app));
   gtk_window_present (GTK_WINDOW (win));
-  g_signal_connect (app, "addpeer", (GCallback)callback_add_peer, win);
-  g_signal_connect (app, "removepeer", (GCallback)callback_remove_peer, win);
-  run_avahi_service();
+
+  g_signal_connect (peerList, "addpeer", (GCallback)callback_add_peer, win);
+  g_signal_connect (peerList, "removepeer", (GCallback)callback_remove_peer, win);
+  /*teleport_peer_add_peer(peerList, "julian", "192.168.0.1", 3000);
+  g_print("Data: %s\n", teleport_peer_get_name(peerList, 0, NULL));
+  g_print("Data: %s\n", teleport_peer_get_ip(peerList, 0, NULL));
+  g_print("Data: %d\n", teleport_peer_get_port(peerList, 0, NULL));
+  */
+  run_avahi_service(peerList);
 }
 
   static void
@@ -92,28 +84,6 @@ teleport_app_class_init (TeleportAppClass *class)
 {
   G_APPLICATION_CLASS (class)->activate = teleport_app_activate;
   G_APPLICATION_CLASS (class)->open = teleport_app_open;
-  //should acctualy be events form the avahi class
-  signalIds[ADDPEER] = g_signal_new ("addpeer",
-      G_TYPE_OBJECT,
-      G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-      0,
-      NULL /* accumulator */,
-      NULL /* accumulator data */,
-      NULL /* C marshaller */,
-      G_TYPE_NONE /* return_type */,
-      1,
-      G_TYPE_STRING);
-
-  signalIds[REMOVEPEER] = g_signal_new ("removepeer",
-      G_TYPE_OBJECT,
-      G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-      0,
-      NULL /* accumulator */,
-      NULL /* accumulator data */,
-      NULL /* C marshaller */,
-      G_TYPE_NONE /* return_type */,
-      1,
-      G_TYPE_STRING);
 }
 
   TeleportApp *
@@ -123,15 +93,4 @@ teleport_app_new (void)
       "application-id", "org.gtk.teleportapp",
       "flags", G_APPLICATION_HANDLES_OPEN,
       NULL);
-}
-
-
-
-void teleport_app_add_peer (char *name, int port, char* addr) {
-  //g_print("\t%s:%u (%s)\n", name, port, addr);
-  g_signal_emit (mainApp, signalIds[ADDPEER], 0, name);
-}
-
-void teleport_app_remove_peer (char *name) {
-  g_signal_emit (mainApp, signalIds[REMOVEPEER], 0, name);
 }

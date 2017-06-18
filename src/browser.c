@@ -13,10 +13,13 @@
 #include <avahi-common/error.h>
 #include <avahi-common/thread-watch.h>
 #include "teleportapp.h"
+#include "teleportpeer.h"
 #include "browser.h"
+
 static AvahiSimplePoll *simple_poll = NULL;
 static AvahiThreadedPoll *threaded_poll = NULL;
 static AvahiClient *client = NULL;
+static TeleportPeer *peerList = NULL;
 
 static void resolve_callback(
     AvahiServiceResolver *r,
@@ -43,7 +46,8 @@ static void resolve_callback(
             fprintf(stderr, "Service '%s' of type '%s' in domain '%s':\n", name, type, domain);
             avahi_address_snprint(a, sizeof(a), address);
             t = avahi_string_list_to_string(txt);
-            teleport_app_add_peer(name, port, a);
+            teleport_peer_add_peer(peerList, g_strdup(name), g_strdup(a), port);
+            //teleport_app_add_peer(name, port, a);
             /*fprintf(stderr,
                     "\t%s:%u (%s)\n"
                     "\tTXT=%s\n"
@@ -92,12 +96,14 @@ static void browse_callback(
                function we free it. If the server is terminated before
                the callback function is called the server will free
                the resolver for us. */
-            if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0, resolve_callback, c)))
+            //if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0, resolve_callback, c)))
+            if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_INET, 0, resolve_callback, c)))
                 fprintf(stderr, "Failed to resolve service '%s': %s\n", name, avahi_strerror(avahi_client_errno(c)));
             break;
         case AVAHI_BROWSER_REMOVE:
             fprintf(stderr, "(Browser) REMOVE: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
-            teleport_app_remove_peer(name);
+            //teleport_app_remove_peer(name);
+            teleport_peer_remove_peer(peerList, g_strdup(name));
             break;
         case AVAHI_BROWSER_ALL_FOR_NOW:
         case AVAHI_BROWSER_CACHE_EXHAUSTED:
@@ -158,7 +164,8 @@ fail:
 }
 */
 
-int run_avahi_service() {
+int run_avahi_service(TeleportPeer* peers) {
+  peerList = peers;
 
    /* Call this when the application starts up. */
     int error;
