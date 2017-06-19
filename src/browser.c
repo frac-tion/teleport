@@ -16,7 +16,7 @@
 #include "teleportpeer.h"
 #include "browser.h"
 
-static AvahiSimplePoll *simple_poll = NULL;
+//static AvahiSimplePoll *simple_poll = NULL;
 static AvahiThreadedPoll *threaded_poll = NULL;
 static AvahiClient *client = NULL;
 static TeleportPeer *peerList = NULL;
@@ -96,8 +96,8 @@ static void browse_callback(
                function we free it. If the server is terminated before
                the callback function is called the server will free
                the resolver for us. */
-            //if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0, resolve_callback, c)))
-            if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_INET, 0, resolve_callback, c)))
+            if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0, resolve_callback, c)))
+            //if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_INET, 0, resolve_callback, c)))
                 fprintf(stderr, "Failed to resolve service '%s': %s\n", name, avahi_strerror(avahi_client_errno(c)));
             break;
         case AVAHI_BROWSER_REMOVE:
@@ -182,7 +182,8 @@ int run_avahi_service(TeleportPeer* peers) {
    }
 
    /* create some browsers on the client object here, if you wish */
-   if (!(avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_http._tcp", NULL, 0, browse_callback, client))) {
+   //if (!(avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_http._tcp", NULL, 0, browse_callback, client))) {
+   if (!(avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_INET, "_http._tcp", NULL, 0, browse_callback, client))) {
      /* so something bad */
      return 1;
    }
