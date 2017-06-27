@@ -40,11 +40,41 @@ teleport_app_window_init (TeleportAppWindow *win)
   g_object_unref (builder);
 }
 
+static void
+open_file_picker(GtkButton * btn, GtkWidget* win) {
+  GtkWidget *dialog;
+  GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+  gint res;
+
+  dialog = gtk_file_chooser_dialog_new ("Open File",
+      GTK_WINDOW(win),
+      action,
+      ("_Cancel"),
+      GTK_RESPONSE_CANCEL,
+      ("_Open"),
+      GTK_RESPONSE_ACCEPT,
+      NULL);
+
+  res = gtk_dialog_run (GTK_DIALOG (dialog));
+  if (res == GTK_RESPONSE_ACCEPT)
+  {
+    char *filename;
+    GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+    filename = gtk_file_chooser_get_filename (chooser);
+    g_print("Choosen file is %s\n", filename);
+    //open_file (filename);
+    g_free (filename);
+  }
+
+  gtk_widget_destroy (dialog);
+}
+
 void update_remote_device_list(TeleportAppWindow *win, char * name) {
   TeleportAppWindowPrivate *priv;
   GtkBuilder *builder_remote_list;
   GtkWidget *row;
   GtkLabel *name_label;
+  GtkButton *send_btn;
   //GtkWidget *line;
 
   priv = teleport_app_window_get_instance_private (win);
@@ -55,11 +85,14 @@ void update_remote_device_list(TeleportAppWindow *win, char * name) {
   name_label = GTK_LABEL (gtk_builder_get_object (builder_remote_list, "device_name"));
   gtk_label_set_text(name_label, name);
   gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), row, -1);
+  send_btn = GTK_BUTTON (gtk_builder_get_object (builder_remote_list, "send_btn"));
+  g_signal_connect (send_btn, "clicked", G_CALLBACK (open_file_picker), GTK_WIDGET(win));
 
   //line = GTK_WIDGET (gtk_builder_get_object (builder_remote_list, "remote_space_row"));
   //gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), line, -1);
   g_object_unref (builder_remote_list);
 }
+
 
 void update_remote_device_list_remove(TeleportAppWindow *win, char * name) {
   TeleportAppWindowPrivate *priv;
@@ -77,7 +110,7 @@ void update_remote_device_list_remove(TeleportAppWindow *win, char * name) {
   while(remote_row != NULL) {
     name_label = GTK_LABEL(find_child(GTK_WIDGET(remote_row), "GtkLabel"));
     if (name_label != NULL && g_strcmp0(name, gtk_label_get_text(name_label)) == 0) {
-        gtk_container_remove (GTK_CONTAINER(box), GTK_WIDGET(remote_row));
+      gtk_container_remove (GTK_CONTAINER(box), GTK_WIDGET(remote_row));
     }
     i++;
     remote_row = gtk_list_box_get_row_at_index (GTK_LIST_BOX(box), i);

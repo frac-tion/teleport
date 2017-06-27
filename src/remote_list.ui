@@ -35,7 +35,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButton">
+          <object class="GtkButton" id="send_btn">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="halign">end</property>
