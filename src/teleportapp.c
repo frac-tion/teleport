@@ -58,6 +58,14 @@ teleport_app_activate (GApplication *app)
   */
   run_avahi_publish_service("Angela's (self)");
   run_avahi_service(peerList);
+	GNotification *notification = g_notification_new ("Hello world!");
+	g_notification_set_body (notification, "This is an example notification.");
+	GIcon *icon = g_themed_icon_new ("dialog-information");
+	g_notification_set_icon (notification, icon);
+	g_notification_add_button (notification, "5 minutes", "app.reply-5-minutes");
+	g_application_send_notification (app, NULL, notification);
+	g_object_unref (icon);
+	g_object_unref (notification);
 }
 
   static void

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Teleport
+Exec=/home/tobi/code/teleport/src/teleportapp
+Icon=utilities-terminal
+Type=Application
+Categories=GTK;GNOME;Utility;
