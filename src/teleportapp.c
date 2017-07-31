@@ -5,6 +5,7 @@
 #include "teleportappwin.h"
 #include "browser.h"
 #include "publish.h"
+#include "server.h"
 
 static TeleportAppWindow *win;
 
@@ -56,6 +57,7 @@ teleport_app_activate (GApplication *app)
   g_print("Data: %s\n", teleport_peer_get_ip(peerList, 0, NULL));
   g_print("Data: %d\n", teleport_peer_get_port(peerList, 0, NULL));
   */
+  run_http_server();
   run_avahi_publish_service("Angela's (self)");
   run_avahi_service(peerList);
 	GNotification *notification = g_notification_new ("Hello world!");

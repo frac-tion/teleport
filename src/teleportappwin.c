@@ -2,6 +2,7 @@
 
 #include "teleportapp.h"
 #include "teleportappwin.h"
+#include "server.h"
 
 
 GtkWidget* find_child(GtkWidget* , const gchar* );
@@ -62,6 +63,7 @@ open_file_picker(GtkButton * btn, GtkWidget* win) {
     GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
     filename = gtk_file_chooser_get_filename (chooser);
     g_print("Choosen file is %s\n", filename);
+    addRouteToServer(g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), filename, "localhost");
     //open_file (filename);
     g_free (filename);
   }

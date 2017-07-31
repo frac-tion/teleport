@@ -69,6 +69,7 @@ get (char *url, const gchar *output_file_path)
 
   g_object_ref (msg);
   soup_session_queue_message (session, msg, finished, loop);
+  // soup_session_queue_message (session, msg, finished, NULL);
   g_main_loop_run (loop);
 
   name = soup_message_get_uri (msg)->path;
@@ -79,7 +80,8 @@ get (char *url, const gchar *output_file_path)
   if (SOUP_STATUS_IS_REDIRECTION (msg->status_code)) {
     g_print ("%s: %d %s\n", name, msg->status_code, msg->reason_phrase);
   } else if (SOUP_STATUS_IS_SUCCESSFUL (msg->status_code)) {
-    output_file = fopen (concat(output_file_path, name), "w");
+    g_print ("###########Name: %s\n", concat(output_file_path, name));
+    output_file = fopen (concat(output_file_path, "name"), "w");
     if (!output_file)
       g_printerr ("Error trying to create file %s.\n", output_file_path);
 
@@ -98,9 +100,26 @@ get (char *url, const gchar *output_file_path)
   return 0;
 }
 
-int main ()
+//int do_get_request (char * url)
+int do_client_notify (char * url)
 {
   //url and absoulte path to download dir
+  //get ("http://juliansparber.com/index.html", "./test_download");
+  get (g_strdup(url),"./test_download");
+  return 0;
+}
+
+int do_downloading (char * url)
+{
+  g_print("Downloading url %s\n", url);
+  //get (g_strdup(url),"./test_download");
   get ("http://juliansparber.com/index.html", "./test_download");
   return 0;
 }
+
+
+/*int main () {
+  get ("http://juliansparber.com/index.html", "./test_download");
+  return 0;
+}
+*/

@@ -12,6 +12,12 @@
 #include <libsoup/soup.h>
 #include <glib/gstdio.h>
 
+#include "get.h"
+
+static int port;
+static SoupServer *server;
+static const char *tls_cert_file, *tls_key_file;
+
   static int
 compare_strings (gconstpointer a, gconstpointer b)
 {
@@ -223,7 +229,11 @@ do_get_response_json (SoupServer *server, SoupMessage *msg, const char *path)
 
   soup_message_set_status (msg, SOUP_STATUS_OK);
 }
-
+static void handle_incoming_file(const char * hash, const char * name, const char * size, const char * origin) {
+  //If the user accepts the file
+  do_downloading(g_strdup_printf("http://%s:%d/transfer/%s", origin, port, hash));
+  g_print("Got a new file form %s with size:%s with title: %s\n", origin, size, name);
+}
 
   static void
 server_callback (SoupServer *server, SoupMessage *msg,
@@ -258,17 +268,17 @@ server_callback (SoupServer *server, SoupMessage *msg,
       if (token != NULL && size != NULL && file_name != NULL) {
         g_print("Token: %s, Size: %s, Name: %s\n", token, size, file_name);
         response = g_string_new("{\"error\": false, \"message\": \"Success\"}");
+        handle_incoming_file(token, file_name, size, "localhost");
       }
       else 
         response = g_string_new("{\"error\": true, \"message\": \"query malformed\"}");
     }
     else {
-      g_print("#####Helloo crash");
+      g_print("No query passed");
       response = g_string_new("{\"error\": true, \"message\": \"No query passed\"}");
     }
-      
+
   }
-  //file_path = g_strdup_printf (".%s", path);
 
   if (g_strcmp0(path, "/") == 0) {
   }
@@ -281,13 +291,11 @@ server_callback (SoupServer *server, SoupMessage *msg,
           SOUP_MEMORY_TAKE,
           response->str, response->len);
       soup_message_set_status (msg, SOUP_STATUS_OK);
-    g_print("Handle response\n");
+      g_print("Handle response\n");
     }
-    
+
     //do_get_response_json (server, msg, "hello world");
   }
-  //else if (msg->method == SOUP_METHOD_PUT)
-  //	do_put (server, msg, file_path);
   else
     soup_message_set_status (msg, SOUP_STATUS_NOT_IMPLEMENTED);
 
@@ -305,77 +313,31 @@ quit (int sig)
   exit (0);
 }
 
-static int port;
-static const char *tls_cert_file, *tls_key_file;
 
-/*static GOptionEntry entries[] = {
-  { "cert-file", 'c', 0,
-    G_OPTION_ARG_STRING, &tls_cert_file,
-    "Use FILE as the TLS certificate file", "FILE" },
-  { "key-file", 'k', 0,
-    G_OPTION_ARG_STRING, &tls_key_file,
-    "Use FILE as the TLS private key file", "FILE" },
-  { "port", 'p', 0,
-    G_OPTION_ARG_INT, &port,
-    "Port to listen on", NULL },
-  { NULL }
-};
-*/
+int addRouteToServer(char *name, char *file_to_send, char *destination) {
+  soup_server_add_handler (server, g_strdup_printf("/transfer/%s", name),
+      server_callback, g_strdup(file_to_send), NULL);
+  //send notification of avabile file to the client
+  //For getting file size
+  //https://developer.gnome.org/gio/stable/GFile.html#g-file-query-info
+  do_client_notify(g_strdup_printf("http://%s:%d/?token=%s&size=0&name=%s\n", destination, port, name, file_to_send));
+  return 0;
+}
 
-int createServer(char *file_to_send) 
-{
-  GMainLoop *loop;
-  SoupServer *server;
+int run_http_server() {
+  //GMainLoop *loop;
   GSList *uris, *u;
   char *str;
   GTlsCertificate *cert;
   GError *error = NULL;
 
-  /*opts = g_option_context_new (NULL);
-  g_option_context_add_main_entries (opts, entries, NULL);
-  if (!g_option_context_parse (opts, &argc, &argv, &error)) {
-    g_printerr ("Could not parse arguments: %s\n",
-        error->message);
-    g_printerr ("%s",
-        g_option_context_get_help (opts, TRUE, NULL));
-    exit (1);
-  }
-  if (argc != 1) {
-    g_printerr ("%s",
-        g_option_context_get_help (opts, TRUE, NULL));
-    exit (1);
-  }
-  g_option_context_free (opts);
-  */
-
-  //signal (SIGINT, quit);
-
   port = 3000;
-
-  /*if (tls_cert_file && tls_key_file) {
-    cert = g_tls_certificate_new_from_files (tls_cert_file, tls_key_file, &error);
-    if (error) {
-      g_printerr ("Unable to create server: %s\n", error->message);
-      exit (1);
-    }
-    server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "teleport-httpd ",
-        SOUP_SERVER_TLS_CERTIFICATE, cert,
-        NULL);
-    g_object_unref (cert);
-
-    soup_server_listen_all (server, port, SOUP_SERVER_LISTEN_HTTPS, &error);
-  } else {
-  */
-    server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "teleport-httpd ",
-        NULL);
-    soup_server_listen_all (server, port, 0, &error);
-  //}
+  server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "teleport-httpd ",
+      NULL);
+  soup_server_listen_all (server, port, 0, &error);
 
   soup_server_add_handler (server, NULL,
       server_callback, NULL, NULL);
-
-  soup_server_add_handler (server, "/transfer/file1",
-      server_callback, file_to_send, NULL);
 
   uris = soup_server_get_uris (server);
   for (u = uris; u; u = u->next) {
@@ -388,17 +350,17 @@ int createServer(char *file_to_send)
 
   g_print ("\nWaiting for requests...\n");
 
-  loop = g_main_loop_new (NULL, TRUE);
-  g_main_loop_run (loop);
+  //loop = g_main_loop_new (NULL, TRUE);
+  //g_main_loop_run (loop);
 
   return 0;
 }
-  int
+
+/*  int
 main (int argc, char **argv)
 {
-  //GOptionContext *opts;
   char *file_to_send = "/home/julian/teleport/docs/flow-diagram.svg";
   createServer(file_to_send);
   return 0;
 }
-
+*/
