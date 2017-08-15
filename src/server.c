@@ -231,7 +231,7 @@ do_get_response_json (SoupServer *server, SoupMessage *msg, const char *path)
 }
 static void handle_incoming_file(const char * hash, const char * name, const char * size, const char * origin) {
   //If the user accepts the file
-  do_downloading(g_strdup_printf("http://%s:%d/transfer/%s", origin, port, hash));
+  do_downloading(g_strdup_printf("http://%s:%d/transfer/%s", origin, port, hash), name);
   g_print("Got a new file form %s with size:%s with title: %s\n", origin, size, name);
 }
 
@@ -320,7 +320,8 @@ int addRouteToServer(char *name, char *file_to_send, char *destination) {
   //send notification of avabile file to the client
   //For getting file size
   //https://developer.gnome.org/gio/stable/GFile.html#g-file-query-info
-  do_client_notify(g_strdup_printf("http://%s:%d/?token=%s&size=0&name=%s\n", destination, port, name, file_to_send));
+  do_client_notify(g_strdup_printf("http://%s:%d/?token=%s&size=0&name=%s\n", destination, port, 
+        name, file_to_send));
   return 0;
 }
 
