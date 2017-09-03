@@ -25,6 +25,7 @@ G_DEFINE_TYPE(TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
 
 static void create_user_notification (const char *file_name, const int file_size, const char *origin_device)
 {
+  g_print("Create Notification");
   GNotification *notification = g_notification_new ("Teleport");
   g_notification_set_body (notification, g_strdup_printf("%s is sending %s (%d Byte)", origin_device, file_name, file_size));
   GIcon *icon = g_themed_icon_new ("dialog-information");
@@ -83,6 +84,7 @@ teleport_app_init (TeleportApp *app)
 teleport_app_activate (GApplication *app)
 {
   //TeleportAppWindow *win;
+  application = app;
   TeleportPeer *peerList = g_object_new (TELEPORT_TYPE_PEER, NULL);
 
   win = teleport_app_window_new (TELEPORT_APP (app));
@@ -96,10 +98,11 @@ teleport_app_activate (GApplication *app)
     g_print("Data: %s\n", teleport_peer_get_ip(peerList, 0, NULL));
     g_print("Data: %d\n", teleport_peer_get_port(peerList, 0, NULL));
     */
+
+  create_user_notification ("sdfdsff", 2000, "sdfdsfdsf");
   run_http_server();
   run_avahi_publish_service("Angela's (self)");
   run_avahi_service(peerList);
-  application = app;
 }
 
   static void
