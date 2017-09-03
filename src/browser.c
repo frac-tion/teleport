@@ -103,7 +103,7 @@ static void browse_callback(
         case AVAHI_BROWSER_REMOVE:
             fprintf(stderr, "(Browser) REMOVE: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
             //teleport_app_remove_peer(name);
-            teleport_peer_remove_peer(peerList, g_strdup(name));
+            teleport_peer_remove_peer_by_name(peerList, g_strdup(name));
             break;
         case AVAHI_BROWSER_ALL_FOR_NOW:
         case AVAHI_BROWSER_CACHE_EXHAUSTED:

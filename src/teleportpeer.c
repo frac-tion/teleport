@@ -98,11 +98,11 @@ void teleport_peer_add_peer (TeleportPeer *self, gchar * name, gchar * ip, gint 
 
 void teleport_peer_remove_peer (TeleportPeer *self, Peer *device)
 {
-  Peer element;
+  Peer *element;
   gboolean found = FALSE;
   //Maybe I could just compare the addresses
   for (int i = 0; i < self->list->len && !found; i++) {
-    Peer *element = g_array_index(self->list, Peer *, i);
+    element = g_array_index(self->list, Peer *, i);
     if (g_strcmp0(element->name, device->name) == 0) {
       found = TRUE;
       g_array_remove_index(self->list, i);
@@ -111,3 +111,18 @@ void teleport_peer_remove_peer (TeleportPeer *self, Peer *device)
   g_signal_emit (self, signalIds[REMOVE], 0, device);
 }
 
+void teleport_peer_remove_peer_by_name (TeleportPeer *self, gchar *name)
+{
+
+  g_print("Remove this device %s", name);
+  Peer *element;
+  gboolean found = FALSE;
+  for (int i = 0; i < self->list->len && !found; i++) {
+    element = g_array_index(self->list, Peer *, i);
+    if (g_strcmp0(element->name, name) == 0) {
+      found = TRUE;
+      g_array_remove_index(self->list, i);
+    }
+  }
+  g_signal_emit (self, signalIds[REMOVE], 0, element);
+}
