@@ -6,6 +6,7 @@
 
 
 GtkWidget* find_child(GtkWidget* , const gchar* );
+TeleportAppWindow* mainWin;
 
 struct _TeleportAppWindow
 {
@@ -29,8 +30,10 @@ teleport_app_window_init (TeleportAppWindow *win)
   TeleportAppWindowPrivate *priv;
   GtkBuilder *builder;
   GtkWidget *menu;
+  mainWin = win;
 
   priv = teleport_app_window_get_instance_private (win);
+
   gtk_widget_init_template (GTK_WIDGET (win));
 
   builder = gtk_builder_new_from_resource ("/org/gtk/teleportapp/settings.ui");
@@ -42,13 +45,14 @@ teleport_app_window_init (TeleportAppWindow *win)
 }
 
 static void
-open_file_picker(GtkButton * btn, GtkWidget* win) {
+open_file_picker(GtkButton * btn, GString* deviceName) {
   GtkWidget *dialog;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
   gint res;
+  g_print("Open file chooser for submitting a file to %s\n", deviceName);
 
   dialog = gtk_file_chooser_dialog_new ("Open File",
-      GTK_WINDOW(win),
+      GTK_WINDOW(mainWin),
       action,
       ("_Cancel"),
       GTK_RESPONSE_CANCEL,
@@ -88,7 +92,7 @@ void update_remote_device_list(TeleportAppWindow *win, char * name) {
   gtk_label_set_text(name_label, name);
   gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), row, -1);
   send_btn = GTK_BUTTON (gtk_builder_get_object (builder_remote_list, "send_btn"));
-  g_signal_connect (send_btn, "clicked", G_CALLBACK (open_file_picker), GTK_WIDGET(win));
+  g_signal_connect (send_btn, "clicked", G_CALLBACK (open_file_picker), name);
 
   //line = GTK_WIDGET (gtk_builder_get_object (builder_remote_list, "remote_space_row"));
   //gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), line, -1);
