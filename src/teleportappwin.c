@@ -67,11 +67,14 @@ open_file_picker(GtkButton *btn, Peer *device) {
     GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
     filename = gtk_file_chooser_get_filename (chooser);
     g_print("Choosen file is %s\n", filename);
+    gtk_widget_destroy (dialog);
     addRouteToServer(g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), filename, device->ip);
     g_free (filename);
   }
-
-  gtk_widget_destroy (dialog);
+  else
+  {
+    gtk_widget_destroy (dialog);
+  }
 }
 
 void update_remote_device_list(TeleportAppWindow *win, Peer *device) {
