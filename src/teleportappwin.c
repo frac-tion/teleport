@@ -5,8 +5,8 @@
 #include "server.h"
 
 
-GtkWidget* find_child(GtkWidget* , const gchar* );
-TeleportAppWindow* mainWin;
+GtkWidget *find_child(GtkWidget *, const gchar *);
+TeleportAppWindow *mainWin;
 
 struct _TeleportAppWindow
 {
@@ -45,7 +45,7 @@ teleport_app_window_init (TeleportAppWindow *win)
 }
 
 static void
-open_file_picker(GtkButton * btn, GString* deviceName) {
+open_file_picker(GtkButton *btn, GString *deviceName) {
   GtkWidget *dialog;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
   gint res;
@@ -75,7 +75,7 @@ open_file_picker(GtkButton * btn, GString* deviceName) {
   gtk_widget_destroy (dialog);
 }
 
-void update_remote_device_list(TeleportAppWindow *win, char * name) {
+void update_remote_device_list(TeleportAppWindow *win, char *name) {
   TeleportAppWindowPrivate *priv;
   GtkBuilder *builder_remote_list;
   GtkWidget *row;
@@ -100,7 +100,7 @@ void update_remote_device_list(TeleportAppWindow *win, char * name) {
 }
 
 
-void update_remote_device_list_remove(TeleportAppWindow *win, char * name) {
+void update_remote_device_list_remove(TeleportAppWindow *win, char *name) {
   TeleportAppWindowPrivate *priv;
   GtkWidget *box;
   GtkListBoxRow *remote_row;
@@ -123,10 +123,10 @@ void update_remote_device_list_remove(TeleportAppWindow *win, char * name) {
   }
 }
 
-  GtkWidget*
-find_child(GtkWidget* parent, const gchar* name)
+  GtkWidget *
+find_child(GtkWidget *parent, const gchar *name)
 {
-  if (g_strcmp0(gtk_widget_get_name((GtkWidget*)parent), (gchar*)name) == 0) {
+  if (g_strcmp0(gtk_widget_get_name((GtkWidget *)parent), (gchar *)name) == 0) {
     return parent;
   }
 
@@ -138,7 +138,7 @@ find_child(GtkWidget* parent, const gchar* name)
   if (GTK_IS_CONTAINER(parent)) {
     GList *children = gtk_container_get_children(GTK_CONTAINER(parent));
     while ((children = g_list_next(children)) != NULL) {
-      GtkWidget* widget = find_child(children->data, name);
+      GtkWidget *widget = find_child(children->data, name);
       if (widget != NULL) {
         return widget;
       }
