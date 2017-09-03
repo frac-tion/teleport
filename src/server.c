@@ -230,9 +230,9 @@ do_get_response_json (SoupServer *server, SoupMessage *msg, const char *path)
   soup_message_set_status (msg, SOUP_STATUS_OK);
 }
 static void handle_incoming_file(const char * hash, const char * name, const char * size, const char * origin) {
+  g_print("Got a new file form %s with size:%s with title: %s\n", origin, size, name);
   //If the user accepts the file
   do_downloading(g_strdup_printf("http://%s:%d/transfer/%s", origin, port, hash), name);
-  g_print("Got a new file form %s with size:%s with title: %s\n", origin, size, name);
 }
 
   static void

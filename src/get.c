@@ -72,7 +72,7 @@ get (char *url, const gchar *output_file_path)
   } else if (SOUP_STATUS_IS_SUCCESSFUL (msg->status_code)) {
     //if there is no file name and path the page will not get saved
     if (output_file_path == NULL) {
-      g_print ("Got a file offered form a other peer. Will not save anything.\n");
+      //g_print ("%s: Got a file offered form a other peer. Will not save anything.\n", name);
     }
     else {
       output_file = fopen (output_file_path, "w");
@@ -103,7 +103,7 @@ int do_client_notify (char * url)
 
 int do_downloading (char * url, char * file_name)
 {
-  g_print("Downloading url %s\n", url);
+  g_print("Downloading %s to %s (Does not yet save)\n", url, g_uri_escape_string(file_name, NULL, TRUE));
   //get (g_strdup(url),"./test_download");
   //get ("http://juliansparber.com/index.html", "./test_download");
   return 0;
