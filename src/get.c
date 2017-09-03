@@ -104,9 +104,8 @@ int do_client_notify (char * url)
 
 int do_downloading (char * url, char * file_name)
 {
-  g_print("Downloading %s to %s (Does not yet save)\n", url, g_uri_escape_string(file_name, NULL, TRUE));
-  //get (g_strdup(url),"./test_download");
-  //get ("http://juliansparber.com/index.html", "./test_download");
+  g_print("Downloading %s to %s\n", url, g_uri_escape_string(file_name, NULL, TRUE));
+  get (g_strdup(url), g_strdup_printf("./test_download/%s", g_uri_escape_string(file_name, NULL, TRUE)));
   return 0;
 }
 
