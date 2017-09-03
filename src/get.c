@@ -98,6 +98,7 @@ get (char *url, const gchar *output_file_path)
 int do_client_notify (char * url)
 {
   get (g_strdup(url), NULL);
+  g_print("Offering selected file to other machine.\n");
   return 0;
 }
 
