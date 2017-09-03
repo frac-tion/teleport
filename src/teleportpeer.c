@@ -5,19 +5,12 @@ enum {
   ADD, REMOVE, N_SIGNALS
 };
 
-typedef struct Peers {
-  char *name;
-  char *ip;
-  gint port;
-} Peer;
-
 static gint signalIds [N_SIGNALS];
 
 struct _TeleportPeer
 {
   GObject parent;
   GArray *list;
-
   /* instance members */
 };
 
@@ -44,7 +37,7 @@ teleport_peer_class_init (TeleportPeerClass *klass)
       NULL /* C marshaller */,
       G_TYPE_NONE /* return_type */,
       1,
-      G_TYPE_STRING);
+      G_TYPE_POINTER);
 
   signalIds[REMOVE] = g_signal_new ("removepeer",
       G_TYPE_OBJECT,
@@ -55,14 +48,14 @@ teleport_peer_class_init (TeleportPeerClass *klass)
       NULL /* C marshaller */,
       G_TYPE_NONE /* return_type */,
       1,
-      G_TYPE_STRING);
+      G_TYPE_POINTER);
 
 }
 
 static void
 teleport_peer_init (TeleportPeer *self)
 {
-  self->list = g_array_new (FALSE, FALSE, sizeof(Peer));
+  self->list = g_array_new (FALSE, FALSE, sizeof(Peer *));
 }
 
 gchar * teleport_peer_get_name (TeleportPeer *self, gint index, GError **error)
@@ -71,47 +64,50 @@ gchar * teleport_peer_get_name (TeleportPeer *self, gint index, GError **error)
   //g_return_if_fail (error == NULL || *error == NULL);
   if (index > self->list->len-1)
     return NULL;
-  Peer element = g_array_index(self->list, Peer, index);
-  return element.name;
+  Peer *element = g_array_index(self->list, Peer *, index);
+  return element->name;
 }
 
 gchar * teleport_peer_get_ip (TeleportPeer *self, gint index, GError **error)
 {
   //g_return_if_fail (TELEPORT_IS_PEER (self));
   //g_return_if_fail (error == NULL || *error == NULL);
-  Peer element = g_array_index(self->list, Peer, index);
+  Peer *element = g_array_index(self->list, Peer *, index);
   if (index > self->list->len-1)
     return NULL;
-  return element.ip;
+  return element->ip;
 }
 gint teleport_peer_get_port (TeleportPeer *self, gint index, GError **error)
 {
-  Peer element = g_array_index(self->list, Peer, index);
+  Peer *element = g_array_index(self->list, Peer*, index);
   if (index > self->list->len-1)
     return 0;
-  return element.port;
+  return element->port;
 }
 
 void teleport_peer_add_peer (TeleportPeer *self, gchar * name, gchar * ip, gint port)
 {
-  Peer new;
-  new.ip = ip;
-  new.port = port;
-  new.name = name;
+  Peer *new = g_new(Peer, 1);
+  new->ip = ip;
+  new->port = port;
+  new->name = name;
   g_array_append_val(self->list, new);
-  g_signal_emit (self, signalIds[ADD], 0, name);
+
+  g_signal_emit (self, signalIds[ADD], 0, new);
 }
 
-void teleport_peer_remove_peer (TeleportPeer *self, gchar * name)
+void teleport_peer_remove_peer (TeleportPeer *self, Peer *device)
 {
   Peer element;
   gboolean found = FALSE;
+  //Maybe I could just compare the addresses
   for (int i = 0; i < self->list->len && !found; i++) {
-    Peer element = g_array_index(self->list, Peer, i);
-    if (g_strcmp0(element.name, name) == 0) {
+    Peer *element = g_array_index(self->list, Peer *, i);
+    if (g_strcmp0(element->name, device->name) == 0) {
       found = TRUE;
       g_array_remove_index(self->list, i);
     }
   }
-  g_signal_emit (self, signalIds[REMOVE], 0, name);
+  g_signal_emit (self, signalIds[REMOVE], 0, device);
 }
+

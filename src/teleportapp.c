@@ -49,22 +49,24 @@ static void create_finished_notification (const char *file_name, const int file_
 }
 
 
-gboolean mainLoopAddPeerCallback (gpointer name)  {
-  update_remote_device_list(win, (char *)name);
+gboolean mainLoopAddPeerCallback (gpointer peer)  {
+  //g_print("new New device name is %p\n", ((Peer *)peer));
+  //g_print("new New device name is %s\n", ((Peer *)peer)->name);
+  update_remote_device_list(win, (Peer *) peer);
   return G_SOURCE_REMOVE;
 }
 
-gboolean mainLoopRemovePeerCallback (gpointer name)  {
-  update_remote_device_list_remove(win, (char *)name);
+gboolean mainLoopRemovePeerCallback (gpointer peer)  {
+  update_remote_device_list_remove(win, (Peer *) peer);
   return G_SOURCE_REMOVE;
 }
 
-void callback_add_peer(GObject *instance, char *name, TeleportAppWindow *win ) {
-  g_idle_add(mainLoopAddPeerCallback, g_strdup(name));
+void callback_add_peer(GObject *instance, Peer *peer, TeleportAppWindow *win ) {
+  g_idle_add(mainLoopAddPeerCallback, peer);
 }
 
-void callback_remove_peer(GObject *instance, char *name, TeleportAppWindow *win ) {
-  g_idle_add(mainLoopRemovePeerCallback, g_strdup(name));
+void callback_remove_peer(GObject *instance, Peer *peer, TeleportAppWindow *win ) {
+  g_idle_add(mainLoopRemovePeerCallback, peer);
 }
 
 void callback_notify_user(GObject *instance, char *name, TeleportAppWindow *win ) {

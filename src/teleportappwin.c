@@ -3,7 +3,7 @@
 #include "teleportapp.h"
 #include "teleportappwin.h"
 #include "server.h"
-
+#include "teleportpeer.h"
 
 GtkWidget *find_child(GtkWidget *, const gchar *);
 TeleportAppWindow *mainWin;
@@ -45,11 +45,11 @@ teleport_app_window_init (TeleportAppWindow *win)
 }
 
 static void
-open_file_picker(GtkButton *btn, GString *deviceName) {
+open_file_picker(GtkButton *btn, Peer *device) {
   GtkWidget *dialog;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
   gint res;
-  g_print("Open file chooser for submitting a file to %s\n", deviceName);
+  g_print("Open file chooser for submitting a file to %s with Address %s\n", device->name, device->ip);
 
   dialog = gtk_file_chooser_dialog_new ("Open File",
       GTK_WINDOW(mainWin),
@@ -67,15 +67,14 @@ open_file_picker(GtkButton *btn, GString *deviceName) {
     GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
     filename = gtk_file_chooser_get_filename (chooser);
     g_print("Choosen file is %s\n", filename);
-    addRouteToServer(g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), filename, "localhost");
-    //open_file (filename);
+    addRouteToServer(g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), filename, device->ip);
     g_free (filename);
   }
 
   gtk_widget_destroy (dialog);
 }
 
-void update_remote_device_list(TeleportAppWindow *win, char *name) {
+void update_remote_device_list(TeleportAppWindow *win, Peer *device) {
   TeleportAppWindowPrivate *priv;
   GtkBuilder *builder_remote_list;
   GtkWidget *row;
@@ -89,10 +88,10 @@ void update_remote_device_list(TeleportAppWindow *win, char *name) {
 
   row = GTK_WIDGET (gtk_builder_get_object (builder_remote_list, "remote_device_row"));
   name_label = GTK_LABEL (gtk_builder_get_object (builder_remote_list, "device_name"));
-  gtk_label_set_text(name_label, name);
+  gtk_label_set_text(name_label, device->name);
   gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), row, -1);
   send_btn = GTK_BUTTON (gtk_builder_get_object (builder_remote_list, "send_btn"));
-  g_signal_connect (send_btn, "clicked", G_CALLBACK (open_file_picker), name);
+  g_signal_connect (send_btn, "clicked", G_CALLBACK (open_file_picker), device);
 
   //line = GTK_WIDGET (gtk_builder_get_object (builder_remote_list, "remote_space_row"));
   //gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), line, -1);
@@ -100,7 +99,7 @@ void update_remote_device_list(TeleportAppWindow *win, char *name) {
 }
 
 
-void update_remote_device_list_remove(TeleportAppWindow *win, char *name) {
+void update_remote_device_list_remove(TeleportAppWindow *win, Peer *device) {
   TeleportAppWindowPrivate *priv;
   GtkWidget *box;
   GtkListBoxRow *remote_row;
@@ -115,7 +114,7 @@ void update_remote_device_list_remove(TeleportAppWindow *win, char *name) {
 
   while(remote_row != NULL) {
     name_label = GTK_LABEL(find_child(GTK_WIDGET(remote_row), "GtkLabel"));
-    if (name_label != NULL && g_strcmp0(name, gtk_label_get_text(name_label)) == 0) {
+    if (name_label != NULL && g_strcmp0(device->name, gtk_label_get_text(name_label)) == 0) {
       gtk_container_remove (GTK_CONTAINER(box), GTK_WIDGET(remote_row));
     }
     i++;
