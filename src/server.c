@@ -243,7 +243,9 @@ server_callback (SoupServer *server, SoupMessage *msg,
   char *file_path;
   SoupMessageHeadersIter iter;
   GString * response;
-  const char *name, *value, *token, *size, *file_name;
+  const char *name, *value, *token, *size, *file_name, *origin_addr;
+
+  origin_addr = soup_client_context_get_host (context);
 
   g_print ("%s %s HTTP/1.%d\n", msg->method, path,
       soup_message_get_http_version (msg));
@@ -268,7 +270,7 @@ server_callback (SoupServer *server, SoupMessage *msg,
       if (token != NULL && size != NULL && file_name != NULL) {
         g_print("Token: %s, Size: %s, Name: %s\n", token, size, file_name);
         response = g_string_new("{\"error\": false, \"message\": \"Success\"}");
-        handle_incoming_file(token, file_name, size, "localhost");
+        handle_incoming_file(token, file_name, size, origin_addr);
       }
       else 
         response = g_string_new("{\"error\": true, \"message\": \"query malformed\"}");
