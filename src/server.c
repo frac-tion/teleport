@@ -319,11 +319,22 @@ quit (int sig)
 int addRouteToServer(char *name, char *file_to_send, char *destination) {
   soup_server_add_handler (server, g_strdup_printf("/transfer/%s", name),
       server_callback, g_strdup(file_to_send), NULL);
-  //send notification of avabile file to the client
+  //send notification of available file to the client
   //For getting file size
   //https://developer.gnome.org/gio/stable/GFile.html#g-file-query-info
-  do_client_notify(g_strdup_printf("http://%s:%d/?token=%s&size=0&name=%s\n", destination, port, 
-        name, file_to_send));
+  GFile *file;
+  GFileInfo *fileInfo;
+  file = g_file_new_for_path(file_to_send);
+  //G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME, G_FILE_ATTRIBUTE_STANDARD_SIZE
+  fileInfo = g_file_query_info(file, "standard::display-name,standard::size", G_FILE_QUERY_INFO_NONE, NULL, NULL);
+  do_client_notify(g_strdup_printf("http://%s:%d/?token=%s&size=%jd&name=%s\n",
+        destination,
+        port,
+        name,
+        g_file_info_get_size(fileInfo),
+        g_file_info_get_display_name(fileInfo)));
+  g_object_unref(fileInfo);
+  g_object_unref(file);
   return 0;
 }
 
@@ -359,11 +370,11 @@ int run_http_server() {
   return 0;
 }
 
-/*  int
-main (int argc, char **argv)
-{
+/*int
+  main (int argc, char **argv)
+  {
   char *file_to_send = "/home/julian/teleport/docs/flow-diagram.svg";
   createServer(file_to_send);
   return 0;
-}
-*/
+  }
+  */
