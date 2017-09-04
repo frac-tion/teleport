@@ -13,6 +13,7 @@
 #include <glib/gstdio.h>
 
 #include "get.h"
+#include "teleportapp.h"
 
 static int port;
 static SoupServer *server;
@@ -229,10 +230,12 @@ do_get_response_json (SoupServer *server, SoupMessage *msg, const char *path)
 
   soup_message_set_status (msg, SOUP_STATUS_OK);
 }
-static void handle_incoming_file(const char * hash, const char * name, const char * size, const char * origin) {
-  g_print("Got a new file form %s with size:%s with title: %s\n", origin, size, name);
+static void handle_incoming_file(const char *hash, const char *filename, const int size, const char *origin) {
+  g_print("Got a new file form %s with size:%d with title: %s\n", origin, size, filename);
+
+  create_user_notification(filename, size, origin);
   //If the user accepts the file
-  do_downloading(g_strdup_printf("http://%s:%d/transfer/%s", origin, port, hash), name);
+  do_downloading(g_strdup_printf("http://%s:%d/transfer/%s", origin, port, hash), filename);
 }
 
   static void
@@ -270,7 +273,7 @@ server_callback (SoupServer *server, SoupMessage *msg,
       if (token != NULL && size != NULL && file_name != NULL) {
         g_print("Token: %s, Size: %s, Name: %s\n", token, size, file_name);
         response = g_string_new("{\"error\": false, \"message\": \"Success\"}");
-        handle_incoming_file(token, file_name, size, origin_addr);
+        handle_incoming_file(token, file_name, g_ascii_strtoull (size, NULL, 0), origin_addr);
       }
       else 
         response = g_string_new("{\"error\": true, \"message\": \"query malformed\"}");
@@ -279,7 +282,6 @@ server_callback (SoupServer *server, SoupMessage *msg,
       g_print("No query passed");
       response = g_string_new("{\"error\": true, \"message\": \"No query passed\"}");
     }
-
   }
 
   if (g_strcmp0(path, "/") == 0) {

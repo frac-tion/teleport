@@ -22,8 +22,7 @@ struct _TeleportApp {
 G_DEFINE_TYPE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
 
 
-static void create_user_notification (const char *file_name, const int file_size, const char *origin_device) {
-  g_print("Create Notification");
+void create_user_notification (const char *file_name, const int file_size, const char *origin_device) {
   GNotification *notification = g_notification_new ("Teleport");
   g_notification_set_body (notification, g_strdup_printf("%s is sending %s (%d Byte)", origin_device, file_name, file_size));
   GIcon *icon = g_themed_icon_new ("dialog-information");
@@ -137,8 +136,6 @@ teleport_app_class_init (TeleportAppClass *class)
       G_TYPE_NONE /* return_type */,
       1,
       G_TYPE_STRING);
-
-
 }
 
   TeleportApp *
