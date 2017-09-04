@@ -18,7 +18,7 @@ enum {
 
 static GActionEntry app_entries[] =
 {
-  { "save", test_callback, "*", NULL, NULL },
+  { "save", test_callback, "s", NULL, NULL },
   { "quit", test_callback, "s", NULL, NULL }
 };
 
@@ -50,7 +50,7 @@ void create_user_notification (const char *file_name, const int file_size, const
   g_notification_set_icon (notification, icon);
   g_notification_set_default_action(notification, "");
   g_notification_add_button (notification, "Decline", "app.decline");
-  g_notification_add_button_with_target (notification, "Save", "app.save", "*", target);
+  g_notification_add_button_with_target (notification, "Save", "app.save", "s", target);
   g_application_send_notification (application, NULL, notification);
   g_object_unref (icon);
   g_object_unref (notification);
