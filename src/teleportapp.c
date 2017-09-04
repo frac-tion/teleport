@@ -24,7 +24,11 @@ G_DEFINE_TYPE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
 
 void create_user_notification (const char *file_name, const int file_size, const char *origin_device) {
   GNotification *notification = g_notification_new ("Teleport");
-  g_notification_set_body (notification, g_strdup_printf("%s is sending %s (%d Byte)", origin_device, file_name, file_size));
+  g_notification_set_body (notification,
+                           g_strdup_printf("%s is sending %s (%s)",
+                           origin_device,
+                           file_name,
+                           g_format_size (file_size)));
   GIcon *icon = g_themed_icon_new ("dialog-information");
   g_notification_set_icon (notification, icon);
   g_notification_add_button (notification, "Decline", "app.reply-5-minutes");
