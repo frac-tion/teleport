@@ -233,7 +233,8 @@ do_get_response_json (SoupServer *server, SoupMessage *msg, const char *path)
 static void handle_incoming_file(const char *hash, const char *filename, const int size, const char *origin) {
   g_print("Got a new file form %s with size:%d with title: %s\n", origin, size, filename);
 
-  create_user_notification(filename, size, origin);
+  //char* balance[2] = {"First", "Secound"};
+  //create_user_notification(filename, size, origin, balance);
   //If the user accepts the file
   do_downloading(g_strdup_printf("http://%s:%d/transfer/%s", origin, port, hash), filename);
 }
