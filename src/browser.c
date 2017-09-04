@@ -92,6 +92,8 @@ static void browse_callback(
             return;
         case AVAHI_BROWSER_NEW:
             fprintf(stderr, "(Browser) NEW: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
+            if (flags & AVAHI_LOOKUP_RESULT_LOCAL)
+                break;
             /* We ignore the returned resolver object. In the callback
                function we free it. If the server is terminated before
                the callback function is called the server will free
