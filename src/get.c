@@ -13,15 +13,28 @@
 #include <string.h>
 
 #include <libsoup/soup.h>
+#include "teleportapp.h"
 
 static SoupSession *session;
-static GMainLoop *loop;
 static gboolean debug;
 
+
+int callback (SoupMessage *msg, const gchar *output_file_path);
+
   static void
-finished (SoupSession *session, SoupMessage *msg, gpointer loop)
+finished (SoupSession *session, SoupMessage *msg, gpointer target)
 {
-  g_main_loop_quit (loop);
+
+  //GVariant *target array: {originDevice, url, filename}
+  callback(msg,
+      (char *) g_variant_get_string (
+        g_variant_get_child_value ((GVariant *) target, 0), NULL));
+  create_finished_notification ((char *) g_variant_get_string (
+        g_variant_get_child_value ((GVariant *) target, 0), NULL),
+      0,
+      g_variant_get_string (
+        g_variant_get_child_value ((GVariant *) target, 2), NULL),
+      target);
 }
 
   int
@@ -47,21 +60,32 @@ get (char *url, const gchar *output_file_path)
     g_object_unref (logger);
   }
 
-  loop = g_main_loop_new (NULL, TRUE);
-
   SoupMessage *msg;
   const char *header;
-  const char *name;
-  FILE *output_file = NULL;
 
   msg = soup_message_new ("GET", url);
   soup_message_set_flags (msg, SOUP_MESSAGE_NO_REDIRECT);
 
   g_object_ref (msg);
-  soup_session_queue_message (session, msg, finished, loop);
-  // soup_session_queue_message (session, msg, finished, NULL);
-  g_main_loop_run (loop);
+  //soup_session_queue_message (session, msg, finished, loop);
+  GVariantBuilder *builder;
+  GVariant *target;
 
+  builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+  g_variant_builder_add (builder, "s", "devicename");
+  g_variant_builder_add (builder, "s", url);
+  g_variant_builder_add (builder, "s", output_file_path);
+  target = g_variant_new ("as", builder);
+  g_variant_builder_unref (builder);
+
+  soup_session_queue_message (session, msg, finished, target);
+
+  return 0;
+}
+
+int callback (SoupMessage *msg, const gchar *output_file_path) {
+  const char *name;
+  FILE *output_file = NULL;
   name = soup_message_get_uri (msg)->path;
 
   if (SOUP_STATUS_IS_TRANSPORT_ERROR (msg->status_code))
@@ -90,8 +114,6 @@ get (char *url, const gchar *output_file_path)
     }
   }
 
-  g_main_loop_unref (loop);
-
   return 0;
 }
 
@@ -102,17 +124,10 @@ int do_client_notify (char *url)
   return 0;
 }
 
-int 
+  int 
 do_downloading (const char *originDevice, const char *url, const char *filename)
 {
   g_print("Downloading %s to %s\n", url, g_uri_escape_string(filename, NULL, TRUE));
   get (g_strdup(url), g_strdup_printf("./test_download/%s", g_uri_escape_string(filename, NULL, TRUE)));
   return 0;
 }
-
-
-/*int main () {
-  get ("http://juliansparber.com/index.html", "./test_download");
-  return 0;
-  }
-  */
