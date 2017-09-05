@@ -233,10 +233,24 @@ do_get_response_json (SoupServer *server, SoupMessage *msg, const char *path)
 static void handle_incoming_file(const char *hash, const char *filename, const int size, const char *origin) {
   g_print("Got a new file form %s with size:%d with title: %s\n", origin, size, filename);
 
-  //char* balance[2] = {"First", "Secound"};
-  //create_user_notification(filename, size, origin, balance);
-  //If the user accepts the file
-  do_downloading(g_strdup_printf("http://%s:%d/transfer/%s", origin, port, hash), filename);
+  GVariantBuilder *builder;
+  GVariant *value;
+
+  builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+  g_variant_builder_add (builder, "s", origin);
+  g_variant_builder_add (builder,
+                         "s",
+                         g_strdup_printf("http://%s:%d/transfer/%s",
+                                         origin,
+                                         port,
+                                         hash)),
+  g_variant_builder_add (builder, "s", filename);
+  value = g_variant_new ("as", builder);
+  g_variant_builder_unref (builder);
+
+  // create_user_notification startes the download
+  // if the user wants to save the file
+  create_user_notification(filename, size, origin, value);
 }
 
   static void

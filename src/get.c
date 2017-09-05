@@ -95,17 +95,18 @@ get (char *url, const gchar *output_file_path)
   return 0;
 }
 
-int do_client_notify (char * url)
+int do_client_notify (char *url)
 {
   get (g_strdup(url), NULL);
   g_print("Offering selected file to other machine.\n");
   return 0;
 }
 
-int do_downloading (char * url, char * file_name)
+int 
+do_downloading (const char *originDevice, const char *url, const char *filename)
 {
-  g_print("Downloading %s to %s\n", url, g_uri_escape_string(file_name, NULL, TRUE));
-  get (g_strdup(url), g_strdup_printf("./test_download/%s", g_uri_escape_string(file_name, NULL, TRUE)));
+  g_print("Downloading %s to %s\n", url, g_uri_escape_string(filename, NULL, TRUE));
+  get (g_strdup(url), g_strdup_printf("./test_download/%s", g_uri_escape_string(filename, NULL, TRUE)));
   return 0;
 }
 

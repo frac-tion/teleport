@@ -6,11 +6,16 @@
 #include "browser.h"
 #include "publish.h"
 #include "server.h"
+#include "get.h"
 
 
-void test_callback(GSimpleAction *simple,
-                       GVariant      *parameter,
-                       gpointer       user_data);
+void save_file_callback(GSimpleAction *simple,
+    GVariant      *parameter,
+    gpointer       user_data);
+
+void do_nothing_callback(GSimpleAction *simple,
+    GVariant      *parameter,
+    gpointer       user_data);
 
 enum {
   NOTIFY_USER, NOTIFY_FINISED, N_SIGNALS
@@ -18,8 +23,8 @@ enum {
 
 static GActionEntry app_entries[] =
 {
-  { "save", test_callback, "s", NULL, NULL },
-  { "quit", test_callback, "s", NULL, NULL }
+  { "save", save_file_callback, "as", NULL, NULL },
+  { "decline", do_nothing_callback, "as", NULL, NULL }
 };
 
 static TeleportAppWindow *win;
@@ -33,27 +38,37 @@ struct _TeleportApp {
 G_DEFINE_TYPE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
 
 
-void test_callback (GSimpleAction *simple,
-                       GVariant      *parameter,
-                       gpointer       user_data) {
-  g_print("Working: %s\n",  g_variant_get_string (parameter, NULL));
+void save_file_callback (GSimpleAction *simple,
+    GVariant      *parameter,
+    gpointer       user_data) {
+  do_downloading(g_variant_get_string (g_variant_get_child_value (parameter, 0), NULL),
+                 g_variant_get_string (g_variant_get_child_value (parameter, 1), NULL),
+                 g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
 }
 
-void create_user_notification (const char *file_name, const int file_size, const char *origin_device, char *target[]) {
-  GNotification *notification = g_notification_new ("Teleport");
+void do_nothing_callback (GSimpleAction *simple,
+    GVariant      *parameter,
+    gpointer       user_data) {
+}
+
+void create_user_notification (const char *file_name, const int file_size, const char *origin_device, GVariant *target) {
+    GNotification *notification = g_notification_new ("Teleport");
   g_notification_set_body (notification,
-                           g_strdup_printf("%s is sending %s (%s)",
-                           origin_device,
-                           file_name,
-                           g_format_size (file_size)));
+      g_strdup_printf("%s is sending %s (%s)",
+        origin_device,
+        file_name,
+        g_format_size (file_size)));
   GIcon *icon = g_themed_icon_new ("dialog-information");
   g_notification_set_icon (notification, icon);
-  g_notification_set_default_action(notification, "");
-  g_notification_add_button (notification, "Decline", "app.decline");
-  g_notification_add_button_with_target (notification, "Save", "app.save", "s", target);
+  g_notification_set_default_action_and_target_value (notification, "app.decline", target);
+  g_notification_add_button_with_target_value (notification, "Decline", "app.decline", target);
+  g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
   g_application_send_notification (application, NULL, notification);
   g_object_unref (icon);
   g_object_unref (notification);
+  //the example says I have to unref it but it gives a critival error
+  //https://developer.gnome.org/glib/stable/gvariant-format-strings.html
+  //g_variant_unref (value);
 }
 
 static void create_finished_notification (const char *file_name, const int file_size, const char *origin_device) {
@@ -107,8 +122,8 @@ teleport_app_activate (GApplication *app) {
   gtk_window_present (GTK_WINDOW (win));
 
   g_action_map_add_action_entries (G_ACTION_MAP (app),
-                                   app_entries, G_N_ELEMENTS (app_entries),
-                                   app);
+      app_entries, G_N_ELEMENTS (app_entries),
+      app);
 
   g_signal_connect (peerList, "addpeer", (GCallback)callback_add_peer, win);
   g_signal_connect (peerList, "removepeer", (GCallback)callback_remove_peer, win);
@@ -119,14 +134,24 @@ teleport_app_activate (GApplication *app) {
     g_print("Data: %d\n", teleport_peer_get_port(peerList, 0, NULL));
     */
 
-  char* balance[2] = {"First", "Secound"};
-  create_user_notification ("sdfdsff", 2000, "sdfdsfdsf", balance);
+  GVariantBuilder *builder;
+  GVariant *value;
+
+  builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+  g_variant_builder_add (builder, "s", "devicename");
+  g_variant_builder_add (builder, "s", "https://downloadlink");
+  g_variant_builder_add (builder, "s", "filename");
+  value = g_variant_new ("as", builder);
+  g_variant_builder_unref (builder);
+
+  create_user_notification ("sdfdsff", 2000, "sdfdsfdsf", value);
+
   run_http_server();
   run_avahi_publish_service((char *) g_get_host_name());
   run_avahi_service(peerList);
 }
 
-static void
+  static void
 teleport_app_open (GApplication  *app,
     GFile        **files,
     gint           n_files,

@@ -12,6 +12,6 @@ TeleportApp     *teleport_app_new         (void);
 extern void     create_user_notification  (const char *,
                                            const int,
                                            const char *,
-                                           char *[]);
+                                           GVariant *);
 
 #endif /* __TELEPORTAPP_H */
