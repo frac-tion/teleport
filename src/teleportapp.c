@@ -9,13 +9,18 @@
 #include "get.h"
 
 
-void save_file_callback(GSimpleAction *simple,
+void save_file_callback (GSimpleAction *simple,
     GVariant      *parameter,
     gpointer       user_data);
 
-void do_nothing_callback(GSimpleAction *simple,
+void do_nothing_callback (GSimpleAction *simple,
     GVariant      *parameter,
     gpointer       user_data);
+
+void open_file_callback (GSimpleAction *simple,
+    GVariant      *parameter,
+    gpointer       user_data);
+
 
 enum {
   NOTIFY_USER, NOTIFY_FINISED, N_SIGNALS
@@ -24,7 +29,9 @@ enum {
 static GActionEntry app_entries[] =
 {
   { "save", save_file_callback, "as", NULL, NULL },
-  { "decline", do_nothing_callback, "as", NULL, NULL }
+  { "decline", do_nothing_callback, "as", NULL, NULL },
+  { "do-nothing", do_nothing_callback, "as", NULL, NULL },
+  { "open-file", open_file_callback, "as", NULL, NULL }
 };
 
 static TeleportAppWindow *win;
@@ -51,6 +58,12 @@ void do_nothing_callback (GSimpleAction *simple,
     gpointer       user_data) {
 }
 
+void open_file_callback (GSimpleAction *simple,
+    GVariant      *parameter,
+    gpointer       user_data) {
+  g_print("Open file\n");
+}
+
 void create_user_notification (const char *file_name, const int file_size, const char *origin_device, GVariant *target) {
     GNotification *notification = g_notification_new ("Teleport");
   g_notification_set_body (notification,
@@ -60,7 +73,7 @@ void create_user_notification (const char *file_name, const int file_size, const
         g_format_size (file_size)));
   GIcon *icon = g_themed_icon_new ("dialog-information");
   g_notification_set_icon (notification, icon);
-  g_notification_set_default_action_and_target_value (notification, "app.decline", target);
+  g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
   g_notification_add_button_with_target_value (notification, "Decline", "app.decline", target);
   g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
   g_application_send_notification (application, NULL, notification);
@@ -68,15 +81,16 @@ void create_user_notification (const char *file_name, const int file_size, const
   g_object_unref (notification);
   //the example says I have to unref it but it gives a critival error
   //https://developer.gnome.org/glib/stable/gvariant-format-strings.html
-  //g_variant_unref (value);
+  //g_variant_unref (target);
 }
 
-static void create_finished_notification (const char *file_name, const int file_size, const char *origin_device) {
+void create_finished_notification (const char *origin, const int filesize, const char *filename, GVariant *target) {
   GNotification *notification = g_notification_new ("Teleport");
-  g_notification_set_body (notification, g_strdup_printf("Transfer %s from %s is complete)", file_name, origin_device));
+  g_notification_set_body (notification, g_strdup_printf("Transfer of %s from %s is complete", filename, origin));
   GIcon *icon = g_themed_icon_new ("dialog-information");
   g_notification_set_icon (notification, icon);
-  g_notification_add_button (notification, "Open", "app.reply-5-minutes");
+  g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
+  g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
   g_application_send_notification (application, NULL, notification);
   g_object_unref (icon);
   g_object_unref (notification);
@@ -134,7 +148,7 @@ teleport_app_activate (GApplication *app) {
     g_print("Data: %d\n", teleport_peer_get_port(peerList, 0, NULL));
     */
 
-  GVariantBuilder *builder;
+  /*GVariantBuilder *builder;
   GVariant *value;
 
   builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
@@ -144,7 +158,9 @@ teleport_app_activate (GApplication *app) {
   value = g_variant_new ("as", builder);
   g_variant_builder_unref (builder);
 
-  create_user_notification ("sdfdsff", 2000, "sdfdsfdsf", value);
+  create_finished_notification ("USER", 2000, "FILENAME", value);
+  */
+  do_downloading("Julian", "https://sparber.net", "juliansfile");
 
   run_http_server();
   run_avahi_publish_service((char *) g_get_host_name());
