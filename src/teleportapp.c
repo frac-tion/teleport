@@ -61,7 +61,13 @@ void do_nothing_callback (GSimpleAction *simple,
 void open_file_callback (GSimpleAction *simple,
     GVariant      *parameter,
     gpointer       user_data) {
-  g_print("Open file\n");
+  g_print("Open file\n %s%s",
+                 g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
+                 g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
+
+  g_spawn_command_line_async(g_strdup_printf("xdg-open /home/julian/Projects/teleport/src/%s%s",
+                 g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
+                 g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL)), NULL);
 }
 
 void create_user_notification (const char *file_name, const int file_size, const char *origin_device, GVariant *target) {
@@ -160,7 +166,7 @@ teleport_app_activate (GApplication *app) {
 
   create_finished_notification ("USER", 2000, "FILENAME", value);
   */
-  do_downloading("Julian", "https://sparber.net", "juliansfile");
+  do_downloading("Julian", "https://sparber.net", "juliansfile.txt");
 
   run_http_server();
   run_avahi_publish_service((char *) g_get_host_name());

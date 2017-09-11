@@ -17,16 +17,17 @@
 
 static SoupSession *session;
 static gboolean debug;
-static gchar *output_direcotry;
 
-
-int saveFile (SoupMessage *msg, const gchar *output_file_path);
+int saveFile (SoupMessage *, const gchar *, const gchar *);
+gchar * getFilePath (const gchar *, const gchar *);
 
   static void
 finished (SoupSession *session, SoupMessage *msg, gpointer target)
 {
-  //GVariant *target array: {originDevice, url, filename}
+  //GVariant *target array: {originDevice, url, filename, downloadDirectory}
   saveFile(msg,
+      (char *) g_variant_get_string (
+        g_variant_get_child_value ((GVariant *) target, 3), NULL),
       (char *) g_variant_get_string (
         g_variant_get_child_value ((GVariant *) target, 2), NULL));
 
@@ -39,7 +40,7 @@ finished (SoupSession *session, SoupMessage *msg, gpointer target)
 }
 
   int
-get (char *url, const gchar *outputFilename)
+get (char *url, const gchar *downloadDirectory, const gchar *outputFilename)
 {
   GError *error = NULL;
   SoupLogger *logger = NULL;
@@ -76,6 +77,7 @@ get (char *url, const gchar *outputFilename)
   g_variant_builder_add (builder, "s", "devicename");
   g_variant_builder_add (builder, "s", url);
   g_variant_builder_add (builder, "s", outputFilename);
+  g_variant_builder_add (builder, "s", downloadDirectory);
   target = g_variant_new ("as", builder);
   g_variant_builder_unref (builder);
 
@@ -84,7 +86,7 @@ get (char *url, const gchar *outputFilename)
   return 0;
 }
 
-int saveFile (SoupMessage *msg, const gchar *outputFilename) {
+int saveFile (SoupMessage *msg, const gchar *outputDirectory, const gchar *outputFilename) {
   const char *name;
   FILE *output_file = NULL;
 
@@ -102,9 +104,7 @@ int saveFile (SoupMessage *msg, const gchar *outputFilename) {
       //g_print ("%s: Got a file offered form a other peer. Will not save anything.\n", name);
     }
     else {
-      output_file = fopen (g_strdup_printf("%s%s", output_direcotry,
-                           g_uri_escape_string(outputFilename, NULL, TRUE)),
-                           "w");
+      output_file = fopen (getFilePath(outputDirectory, outputFilename), "w");
 
       if (!output_file)
         g_printerr ("Error trying to create file %s.\n", outputFilename);
@@ -125,16 +125,21 @@ int saveFile (SoupMessage *msg, const gchar *outputFilename) {
 
 int do_client_notify (char *url)
 {
-  get (g_strdup(url), NULL);
+  get (g_strdup(url), NULL, NULL);
   g_print("Offering selected file to other machine.\n");
   return 0;
 }
 
+
+gchar * getFilePath (const gchar *outputDirectory, const gchar *outputFilename) {
+    return g_strdup_printf("%s%s", outputDirectory,
+                           g_uri_escape_string(outputFilename, NULL, TRUE));
+}
   int 
 do_downloading (const char *originDevice, const char *url, const char *filename)
 {
-  output_direcotry = "./test_download/";
+  gchar *outputDirectory = "./test_download/";
   g_print("Downloading %s to %s\n", url, g_uri_escape_string(filename, NULL, TRUE));
-  get (g_strdup(url), filename);
+  get (g_strdup(url), outputDirectory, filename);
   return 0;
 }
