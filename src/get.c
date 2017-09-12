@@ -40,7 +40,7 @@ finished (SoupSession *session, SoupMessage *msg, gpointer target)
 }
 
   int
-get (char *url, const gchar *downloadDirectory, const gchar *outputFilename)
+get (char *url, const gchar *originDevice, const gchar *downloadDirectory, const gchar *outputFilename)
 {
   GError *error = NULL;
   SoupLogger *logger = NULL;
@@ -74,7 +74,7 @@ get (char *url, const gchar *downloadDirectory, const gchar *outputFilename)
   GVariant *target;
 
   builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-  g_variant_builder_add (builder, "s", "devicename");
+  g_variant_builder_add (builder, "s", originDevice);
   g_variant_builder_add (builder, "s", url);
   g_variant_builder_add (builder, "s", outputFilename);
   g_variant_builder_add (builder, "s", downloadDirectory);
@@ -125,7 +125,7 @@ int saveFile (SoupMessage *msg, const gchar *outputDirectory, const gchar *outpu
 
 int do_client_notify (char *url)
 {
-  get (g_strdup(url), NULL, NULL);
+  get (g_strdup(url), NULL, NULL, NULL);
   g_print("Offering selected file to other machine.\n");
   return 0;
 }
@@ -140,6 +140,6 @@ do_downloading (const char *originDevice, const char *url, const char *filename)
 {
   gchar *outputDirectory = "./test_download/";
   g_print("Downloading %s to %s\n", url, g_uri_escape_string(filename, NULL, TRUE));
-  get (g_strdup(url), outputDirectory, filename);
+  get (g_strdup(url), originDevice, outputDirectory, filename);
   return 0;
 }
