@@ -25,18 +25,21 @@ gchar * getFilePath (const gchar *, const gchar *);
 finished (SoupSession *session, SoupMessage *msg, gpointer target)
 {
   //GVariant *target array: {originDevice, url, filename, downloadDirectory}
-  saveFile(msg,
-      (char *) g_variant_get_string (
-        g_variant_get_child_value ((GVariant *) target, 3), NULL),
-      (char *) g_variant_get_string (
-        g_variant_get_child_value ((GVariant *) target, 2), NULL));
+  if ((char *) g_variant_get_string (
+        g_variant_get_child_value ((GVariant *) target, 2), NULL) != NULL) {
+    saveFile(msg,
+        (char *) g_variant_get_string (
+          g_variant_get_child_value ((GVariant *) target, 3), NULL),
+        (char *) g_variant_get_string (
+          g_variant_get_child_value ((GVariant *) target, 2), NULL));
 
-  create_finished_notification ((char *) g_variant_get_string (
-        g_variant_get_child_value ((GVariant *) target, 0), NULL),
-      0,
-      g_variant_get_string (
-        g_variant_get_child_value ((GVariant *) target, 2), NULL),
-      target);
+    create_finished_notification ((char *) g_variant_get_string (
+          g_variant_get_child_value ((GVariant *) target, 0), NULL),
+        0,
+        g_variant_get_string (
+          g_variant_get_child_value ((GVariant *) target, 2), NULL),
+        target);
+  }
 }
 
   int
@@ -70,18 +73,23 @@ get (char *url, const gchar *originDevice, const gchar *downloadDirectory, const
 
   g_object_ref (msg);
   //soup_session_queue_message (session, msg, finished, loop);
-  GVariantBuilder *builder;
-  GVariant *target;
+  if (outputFilename == NULL) {
+    soup_session_queue_message (session, msg, NULL, NULL);
+  }
+  else {
+    GVariantBuilder *builder;
+    GVariant *target;
 
-  builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-  g_variant_builder_add (builder, "s", originDevice);
-  g_variant_builder_add (builder, "s", url);
-  g_variant_builder_add (builder, "s", outputFilename);
-  g_variant_builder_add (builder, "s", downloadDirectory);
-  target = g_variant_new ("as", builder);
-  g_variant_builder_unref (builder);
+    builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+    g_variant_builder_add (builder, "s", originDevice);
+    g_variant_builder_add (builder, "s", url);
+    g_variant_builder_add (builder, "s", outputFilename);
+    g_variant_builder_add (builder, "s", downloadDirectory);
+    target = g_variant_new ("as", builder);
+    g_variant_builder_unref (builder);
 
-  soup_session_queue_message (session, msg, finished, target);
+    soup_session_queue_message (session, msg, finished, target);
+  }
 
   return 0;
 }
@@ -132,8 +140,8 @@ int do_client_notify (char *url)
 
 
 gchar * getFilePath (const gchar *outputDirectory, const gchar *outputFilename) {
-    return g_strdup_printf("%s%s", outputDirectory,
-                           g_uri_escape_string(outputFilename, NULL, TRUE));
+  return g_strdup_printf("%s%s", outputDirectory,
+      g_uri_escape_string(outputFilename, NULL, TRUE));
 }
   int 
 do_downloading (const char *originDevice, const char *url, const char *filename)
