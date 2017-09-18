@@ -31,6 +31,7 @@ teleport_app_window_init (TeleportAppWindow *win)
   TeleportAppWindowPrivate *priv;
   GtkBuilder *builder;
   GtkWidget *menu;
+  GtkEntry *downloadDir;
   mainWin = win;
 
   priv = teleport_app_window_get_instance_private (win);
@@ -39,11 +40,16 @@ teleport_app_window_init (TeleportAppWindow *win)
 
   builder = gtk_builder_new_from_resource ("/org/gtk/teleportapp/settings.ui");
   menu = GTK_WIDGET (gtk_builder_get_object (builder, "settings"));
+  downloadDir = GTK_ENTRY (gtk_builder_get_object (builder, "settings_download_directory"));
 
   gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
 
-  gtk_label_set_text(GTK_LABEL (priv->this_device_name_label), g_get_host_name());
+  gtk_label_set_text (GTK_LABEL (priv->this_device_name_label), g_get_host_name());
+  gtk_entry_set_text (downloadDir, g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD));
+  gtk_entry_set_width_chars(downloadDir, 30);
 
+  //g_object_unref (menu);
+  //g_object_unref (label);
   g_object_unref (builder);
 }
 
