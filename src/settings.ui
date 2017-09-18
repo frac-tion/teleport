@@ -23,6 +23,7 @@
         <child>
           <object class="GtkEntry" id="settings_download_directory">
             <property name="visible">True</property>
+            <property name="sensitive">False</property>
             <property name="text">~/Downloads</property>
           </object>
           <packing>
@@ -34,7 +35,8 @@
         </child>
         <child>
           <object class="GtkButton">
-            <property name="visible">False</property>
+            <property name="visible">True</property>
+            <property name="sensitive">False</property>
             <property name="label">Browse...</property>
             <property name="margin_start">12</property>
           </object>
