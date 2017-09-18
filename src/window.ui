@@ -229,7 +229,7 @@
         <property name="title" translatable="yes">Teleport</property>
         <child>
           <object class="GtkSwitch" id="visible-on-network-switch">
-            <property name="visible">True</property>
+            <property name="visible">False</property>
             <property name="can_focus">False</property>
           </object>
           <packing>
@@ -239,7 +239,7 @@
         </child>
         <child>
           <object class="GtkLabel" id="visible-on-network-label">
-            <property name="visible">True</property>
+            <property name="visible">False</property>
             <property name="can_focus">False</property>
             <property name="label" translatable="yes">Visible on network</property>
           </object>
