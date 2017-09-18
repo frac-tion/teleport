@@ -166,8 +166,6 @@ teleport_app_activate (GApplication *app) {
 
   create_finished_notification ("USER", 2000, "FILENAME", value);
   */
-  do_downloading("Julian", "https://sparber.net", "juliansfile.txt");
-
   run_http_server();
   run_avahi_publish_service((char *) g_get_host_name());
   run_avahi_service(peerList);

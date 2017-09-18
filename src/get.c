@@ -136,7 +136,7 @@ do_client_notify (char *url) {
 gchar *
 getFilePath (const gchar *outputDirectory,
              const gchar *outputFilename) {
-  return g_strdup_printf("%s%s", outputDirectory,
+  return g_strdup_printf("%s/%s", outputDirectory,
       g_uri_escape_string(outputFilename, NULL, TRUE));
 }
 
@@ -144,7 +144,7 @@ int
 do_downloading (const char *originDevice,
                 const char *url,
                 const char *filename) {
-  gchar *outputDirectory = "./test_download/";
+  const gchar *outputDirectory = g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD);
   g_print("Downloading %s to %s\n", url, g_uri_escape_string(filename, NULL, TRUE));
   get (g_strdup(url), originDevice, outputDirectory, filename);
   return 0;
