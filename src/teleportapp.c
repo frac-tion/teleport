@@ -65,7 +65,7 @@ void open_file_callback (GSimpleAction *simple,
                  g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
                  g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
 
-  g_spawn_command_line_async(g_strdup_printf("xdg-open /home/julian/Projects/teleport/src/%s%s",
+  g_spawn_command_line_async(g_strdup_printf("xdg-open %s/%s",
                  g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
                  g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL)), NULL);
 }
