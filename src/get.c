@@ -8,12 +8,10 @@
 
 #include <libsoup/soup.h>
 #include "teleportapp.h"
+#include "get.h"
 
 static SoupSession *session;
 static gboolean debug;
-
-int saveFile (SoupMessage *, const gchar *, const gchar *);
-gchar * getFilePath (const gchar *, const gchar *);
 
 static void
 finished (SoupSession *session, SoupMessage *msg, gpointer target)
