@@ -20,6 +20,7 @@ struct _TeleportAppWindowPrivate
   GSettings *settings;
   GtkWidget *gears;
   GtkWidget *remote_devices_list;
+  GtkWidget *this_device_name_label;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(TeleportAppWindow, teleport_app_window, GTK_TYPE_APPLICATION_WINDOW);
@@ -40,6 +41,8 @@ teleport_app_window_init (TeleportAppWindow *win)
   menu = GTK_WIDGET (gtk_builder_get_object (builder, "settings"));
 
   gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
+
+  gtk_label_set_text(GTK_LABEL (priv->this_device_name_label), g_get_host_name());
 
   g_object_unref (builder);
 }
@@ -174,8 +177,8 @@ teleport_app_window_class_init (TeleportAppWindowClass *class)
       "/org/gtk/teleportapp/window.ui");
 
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, gears);
+  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, this_device_name_label);
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, remote_devices_list);
-
 }
 
   TeleportAppWindow *
