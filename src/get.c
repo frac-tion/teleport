@@ -1,9 +1,3 @@
-/* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
-/*
- * Copyright (C) 2001-2003, Ximian, Inc.
- * Copyright (C) 2013 Igalia, S.L.
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -21,7 +15,7 @@ static gboolean debug;
 int saveFile (SoupMessage *, const gchar *, const gchar *);
 gchar * getFilePath (const gchar *, const gchar *);
 
-  static void
+static void
 finished (SoupSession *session, SoupMessage *msg, gpointer target)
 {
   //GVariant *target array: {originDevice, url, filename, downloadDirectory}
@@ -42,9 +36,11 @@ finished (SoupSession *session, SoupMessage *msg, gpointer target)
   }
 }
 
-  int
-get (char *url, const gchar *originDevice, const gchar *downloadDirectory, const gchar *outputFilename)
-{
+int
+get (char *url,
+     const gchar *originDevice,
+     const gchar *downloadDirectory,
+     const gchar *outputFilename) {
   GError *error = NULL;
   SoupLogger *logger = NULL;
 
@@ -94,11 +90,13 @@ get (char *url, const gchar *originDevice, const gchar *downloadDirectory, const
   return 0;
 }
 
-int saveFile (SoupMessage *msg, const gchar *outputDirectory, const gchar *outputFilename) {
+int 
+saveFile (SoupMessage *msg,
+          const gchar *outputDirectory,
+          const gchar *outputFilename) {
   const char *name;
-  FILE *output_file = NULL;
+  FILE *outputFile = NULL;
 
-  //get (g_strdup(url), g_strdup_printf("./test_download/%s", g_uri_escape_string(filename, NULL, TRUE)));
   name = soup_message_get_uri (msg)->path;
 
   if (SOUP_STATUS_IS_TRANSPORT_ERROR (msg->status_code))
@@ -112,40 +110,42 @@ int saveFile (SoupMessage *msg, const gchar *outputDirectory, const gchar *outpu
       //g_print ("%s: Got a file offered form a other peer. Will not save anything.\n", name);
     }
     else {
-      output_file = fopen (getFilePath(outputDirectory, outputFilename), "w");
+      outputFile = fopen (getFilePath(outputDirectory, outputFilename), "w");
 
-      if (!output_file)
+      if (!outputFile)
         g_printerr ("Error trying to create file %s.\n", outputFilename);
 
-      if (output_file) {
+      if (outputFile) {
         fwrite (msg->response_body->data,
             1,
             msg->response_body->length,
-            output_file);
+            outputFile);
 
-        fclose (output_file);
+        fclose (outputFile);
       }
     }
   }
-
   return 0;
 }
 
-int do_client_notify (char *url)
-{
+int
+do_client_notify (char *url) {
   get (g_strdup(url), NULL, NULL, NULL);
   g_print("Offering selected file to other machine.\n");
   return 0;
 }
 
-
-gchar * getFilePath (const gchar *outputDirectory, const gchar *outputFilename) {
+gchar *
+getFilePath (const gchar *outputDirectory,
+             const gchar *outputFilename) {
   return g_strdup_printf("%s%s", outputDirectory,
       g_uri_escape_string(outputFilename, NULL, TRUE));
 }
-  int 
-do_downloading (const char *originDevice, const char *url, const char *filename)
-{
+
+int 
+do_downloading (const char *originDevice,
+                const char *url,
+                const char *filename) {
   gchar *outputDirectory = "./test_download/";
   g_print("Downloading %s to %s\n", url, g_uri_escape_string(filename, NULL, TRUE));
   get (g_strdup(url), originDevice, outputDirectory, filename);
