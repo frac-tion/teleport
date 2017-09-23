@@ -11,6 +11,8 @@
     "--share=ipc",
     "--socket=x11",
     "--socket=wayland",
+    "--socket=session-bus",
+    "--socket=system-bus",
     "--filesystem=xdg-run/dconf",
     "--filesystem=~/.config/dconf:ro",
     "--talk-name=ca.desrt.dconf",
