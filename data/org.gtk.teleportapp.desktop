@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Teleport
-Exec=/home/julian/Projects/teleport/src/teleportapp
+Exec=teleportapp
 Icon=utilities-terminal
 Type=Application
 Categories=GTK;GNOME;Utility;

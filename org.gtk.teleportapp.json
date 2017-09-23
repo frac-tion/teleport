@@ -58,9 +58,9 @@
         "name": "teleportapp",
         "sources": [
           {
-            "type": "archive",
-            "url": "https://github.com/frac-tion/teleport/archive/flatpak.zip",
-            "sha256": "3d6b5df45ee9adf9b6c8beace64db05a11fd7ec0e308d9d4728559356c0e6773"
+            "type": "git",
+            "branch": "flatpak",
+            "url": "https://github.com/frac-tion/teleport.git"
           }
         ]
       }
