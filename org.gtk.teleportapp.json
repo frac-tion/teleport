@@ -1,0 +1,63 @@
+{
+  "app-id": "org.gtk.teleportapp",
+  "runtime": "org.gnome.Platform",
+  "runtime-version": "master",
+  "sdk": "org.gnome.Sdk",
+  "command": "teleportapp",
+  "tags": ["devel"],
+  "desktop-file-name-prefix": "(Development) ",
+  "finish-args": [
+    "--share=network",
+    "--share=ipc",
+    "--socket=x11",
+    "--socket=wayland",
+    "--filesystem=xdg-run/dconf",
+    "--filesystem=~/.config/dconf:ro",
+    "--talk-name=ca.desrt.dconf",
+    "--env=DCONF_USER_CONFIG_DIR=.config/dconf"
+  ],
+  "build-options" : {
+    "cflags": "-O2 -g",
+    "cxxflags": "-O2 -g",
+    "env": {
+      "V": "1"
+    }
+  },
+  "cleanup": ["/include", "/lib/pkgconfig",
+    "/share/pkgconfig", "/share/aclocal",
+    "/man", "/share/man", "/share/gtk-doc",
+    "/share/vala",
+    "*.la", "*.a"],
+    "modules": [
+      {
+        "name": "teleportapp",
+        "sources": [
+          {
+            "type": "archive",
+            "url": "http://127.0.0.1:8080/teleportapp.tar.xz",
+            "sha256": "8456e351d41b75b906673ef08f4afe3b130b243d558b666d466e85d4f2634eeb"
+          }
+        ]
+      },
+      {
+        "name": "libsoup",
+        "sources": [
+          {
+            "type": "archive",
+            "url": "https://download.gnome.org/sources/libsoup/2.60/libsoup-2.60.0.tar.xz",
+            "sha256": "b324edbecda0884143c0853b4a2bd5bd37fb3761f12f293c621ff34b9acdc84c"
+          }
+        ]
+      },
+      {
+        "name": "avahi-client",
+        "sources": [
+          {
+            "type": "archive",
+            "url": "http://avahi.org/download/avahi-0.7.tar.gz",
+            "sha256": "57a99b5dfe7fdae794e3d1ee7a62973a368e91e414bd0dfa5d84434de5b14804"
+          }
+        ]
+      }
+    ]
+}
