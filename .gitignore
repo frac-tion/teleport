@@ -30,4 +30,5 @@ _libs
 test_download
 Makefile
 _build/
-
+.flatpak-builder/
+flatpak/
