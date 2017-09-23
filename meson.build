@@ -172,12 +172,12 @@ top_inc = include_directories('.')
 src_inc = include_directories('src')
 
 data_dir = join_paths(meson.source_root(), 'data')
-#po_dir = join_paths(meson.source_root(), 'po')
+po_dir = join_paths(meson.source_root(), 'po')
 
 #subdir('plugins')
 subdir('src')
-#subdir('data')
-#subdir('po')
+subdir('data')
+subdir('po')
 
 #enable_gtk_doc = get_option('enable-gtk-doc')
 #if enable_gtk_doc
