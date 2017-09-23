@@ -4,7 +4,7 @@ project(
           version: '0.1.0',
           license: 'AGPL3+',
   default_options: [ 'buildtype=debugoptimized', 'warning_level=1' ],
-    meson_version: '>= 0.41.0'
+    meson_version: '>= 0.40.0'
 )
 
 teleportapp_version = meson.project_version()

@@ -34,8 +34,8 @@
         "sources": [
           {
             "type": "archive",
-            "url": "http://127.0.0.1:8080/teleportapp.tar.xz",
-            "sha256": "8456e351d41b75b906673ef08f4afe3b130b243d558b666d466e85d4f2634eeb"
+            "url": "https://github.com/frac-tion/teleport/archive/flatpak.zip",
+            "sha256": "028719a49cb5ce46fcef9237b1e2942ec5140aefee459c7ebf6b79289230efb8"
           }
         ]
       },
