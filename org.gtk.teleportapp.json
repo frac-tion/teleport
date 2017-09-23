@@ -30,37 +30,37 @@
     "*.la", "*.a"],
     "modules": [
       {
-        {
-          "name": "libsoup",
-          "sources": [
-            {
-              "type": "archive",
-              "url": "https://download.gnome.org/sources/libsoup/2.60/libsoup-2.60.0.tar.xz",
-              "sha256": "b324edbecda0884143c0853b4a2bd5bd37fb3761f12f293c621ff34b9acdc84c"
-            }
-          ]
-        },
-        {
-          "name": "avahi",
-          "config-opts": [
-            "--disable-monodoc",
-            "--disable-gtk",
-            "--disable-gtk3",
-            "--disable-qt3",
-            "--disable-libdaemon",
-            "--disable-pygtk",
-            "--disable-mono",
-            "--enable-compat-libdns_sd",
-            "--with-distro=none"
-          ],
-          "sources": [
-            {
-              "type": "archive",
-              "url": "http://avahi.org/download/avahi-0.7.tar.gz",
-              "sha256": "57a99b5dfe7fdae794e3d1ee7a62973a368e91e414bd0dfa5d84434de5b14804"
-            }
-          ]
-        },
+        "name": "libsoup",
+        "sources": [
+          {
+            "type": "archive",
+            "url": "https://download.gnome.org/sources/libsoup/2.60/libsoup-2.60.0.tar.xz",
+            "sha256": "b324edbecda0884143c0853b4a2bd5bd37fb3761f12f293c621ff34b9acdc84c"
+          }
+        ]
+      },
+      {
+        "name": "avahi",
+        "config-opts": [
+          "--disable-monodoc",
+          "--disable-gtk",
+          "--disable-gtk3",
+          "--disable-qt3",
+          "--disable-libdaemon",
+          "--disable-pygtk",
+          "--disable-mono",
+          "--enable-compat-libdns_sd",
+          "--with-distro=none"
+        ],
+        "sources": [
+          {
+            "type": "archive",
+            "url": "http://avahi.org/download/avahi-0.7.tar.gz",
+            "sha256": "57a99b5dfe7fdae794e3d1ee7a62973a368e91e414bd0dfa5d84434de5b14804"
+          }
+        ]
+      },
+      {
         "name": "teleportapp",
         "sources": [
           {
