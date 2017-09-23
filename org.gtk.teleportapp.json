@@ -30,27 +30,21 @@
     "*.la", "*.a"],
     "modules": [
       {
-        "name": "libsoup",
-        "sources": [
-          {
-            "type": "archive",
-            "url": "https://download.gnome.org/sources/libsoup/2.60/libsoup-2.60.0.tar.xz",
-            "sha256": "b324edbecda0884143c0853b4a2bd5bd37fb3761f12f293c621ff34b9acdc84c"
-          }
-        ]
-      },
-      {
         "name": "avahi",
+        "cleanup": [ "/bin" ],
         "config-opts": [
-          "--disable-monodoc",
-          "--disable-gtk",
-          "--disable-gtk3",
-          "--disable-qt3",
+          "--with-distro=none",
+          "--enable-gobject",
+          "--with-xml=expat",
           "--disable-libdaemon",
-          "--disable-pygtk",
+          "--disable-core-docs",
+          "--disable-manpages",
           "--disable-mono",
-          "--enable-compat-libdns_sd",
-          "--with-distro=none"
+          "--disable-qt3",
+          "--disable-qt4",
+          "--disable-python",
+          "--disable-gtk",
+          "--disable-gtk3"
         ],
         "sources": [
           {
