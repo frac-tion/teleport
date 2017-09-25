@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Teleport
 Exec=teleportapp
-Icon=utilities-terminal
+Icon=org.gtk.teleportapp
 Type=Application
 Categories=GTK;GNOME;Utility;
