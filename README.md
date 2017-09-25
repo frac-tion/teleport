@@ -23,19 +23,21 @@ We are currently working on an MVP for a native GNOME app that only sends files,
 ## Build
 #### Archlinux
 ```
-  pacman -S base-devel libsoup avahi gtk3
+  pacman -S base-devel libsoup avahi gtk3 meson
   git clone https://github.com/frac-tion/teleport.git
-  cd teleport/src
+  cd teleport
+  ./configure
   make
-  ./teleport
+  ./_build/src/teleportapp
 ```
 #### Ubuntu
 ```
-  apt install pkg-config libsoup2.4-dev libavahi-client3 libgtk-3-dev
+  apt install pkg-config libsoup2.4-dev libavahi-client3 libgtk-3-dev meson
   git clone https://github.com/frac-tion/teleport.git
-  cd teleport/src
+  cd teleport
+  ./configure
   make
-  ./teleport
+  ./_build/src/teleportapp
 ```
 
 
