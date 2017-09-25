@@ -29,4 +29,4 @@ install_data(
 )
 
 #subdir('appdata')
-#subdir('icons')
+subdir('icons')
