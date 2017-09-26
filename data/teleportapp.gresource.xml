@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/org/gtk/teleportapp">
+  <gresource prefix="/com/frac-tion/teleport">
     <file preprocess="xml-stripblanks">window.ui</file>
     <file preprocess="xml-stripblanks">settings.ui</file>
     <file preprocess="xml-stripblanks">remote_list.ui</file>
