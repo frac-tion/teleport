@@ -38,7 +38,7 @@ teleport_app_window_init (TeleportAppWindow *win)
 
   gtk_widget_init_template (GTK_WIDGET (win));
 
-  builder = gtk_builder_new_from_resource ("/com/frac-tion/teleport/settings.ui");
+  builder = gtk_builder_new_from_resource ("/org/gtk/teleportapp/settings.ui");
   menu = GTK_WIDGET (gtk_builder_get_object (builder, "settings"));
   downloadDir = GTK_ENTRY (gtk_builder_get_object (builder, "settings_download_directory"));
 
@@ -60,7 +60,7 @@ open_file_picker(GtkButton *btn, Peer *device) {
   gint res;
   g_print("Open file chooser for submitting a file to %s with Address %s\n", device->name, device->ip);
 
-  dialog =  ("Open File",
+  dialog = gtk_file_chooser_dialog_new ("Open File",
       GTK_WINDOW(mainWin),
       action,
       ("_Cancel"),
@@ -96,7 +96,7 @@ void update_remote_device_list(TeleportAppWindow *win, Peer *device) {
 
   priv = teleport_app_window_get_instance_private (win);
 
-  builder_remote_list = gtk_builder_new_from_resource ("/com/frac-tion/teleport/remote_list.ui");
+  builder_remote_list = gtk_builder_new_from_resource ("/org/gtk/teleportapp/remote_list.ui");
 
   row = GTK_WIDGET (gtk_builder_get_object (builder_remote_list, "remote_device_row"));
   name_label = GTK_LABEL (gtk_builder_get_object (builder_remote_list, "device_name"));
@@ -180,7 +180,7 @@ teleport_app_window_class_init (TeleportAppWindowClass *class)
   G_OBJECT_CLASS (class)->dispose = teleport_app_window_dispose;
 
   gtk_widget_class_set_template_from_resource (GTK_WIDGET_CLASS (class),
-      "/com/frac-tion/teleport/window.ui");
+      "/org/gtk/teleportapp/window.ui");
 
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, gears);
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, this_device_name_label);

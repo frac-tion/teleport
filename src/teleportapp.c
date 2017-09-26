@@ -214,7 +214,7 @@ teleport_app_class_init (TeleportAppClass *class)
 teleport_app_new (void)
 {
   return g_object_new (TELEPORT_APP_TYPE,
-      "application-id", "com.frac-tion.teleport",
+      "application-id", "org.gtk.teleportapp",
       "flags", G_APPLICATION_HANDLES_OPEN,
       NULL);
 }
