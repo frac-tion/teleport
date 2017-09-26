@@ -1,4 +1,4 @@
-desktop = 'org.gtk.teleportapp.desktop'
+desktop = 'com.frac_tion.teleport.desktop'
 
 i18n.merge_file(
   desktop,
@@ -24,7 +24,7 @@ i18n.merge_file(
 #)
 
 install_data(
-  'org.gtk.teleportapp.gschema.xml',
+  'com.frac_tion.teleport.gschema.xml',
   install_dir: teleportapp_schemadir
 )
 
