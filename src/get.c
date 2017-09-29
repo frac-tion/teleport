@@ -10,7 +10,6 @@
 #include "teleportapp.h"
 #include "get.h"
 
-static SoupSession *session;
 static gboolean debug;
 
 static void
@@ -39,8 +38,9 @@ get (char *url,
      const gchar *originDevice,
      const gchar *downloadDirectory,
      const gchar *outputFilename) {
-  GError *error = NULL;
+  SoupSession *session;
   SoupLogger *logger = NULL;
+  SoupMessage *msg;
 
   if (!soup_uri_new (url)) {
     g_printerr ("Could not parse '%s' as a URL\n", url);
@@ -58,9 +58,6 @@ get (char *url,
     soup_session_add_feature (session, SOUP_SESSION_FEATURE (logger));
     g_object_unref (logger);
   }
-
-  SoupMessage *msg;
-  const char *header;
 
   msg = soup_message_new ("GET", url);
   soup_message_set_flags (msg, SOUP_MESSAGE_NO_REDIRECT);
