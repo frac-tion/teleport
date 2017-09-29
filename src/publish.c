@@ -1,22 +1,3 @@
-/***
-  This file is part of avahi.
-
-  avahi is free software; you can redistribute it and/or modify it
-  under the terms of the GNU Lesser General Public License as
-  published by the Free Software Foundation; either version 2.1 of the
-  License, or (at your option) any later version.
-
-  avahi is distributed in the hope that it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
-  Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with avahi; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-  USA.
- ***/
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -38,7 +19,7 @@
 
 #include "teleportapp.h"
 #include "teleportpeer.h"
-#include "browser.h"
+#include "publish.h"
 
 static AvahiThreadedPoll *threaded_poll = NULL;
 static AvahiEntryGroup *group = NULL;
@@ -83,7 +64,7 @@ static void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state,
 
                                        /* Some kind of failure happened while we were registering our services */
                                        //avahi_simple_poll_quit(simple_poll);
-                                       avahi_shutdown();
+                                       shutdown_avahi_publish_service();
                                        break;
 
     case AVAHI_ENTRY_GROUP_UNCOMMITED:
@@ -156,7 +137,7 @@ collision:
 
 fail:
   //avahi_simple_poll_quit(simple_poll);
-  avahi_shutdown();
+  shutdown_avahi_publish_service();
 }
 
 static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata) {
@@ -176,7 +157,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UN
 
       fprintf(stderr, "Client failure: %s\n", avahi_strerror(avahi_client_errno(c)));
       //avahi_simple_poll_quit(simple_poll);
-      avahi_shutdown();
+      shutdown_avahi_publish_service();
 
       break;
 
@@ -203,7 +184,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UN
   }
 }
 
-static void update_service(char * service_name) {
+extern void update_service(char * service_name) {
   avahi_free(name);
   name = avahi_strdup(service_name);
 
@@ -222,10 +203,8 @@ static void update_service(char * service_name) {
 
 int run_avahi_publish_service(char * service_name) {
   int error;
-  int ret = 1;
-  struct timeval tv;
 
-   if (!(threaded_poll = avahi_threaded_poll_new())) {
+  if (!(threaded_poll = avahi_threaded_poll_new())) {
     fprintf(stderr, "Failed to create threaded poll object.\n");
     return 1;
   }
@@ -234,23 +213,21 @@ int run_avahi_publish_service(char * service_name) {
 
   /* Allocate a new client */
 
-   if (!(client = avahi_client_new(avahi_threaded_poll_get(threaded_poll), 0, client_callback, NULL, &error))) {
+  if (!(client = avahi_client_new(avahi_threaded_poll_get(threaded_poll), 0, client_callback, NULL, &error))) {
     fprintf(stderr, "Failed to create client: %s\n", avahi_strerror(error));
     return 1;
   }
 
-   if (avahi_threaded_poll_start(threaded_poll) < 0) {
+  if (avahi_threaded_poll_start(threaded_poll) < 0) {
     return 1;
-   }
+  }
 
   return 0;
 }
 
-
 void shutdown_avahi_publish_service(void) {
   /* Call this when the app shuts down */
 
-  //fprintf(stderr, "Some error\n");
   avahi_threaded_poll_stop(threaded_poll);
   avahi_client_free(client);
   avahi_threaded_poll_free(threaded_poll);
