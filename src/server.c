@@ -355,7 +355,7 @@ int addRouteToServer(char *name, char *file_to_send, char *destination) {
   return 0;
 }
 
-int run_http_server() {
+extern int run_http_server(void) {
   //GMainLoop *loop;
   GSList *uris, *u;
   char *str;
