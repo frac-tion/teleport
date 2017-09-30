@@ -60,11 +60,12 @@ teleport_peer_init (TeleportPeer *self)
 
 gchar * teleport_peer_get_name (TeleportPeer *self, gint index, GError **error)
 {
+  Peer *element;
   //g_return_if_fail (TELEPORT_IS_PEER (self));
   //g_return_if_fail (error == NULL || *error == NULL);
   if (index > self->list->len-1)
     return NULL;
-  Peer *element = g_array_index(self->list, Peer *, index);
+  element = g_array_index(self->list, Peer *, index);
   return element->name;
 }
 
@@ -113,10 +114,9 @@ void teleport_peer_remove_peer (TeleportPeer *self, Peer *device)
 
 void teleport_peer_remove_peer_by_name (TeleportPeer *self, gchar *name)
 {
-
-  g_print("Remove this device %s", name);
-  Peer *element;
+  Peer *element = NULL;
   gboolean found = FALSE;
+  g_print("Remove this device %s", name);
   for (int i = 0; i < self->list->len && !found; i++) {
     element = g_array_index(self->list, Peer *, i);
     if (g_strcmp0(element->name, name) == 0) {

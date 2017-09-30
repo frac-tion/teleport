@@ -71,13 +71,14 @@ void open_file_callback (GSimpleAction *simple,
 }
 
 void create_user_notification (const char *file_name, const int file_size, const char *origin_device, GVariant *target) {
-    GNotification *notification = g_notification_new ("Teleport");
+  GIcon *icon;
+  GNotification *notification = g_notification_new ("Teleport");
   g_notification_set_body (notification,
       g_strdup_printf("%s is sending %s (%s)",
         origin_device,
         file_name,
         g_format_size (file_size)));
-  GIcon *icon = g_themed_icon_new ("dialog-information");
+  icon = g_themed_icon_new ("dialog-information");
   g_notification_set_icon (notification, icon);
   g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
   g_notification_add_button_with_target_value (notification, "Decline", "app.decline", target);
@@ -91,9 +92,10 @@ void create_user_notification (const char *file_name, const int file_size, const
 }
 
 void create_finished_notification (const char *origin, const int filesize, const char *filename, GVariant *target) {
+  GIcon *icon;
   GNotification *notification = g_notification_new ("Teleport");
   g_notification_set_body (notification, g_strdup_printf("Transfer of %s from %s is complete", filename, origin));
-  GIcon *icon = g_themed_icon_new ("dialog-information");
+  icon = g_themed_icon_new ("dialog-information");
   g_notification_set_icon (notification, icon);
   g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
   g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
@@ -115,15 +117,15 @@ gboolean mainLoopRemovePeerCallback (gpointer peer)  {
   return G_SOURCE_REMOVE;
 }
 
-void callback_add_peer (GObject *instance, Peer *peer, TeleportAppWindow *win ) {
+void callback_add_peer (GObject *instance, Peer *peer, gpointer window) {
   g_idle_add(mainLoopAddPeerCallback, peer);
 }
 
-void callback_remove_peer (GObject *instance, Peer *peer, TeleportAppWindow *win ) {
+void callback_remove_peer (GObject *instance, Peer *peer, gpointer window) {
   g_idle_add(mainLoopRemovePeerCallback, peer);
 }
 
-void callback_notify_user (GObject *instance, char *name, TeleportAppWindow *win ) {
+void callback_notify_user (GObject *instance, gchar *name, gpointer window) {
   //create_user_notification("icon.png", 2000, "Mark's laptop");
 }
 
@@ -135,8 +137,8 @@ teleport_app_init (TeleportApp *app) {
 static void
 teleport_app_activate (GApplication *app) {
   //TeleportAppWindow *win;
-  application = app;
   TeleportPeer *peerList = g_object_new (TELEPORT_TYPE_PEER, NULL);
+  application = app;
 
   win = teleport_app_window_new (TELEPORT_APP (app));
   gtk_window_present (GTK_WINDOW (win));

@@ -60,7 +60,7 @@ open_file_picker(GtkButton *btn, Peer *device) {
   gint res;
   g_print("Open file chooser for submitting a file to %s with Address %s\n", device->name, device->ip);
 
-  dialog =  ("Open File",
+  dialog =  gtk_file_chooser_dialog_new ("Open File",
       GTK_WINDOW(mainWin),
       action,
       ("_Cancel"),
@@ -116,7 +116,6 @@ void update_remote_device_list_remove(TeleportAppWindow *win, Peer *device) {
   GtkWidget *box;
   GtkListBoxRow *remote_row;
   GtkLabel *name_label;
-  GtkWidget *line;
   gint i = 0;
 
   priv = teleport_app_window_get_instance_private (win);
@@ -163,11 +162,11 @@ find_child(GtkWidget *parent, const gchar *name)
   static void
 teleport_app_window_dispose (GObject *object)
 {
-  TeleportAppWindow *win;
-  TeleportAppWindowPrivate *priv;
+  //TeleportAppWindow *win;
+  //TeleportAppWindowPrivate *priv;
 
-  win = TELEPORT_APP_WINDOW (object);
-  priv = teleport_app_window_get_instance_private (win);
+  //win = TELEPORT_APP_WINDOW (object);
+  //priv = teleport_app_window_get_instance_private (win);
 
   //g_clear_object (&priv->settings);
 
@@ -197,6 +196,6 @@ teleport_app_window_new (TeleportApp *app)
 teleport_app_window_open (TeleportAppWindow *win,
     GFile            *file)
 {
-  TeleportAppWindowPrivate *priv;
-  priv = teleport_app_window_get_instance_private (win);
+  //TeleportAppWindowPrivate *priv;
+  //priv = teleport_app_window_get_instance_private (win);
 }

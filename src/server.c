@@ -13,11 +13,12 @@
 #include <glib/gstdio.h>
 
 #include "get.h"
+#include "server.h"
 #include "teleportapp.h"
 
 static int port;
-static SoupServer *server;
-static const char *tls_cert_file, *tls_key_file;
+static SoupServer *glob_server;
+//static const char *tls_cert_file, *tls_key_file;
 
   static int
 compare_strings (gconstpointer a, gconstpointer b)
@@ -151,91 +152,11 @@ do_get (SoupServer *server, SoupMessage *msg, const char *path)
   soup_message_set_status (msg, SOUP_STATUS_OK);
 }
 
-  static void
-do_get_response_json (SoupServer *server, SoupMessage *msg, const char *path)
-{
-  char *slash;
-  GStatBuf st;
-
-  printf("paths: %s", path);
-  if (g_stat (path, &st) == -1) {
-    if (errno == EPERM)
-      soup_message_set_status (msg, SOUP_STATUS_FORBIDDEN);
-    else if (errno == ENOENT)
-      soup_message_set_status (msg, SOUP_STATUS_NOT_FOUND);
-    else
-      soup_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR);
-    return;
-  }
-
-  if (g_file_test (path, G_FILE_TEST_IS_DIR)) {
-    GString *listing;
-    char *index_path;
-
-    slash = strrchr (path, '/');
-    if (!slash || slash[1]) {
-      char *redir_uri;
-
-      redir_uri = g_strdup_printf ("%s/", soup_message_get_uri (msg)->path);
-      soup_message_set_redirect (msg, SOUP_STATUS_MOVED_PERMANENTLY,
-          redir_uri);
-      g_free (redir_uri);
-      return;
-    }
-
-    index_path = g_strdup_printf ("%s/index.html", path);
-    if (g_stat (path, &st) != -1) {
-      do_get (server, msg, index_path);
-      g_free (index_path);
-      return;
-    }
-    g_free (index_path);
-
-    listing = get_directory_listing (path);
-    soup_message_set_response (msg, "text/html",
-        SOUP_MEMORY_TAKE,
-        listing->str, listing->len);
-    soup_message_set_status (msg, SOUP_STATUS_OK);
-    g_string_free (listing, FALSE);
-    return;
-  }
-
-  if (msg->method == SOUP_METHOD_GET) {
-    GMappedFile *mapping;
-    SoupBuffer *buffer;
-
-    mapping = g_mapped_file_new (path, FALSE, NULL);
-    if (!mapping) {
-      soup_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR);
-      return;
-    }
-
-    buffer = soup_buffer_new_with_owner (g_mapped_file_get_contents (mapping),
-        g_mapped_file_get_length (mapping),
-        mapping, (GDestroyNotify)g_mapped_file_unref);
-    soup_message_body_append_buffer (msg->response_body, buffer);
-    soup_buffer_free (buffer);
-  } else /* msg->method == SOUP_METHOD_HEAD */ {
-    char *length;
-
-    /* We could just use the same code for both GET and
-     * HEAD (soup-message-server-io.c will fix things up).
-     * But we'll optimize and avoid the extra I/O.
-     */
-    length = g_strdup_printf ("%lu", (gulong)st.st_size);
-    soup_message_headers_append (msg->response_headers,
-        "Content-Length", length);
-    g_free (length);
-  }
-
-  soup_message_set_status (msg, SOUP_STATUS_OK);
-}
 static void handle_incoming_file(const char *hash, const char *filename, const int size, const char *origin) {
-  g_print("Got a new file form %s with size:%d with title: %s\n", origin, size, filename);
-
   GVariantBuilder *builder;
   GVariant *value;
 
+  g_print("Got a new file form %s with size:%d with title: %s\n", origin, size, filename);
   builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
   g_variant_builder_add (builder, "s", origin);
   g_variant_builder_add (builder,
@@ -274,7 +195,7 @@ server_callback (SoupServer *server, SoupMessage *msg,
     g_print ("%s\n", msg->request_body->data);
 
   if (data != NULL) {
-    g_print("File to share %s\n", data);
+    g_print("File to share %s\n", (char *)data);
     file_path = g_strdup(data);
     response = g_string_new("{\"error\": false, \"message\": \"Success\"}");
   }
@@ -325,22 +246,14 @@ server_callback (SoupServer *server, SoupMessage *msg,
   g_print ("  -> %d %s\n\n", msg->status_code, msg->reason_phrase);
 }
 
-  static void
-quit (int sig)
-{
-  /* Exit cleanly on ^C in case we're valgrinding. */
-  exit (0);
-}
-
-
 int addRouteToServer(char *name, char *file_to_send, char *destination) {
-  soup_server_add_handler (server, g_strdup_printf("/transfer/%s", name),
+  GFile *file;
+  GFileInfo *fileInfo;
+  soup_server_add_handler (glob_server, g_strdup_printf("/transfer/%s", name),
       server_callback, g_strdup(file_to_send), NULL);
   //send notification of available file to the client
   //For getting file size
   //https://developer.gnome.org/gio/stable/GFile.html#g-file-query-info
-  GFile *file;
-  GFileInfo *fileInfo;
   file = g_file_new_for_path(file_to_send);
   //G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME, G_FILE_ATTRIBUTE_STANDARD_SIZE
   fileInfo = g_file_query_info(file, "standard::display-name,standard::size", G_FILE_QUERY_INFO_NONE, NULL, NULL);
@@ -356,21 +269,20 @@ int addRouteToServer(char *name, char *file_to_send, char *destination) {
 }
 
 extern int run_http_server(void) {
-  //GMainLoop *loop;
   GSList *uris, *u;
   char *str;
-  GTlsCertificate *cert;
+  //GTlsCertificate *cert;
   GError *error = NULL;
 
   port = 3000;
-  server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "teleport-httpd ",
+  glob_server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "teleport-httpd ",
       NULL);
-  soup_server_listen_all (server, port, 0, &error);
+  soup_server_listen_all (glob_server, port, 0, &error);
 
-  soup_server_add_handler (server, NULL,
+  soup_server_add_handler (glob_server, NULL,
       server_callback, NULL, NULL);
 
-  uris = soup_server_get_uris (server);
+  uris = soup_server_get_uris (glob_server);
   for (u = uris; u; u = u->next) {
     str = soup_uri_to_string (u->data, FALSE);
     g_print ("Listening on %s\n", str);
@@ -381,17 +293,5 @@ extern int run_http_server(void) {
 
   g_print ("\nWaiting for requests...\n");
 
-  //loop = g_main_loop_new (NULL, TRUE);
-  //g_main_loop_run (loop);
-
   return 0;
 }
-
-/*int
-  main (int argc, char **argv)
-  {
-  char *file_to_send = "/home/julian/teleport/docs/flow-diagram.svg";
-  createServer(file_to_send);
-  return 0;
-  }
-  */
