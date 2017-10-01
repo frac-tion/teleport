@@ -7,6 +7,9 @@ install_prefix = os.environ['MESON_INSTALL_PREFIX']
 icondir = os.path.join(install_prefix, 'share', 'icons', 'hicolor')
 schemadir = os.path.join(install_prefix, 'share', 'glib-2.0', 'schemas')
 
+print('Update xdg dirs...')
+subprocess.call(['xdg-user-dirs-update']);
+
 if not os.environ.get('DESTDIR'):
   print('Update icon cache...')
   subprocess.call(['gtk-update-icon-cache', '-f', '-t', icondir])
