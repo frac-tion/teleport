@@ -21,6 +21,7 @@ struct _TeleportAppWindowPrivate
   GtkWidget *gears;
   GtkWidget *remote_devices_list;
   GtkWidget *this_device_name_label;
+  GtkWidget *remote_no_devices;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(TeleportAppWindow, teleport_app_window, GTK_TYPE_APPLICATION_WINDOW);
@@ -96,6 +97,8 @@ void update_remote_device_list(TeleportAppWindow *win, Peer *device) {
 
   priv = teleport_app_window_get_instance_private (win);
 
+  gtk_widget_hide (priv->remote_no_devices);
+
   builder_remote_list = gtk_builder_new_from_resource ("/com/frac_tion/teleport/remote_list.ui");
 
   row = GTK_WIDGET (gtk_builder_get_object (builder_remote_list, "remote_device_row"));
@@ -123,13 +126,17 @@ void update_remote_device_list_remove(TeleportAppWindow *win, Peer *device) {
 
   remote_row = gtk_list_box_get_row_at_index (GTK_LIST_BOX(box), i);
 
-  while(remote_row != NULL) {
+  while (remote_row != NULL) {
     name_label = GTK_LABEL(find_child(GTK_WIDGET(remote_row), "GtkLabel"));
     if (name_label != NULL && g_strcmp0(device->name, gtk_label_get_text(name_label)) == 0) {
       gtk_container_remove (GTK_CONTAINER(box), GTK_WIDGET(remote_row));
     }
     i++;
     remote_row = gtk_list_box_get_row_at_index (GTK_LIST_BOX(box), i);
+  }
+  // the last row got removed and we have to display the searching box
+  if (i <= 2) {
+    gtk_widget_show (priv->remote_no_devices);
   }
 }
 
@@ -183,6 +190,7 @@ teleport_app_window_class_init (TeleportAppWindowClass *class)
 
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, gears);
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, this_device_name_label);
+  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, remote_no_devices);
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, remote_devices_list);
 }
 

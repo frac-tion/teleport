@@ -65,12 +65,12 @@
                     <child>
                       <object class="GtkListBox" id="this-device-listbox">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
+                        <property name="can_focus">False</property>
                         <property name="selection_mode">none</property>
                         <child>
                           <object class="GtkListBoxRow" id="this-device-row">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
+                            <property name="can_focus">False</property>
                             <property name="activatable">false</property>
                             <child>
                               <object class="GtkGrid" id="this-device-grid">
@@ -202,12 +202,42 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="selection_mode">none</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkSeparator">
-                            <property name="visible">true</property>
-                            <property name="orientation">horizontal</property>
+                            <child>
+                              <object class="GtkListBoxRow" id="remote_no_devices">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="activatable">False</property>
+                                <property name="selectable">False</property>
+                                <child>
+                                  <object class="GtkAlignment">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="top_padding">50</property>
+                                    <property name="bottom_padding">50</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="visible">True</property>
+                                        <property name="spacing">20</property>
+                                        <property name="orientation">vertical</property>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label">Searching for other devices...</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkSpinner">
+                                            <property name="visible">True</property>
+                                            <property name="active">True</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>
