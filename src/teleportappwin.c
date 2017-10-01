@@ -46,7 +46,6 @@ teleport_app_window_init (TeleportAppWindow *win)
   gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
 
   gtk_label_set_text (GTK_LABEL (priv->this_device_name_label), g_get_host_name());
-  g_print("Download dir: %s\n", g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD));
   gtk_entry_set_text (downloadDir, g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD));
   gtk_entry_set_width_chars(downloadDir, 30);
 
