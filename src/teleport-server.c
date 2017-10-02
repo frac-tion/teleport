@@ -7,8 +7,8 @@
 #include <libsoup/soup.h>
 #include <glib/gstdio.h>
 
-#include "teleport-get.h"
 #include "teleport-server.h"
+#include "teleport-get.h"
 #include "teleport-app.h"
 
 static int port;
@@ -147,7 +147,11 @@ do_get (SoupServer *server, SoupMessage *msg, const char *path)
   soup_message_set_status (msg, SOUP_STATUS_OK);
 }
 
-static void handle_incoming_file(const char *hash, const char *filename, const int size, const char *origin) {
+static void 
+handle_incoming_file(const char *hash,
+                     const char *filename,
+                     const int size,
+                     const char *origin) {
   GVariantBuilder *builder;
   GVariant *value;
 
@@ -241,7 +245,10 @@ server_callback (SoupServer *server, SoupMessage *msg,
   g_print ("  -> %d %s\n\n", msg->status_code, msg->reason_phrase);
 }
 
-int addRouteToServer(char *name, char *file_to_send, char *destination) {
+int
+teleport_server_add_route (gchar *name,
+                           gchar *file_to_send,
+                           gchar *destination) {
   GFile *file;
   GFileInfo *fileInfo;
   soup_server_add_handler (glob_server, g_strdup_printf("/transfer/%s", name),
@@ -263,7 +270,8 @@ int addRouteToServer(char *name, char *file_to_send, char *destination) {
   return 0;
 }
 
-extern int run_http_server(void) {
+int
+teleport_server_run (void) {
   GSList *uris, *u;
   char *str;
   //GTlsCertificate *cert;
