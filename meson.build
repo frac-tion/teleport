@@ -1,5 +1,5 @@
 project(
-     'teleportapp',
+     'teleport',
               'c',
           version: '0.1.0',
           license: 'AGPL3+',
@@ -7,36 +7,36 @@ project(
     meson_version: '>= 0.40.0'
 )
 
-teleportapp_version = meson.project_version()
-version_array = teleportapp_version.split('.')
-teleportapp_major_version = version_array[0].to_int()
-teleportapp_minor_version = version_array[1].to_int()
-teleportapp_micro_version = version_array[2].to_int()
+teleport_version = meson.project_version()
+version_array = teleport_version.split('.')
+teleport_major_version = version_array[0].to_int()
+teleport_minor_version = version_array[1].to_int()
+teleport_micro_version = version_array[2].to_int()
 
-teleportapp_gir_namespace = 'Gtd'
-teleportapp_gir_version = '1.0'
+teleport_gir_namespace = 'Gtd'
+teleport_gir_version = '1.0'
 
-teleportapp_prefix = get_option('prefix')
-teleportapp_bindir = join_paths(teleportapp_prefix, get_option('bindir'))
-teleportapp_datadir = join_paths(teleportapp_prefix, get_option('datadir'))
-teleportapp_includedir = join_paths(teleportapp_prefix, get_option('includedir'))
-teleportapp_libdir = join_paths(teleportapp_prefix, get_option('libdir'))
-teleportapp_libexecdir = join_paths(teleportapp_prefix, get_option('libexecdir'))
-teleportapp_localedir = join_paths(teleportapp_prefix, get_option('localedir'))
+teleport_prefix = get_option('prefix')
+teleport_bindir = join_paths(teleport_prefix, get_option('bindir'))
+teleport_datadir = join_paths(teleport_prefix, get_option('datadir'))
+teleport_includedir = join_paths(teleport_prefix, get_option('includedir'))
+teleport_libdir = join_paths(teleport_prefix, get_option('libdir'))
+teleport_libexecdir = join_paths(teleport_prefix, get_option('libexecdir'))
+teleport_localedir = join_paths(teleport_prefix, get_option('localedir'))
 
-teleportapp_pkgdatadir = join_paths(teleportapp_datadir, meson.project_name())
-teleportapp_pkgincludedir = join_paths(teleportapp_includedir, meson.project_name())
-teleportapp_pkglibdir = join_paths(teleportapp_libdir, meson.project_name())
+teleport_pkgdatadir = join_paths(teleport_datadir, meson.project_name())
+teleport_pkgincludedir = join_paths(teleport_includedir, meson.project_name())
+teleport_pkglibdir = join_paths(teleport_libdir, meson.project_name())
 
-teleportapp_pluginsdir = join_paths(teleportapp_pkglibdir, 'plugins')
-teleportapp_schemadir = join_paths(teleportapp_datadir, 'glib-2.0', 'schemas')
+teleport_pluginsdir = join_paths(teleport_pkglibdir, 'plugins')
+teleport_schemadir = join_paths(teleport_datadir, 'glib-2.0', 'schemas')
 
 soversion = 0
 current = 0
 revision = 0
 libversion = '@0@.@1@.@2@'.format(soversion, current, revision)
 
-teleportapp_debug = get_option('buildtype').contains('debug')
+teleport_debug = get_option('buildtype').contains('debug')
 
 cc = meson.get_compiler('c')
 
@@ -45,19 +45,19 @@ config_h = configuration_data()
 config_h.set_quoted('GETTEXT_PACKAGE', meson.project_name())
 
 # debug options
-config_h.set('GNOME_TODO_ENABLE_DEBUG', teleportapp_debug)
-config_h.set('NDEBUG', not teleportapp_debug)
+config_h.set('GNOME_TODO_ENABLE_DEBUG', teleport_debug)
+config_h.set('NDEBUG', not teleport_debug)
 
 # package
 set_defines = [
   ['PACKAGE', meson.project_name()],
   ['PACKAGE_BUGREPORT', 'http://bugzilla.gnome.org/enter_bug.cgi?product=' + meson.project_name()],
   ['PACKAGE_NAME', meson.project_name()],
-  ['PACKAGE_STRING', '@0@ @1@'.format(meson.project_name(), teleportapp_version)],
+  ['PACKAGE_STRING', '@0@ @1@'.format(meson.project_name(), teleport_version)],
   ['PACKAGE_TARNAME', meson.project_name()],
   ['PACKAGE_URL', 'https://wiki.gnome.org/Apps/Todo'],
-  ['PACKAGE_VERSION', teleportapp_version],
-  ['VERSION', teleportapp_version],
+  ['PACKAGE_VERSION', teleport_version],
+  ['VERSION', teleport_version],
   # i18n
   ['GETTEXT_PACKAGE', meson.project_name()]
 ]
@@ -108,7 +108,7 @@ endforeach
 common_flags = ['-DHAVE_CONFIG_H']
 compiler_flags = []
 
-if teleportapp_debug
+if teleport_debug
   test_cflags = [
     '-fno-strict-aliasing',
     '-Wcast-align',
@@ -149,7 +149,7 @@ add_project_arguments(common_flags + compiler_flags, language: 'c')
 glib_dep = dependency('glib-2.0', version: '>= 2.43.4')
 gtk_dep = dependency('gtk+-3.0', version: '>= 3.22.0')
 
-teleportapp_deps = [
+teleport_deps = [
   glib_dep,
   gtk_dep,
   dependency('gio-2.0', version: '>= 2.43.4'),
@@ -186,12 +186,12 @@ subdir('po')
 
 meson.add_install_script('meson_post_install.py')
 
-output = '\n        teleportapp ' + teleportapp_version + '\n'
+output = '\n        teleport ' + teleport_version + '\n'
 output += '        ==================\n\n'
-output += '        prefix:        ' + teleportapp_prefix + '\n'
+output += '        prefix:        ' + teleport_prefix + '\n'
 output += '        compiler:      ' + cc.get_id() + '\n'
 output += '        global flags:  ' + ' '.join(compiler_flags) + ' '.join(get_option('c_link_args')) + '\n'
-output += '        release:       ' + (not teleportapp_debug).to_string() + '\n'
+output += '        release:       ' + (not teleport_debug).to_string() + '\n'
 #output += '        documentation: ' + enable_gtk_doc.to_string() + '\n'
 output += '    Plugins:\n\n'
 #output += '        Dark theme .............. ' + get_option('enable-dark-theme-plugin').to_string() + '\n'

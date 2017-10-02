@@ -11,6 +11,6 @@ icon_sizes = [
 foreach icon_size: icon_sizes
   install_subdir(
     'hicolor/' + icon_size,
-    install_dir: join_paths(teleportapp_datadir, 'icons', 'hicolor')
+    install_dir: join_paths(teleport_datadir, 'icons', 'hicolor')
   )
 endforeach

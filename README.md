@@ -28,7 +28,7 @@ We are currently working on an MVP for a native GNOME app that only sends files,
   cd teleport
   ./configure
   make
-  ./_build/src/teleportapp
+  ./_build/src/teleport
 ```
 #### Ubuntu
 ```
@@ -37,7 +37,7 @@ We are currently working on an MVP for a native GNOME app that only sends files,
   cd teleport
   ./configure
   make
-  ./_build/src/teleportapp
+  ./_build/src/teleport
 ```
 
 

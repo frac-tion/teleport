@@ -24,9 +24,9 @@ _libs
 /main.o
 /resources.c
 /resources.o
-/teleportapp
-/teleportapp.o
-/teleportappwin.o
+/teleport
+/teleport.o
+/teleportwin.o
 test_download
 Makefile
 _build/

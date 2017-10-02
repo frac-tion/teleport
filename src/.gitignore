@@ -24,7 +24,5 @@ _libs
 /main.o
 /resources.c
 /resources.o
-/teleportapp
-/teleportapp.o
-/teleportappwin.o
+/teleport
 test_download
