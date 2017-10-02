@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.8 -->
-  <template class="TeleportAppWindow" parent="GtkApplicationWindow">
+  <template class="TeleportWindow" parent="GtkApplicationWindow">
     <property name="title" translatable="yes">Teleport</property>
     <property name="default_width">700</property>
     <property name="default_height">500</property>
