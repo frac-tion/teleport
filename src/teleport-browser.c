@@ -87,7 +87,7 @@ static void browse_callback(
   switch (event) {
   case AVAHI_BROWSER_FAILURE:
     fprintf(stderr, "(Browser) %s\n", avahi_strerror(avahi_client_errno(avahi_service_browser_get_client(b))));
-    avahi_shutdown();
+    teleport_browser_avahi_shutdown();
     //avahi_simple_poll_quit(simple_poll);
     return;
   case AVAHI_BROWSER_NEW:
@@ -118,7 +118,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UN
   /* Called whenever the client or server state changes */
   if (state == AVAHI_CLIENT_FAILURE) {
     fprintf(stderr, "Server connection failure: %s\n", avahi_strerror(avahi_client_errno(c)));
-    avahi_shutdown();
+    teleport_browser_avahi_shutdown();
     //avahi_simple_poll_quit(simple_poll);
   }
 }
@@ -166,7 +166,7 @@ fail:
    }
    */
 
-int run_avahi_service(TeleportPeer *peers) {
+int teleport_browser_run_avahi_service(TeleportPeer *peers) {
   int error;
   peerList = peers;
 
@@ -198,7 +198,7 @@ int run_avahi_service(TeleportPeer *peers) {
   return 0;
 }
 
-void avahi_shutdown(void) {
+void teleport_browser_avahi_shutdown(void) {
   /* Call this when the app shuts down */
 
   avahi_threaded_poll_stop(threaded_poll);

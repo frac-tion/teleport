@@ -1,7 +1,7 @@
 #ifndef __TELEPORT_BROWSER_H
 #define __TELEPORT_BROWSER_H
 
-extern int run_avahi_service(TeleportPeer *);
-void avahi_shutdown(void);
+int teleport_browser_run_avahi_service(TeleportPeer *);
+void teleport_browser_avahi_shutdown(void);
 
 #endif /* __TELEPORT_BROWSER_H */

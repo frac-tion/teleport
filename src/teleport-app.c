@@ -170,7 +170,7 @@ teleport_app_activate (GApplication *app) {
     */
   run_http_server();
   run_avahi_publish_service((char *) g_get_host_name());
-  run_avahi_service(peerList);
+  teleport_browser_run_avahi_service(peerList);
 }
 
 static void
