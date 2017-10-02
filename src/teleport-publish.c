@@ -64,7 +64,7 @@ static void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state,
 
                                    /* Some kind of failure happened while we were registering our services */
                                    //avahi_simple_poll_quit(simple_poll);
-                                   shutdown_avahi_publish_service();
+                                   teleport_publish_shutdown();
                                    break;
 
   case AVAHI_ENTRY_GROUP_UNCOMMITED:
@@ -137,7 +137,7 @@ collision:
 
 fail:
   //avahi_simple_poll_quit(simple_poll);
-  shutdown_avahi_publish_service();
+  teleport_publish_shutdown();
 }
 
 static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata) {
@@ -157,7 +157,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UN
 
     fprintf(stderr, "Client failure: %s\n", avahi_strerror(avahi_client_errno(c)));
     //avahi_simple_poll_quit(simple_poll);
-    shutdown_avahi_publish_service();
+    teleport_publish_shutdown();
 
     break;
 
@@ -184,7 +184,8 @@ static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UN
   }
 }
 
-extern void update_service(char * service_name) {
+void
+teleport_publish_update (char *service_name) {
   avahi_free(name);
   name = avahi_strdup(service_name);
 
@@ -201,7 +202,8 @@ extern void update_service(char * service_name) {
   }
 }
 
-int run_avahi_publish_service(char * service_name) {
+int
+teleport_publish_run (gchar *service_name) {
   int error;
 
   if (!(threaded_poll = avahi_threaded_poll_new())) {
@@ -225,9 +227,9 @@ int run_avahi_publish_service(char * service_name) {
   return 0;
 }
 
-void shutdown_avahi_publish_service(void) {
-  /* Call this when the app shuts down */
-
+/* Call this when the app shuts down */
+void
+teleport_publish_shutdown (void) {
   avahi_threaded_poll_stop(threaded_poll);
   avahi_client_free(client);
   avahi_threaded_poll_free(threaded_poll);

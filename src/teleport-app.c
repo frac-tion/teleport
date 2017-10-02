@@ -169,7 +169,7 @@ teleport_app_activate (GApplication *app) {
     create_finished_notification ("USER", 2000, "FILENAME", value);
     */
   run_http_server();
-  run_avahi_publish_service((char *) g_get_host_name());
+  teleport_publish_run ((gchar *) g_get_host_name());
   teleport_browser_run_avahi_service(peerList);
 }
 
