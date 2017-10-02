@@ -2,39 +2,41 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <libsoup/soup.h>
 #include "teleport-app.h"
 #include "teleport-get.h"
 
+static int saveFile (SoupMessage *, const gchar *, const gchar *);
+static gchar * getFilePath (const gchar *, const gchar *);
+static int get (const gchar *, const gchar *, const gchar *, const gchar *);
+
 static gboolean debug;
 
 static void
-finished (SoupSession *session, SoupMessage *msg, gpointer target)
+finished (SoupSession *session,
+          SoupMessage *msg,
+          gpointer target)
 {
   //GVariant *target array: {originDevice, url, filename, downloadDirectory}
   if ((char *) g_variant_get_string (
-        g_variant_get_child_value ((GVariant *) target, 2), NULL) != NULL) {
+                                     g_variant_get_child_value ((GVariant *) target, 2), NULL) != NULL) {
     saveFile(msg,
-        (char *) g_variant_get_string (
-          g_variant_get_child_value ((GVariant *) target, 3), NULL),
-        (char *) g_variant_get_string (
-          g_variant_get_child_value ((GVariant *) target, 2), NULL));
+             (char *) g_variant_get_string (
+                                            g_variant_get_child_value ((GVariant *) target, 3), NULL),
+             (char *) g_variant_get_string (
+                                            g_variant_get_child_value ((GVariant *) target, 2), NULL));
 
     create_finished_notification ((char *) g_variant_get_string (
-          g_variant_get_child_value ((GVariant *) target, 0), NULL),
-        0,
-        g_variant_get_string (
-          g_variant_get_child_value ((GVariant *) target, 2), NULL),
-        target);
+                                                                 g_variant_get_child_value ((GVariant *) target, 0), NULL),
+                                  0,
+                                  g_variant_get_string (
+                                                        g_variant_get_child_value ((GVariant *) target, 2), NULL),
+                                  target);
   }
 }
 
-int
-get (char *url,
+static int
+get (const gchar *url,
      const gchar *originDevice,
      const gchar *downloadDirectory,
      const gchar *outputFilename) {
@@ -48,10 +50,13 @@ get (char *url,
   }
 
   session = g_object_new (SOUP_TYPE_SESSION,
-      SOUP_SESSION_ADD_FEATURE_BY_TYPE, SOUP_TYPE_CONTENT_DECODER,
-      SOUP_SESSION_USER_AGENT, "teleport ",
-      SOUP_SESSION_ACCEPT_LANGUAGE_AUTO, TRUE,
-      NULL);
+                          SOUP_SESSION_ADD_FEATURE_BY_TYPE,
+                          SOUP_TYPE_CONTENT_DECODER,
+                          SOUP_SESSION_USER_AGENT,
+                          "teleport ",
+                          SOUP_SESSION_ACCEPT_LANGUAGE_AUTO,
+                          TRUE,
+                          NULL);
 
   if (debug) {
     logger = soup_logger_new (SOUP_LOGGER_LOG_BODY, -1);
@@ -85,7 +90,7 @@ get (char *url,
   return 0;
 }
 
-int 
+static int 
 saveFile (SoupMessage *msg,
           const gchar *outputDirectory,
           const gchar *outputFilename) {
@@ -112,9 +117,9 @@ saveFile (SoupMessage *msg,
 
       if (outputFile) {
         fwrite (msg->response_body->data,
-            1,
-            msg->response_body->length,
-            outputFile);
+                1,
+                msg->response_body->length,
+                outputFile);
 
         fclose (outputFile);
       }
@@ -123,24 +128,25 @@ saveFile (SoupMessage *msg,
   return 0;
 }
 
+
+static gchar *
+getFilePath (const gchar *outputDirectory,
+             const gchar *outputFilename) {
+  return g_strdup_printf("%s/%s", outputDirectory,
+                         g_uri_escape_string(outputFilename, NULL, TRUE));
+}
+
 int
-do_client_notify (char *url) {
+teleport_get_do_client_notify (const gchar *url) {
   get (g_strdup(url), NULL, NULL, NULL);
   g_print("Offering selected file to other machine.\n");
   return 0;
 }
 
-gchar *
-getFilePath (const gchar *outputDirectory,
-             const gchar *outputFilename) {
-  return g_strdup_printf("%s/%s", outputDirectory,
-      g_uri_escape_string(outputFilename, NULL, TRUE));
-}
-
 int 
-do_downloading (const char *originDevice,
-                const char *url,
-                const char *filename) {
+teleport_get_do_downloading (const char *originDevice,
+                             const char *url,
+                             const char *filename) {
   const gchar *outputDirectory = g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD);
   g_print("Downloading %s to %s\n", url, g_uri_escape_string(filename, NULL, TRUE));
   get (g_strdup(url), originDevice, outputDirectory, filename);

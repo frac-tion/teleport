@@ -29,26 +29,26 @@ teleport_peer_class_init (TeleportPeerClass *klass)
 
   object_class->constructed = teleport_peer_constructed;
   signalIds[ADD] = g_signal_new ("addpeer",
-      G_TYPE_OBJECT,
-      G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-      0,
-      NULL /* accumulator */,
-      NULL /* accumulator data */,
-      NULL /* C marshaller */,
-      G_TYPE_NONE /* return_type */,
-      1,
-      G_TYPE_POINTER);
+                                 G_TYPE_OBJECT,
+                                 G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+                                 0,
+                                 NULL /* accumulator */,
+                                 NULL /* accumulator data */,
+                                 NULL /* C marshaller */,
+                                 G_TYPE_NONE /* return_type */,
+                                 1,
+                                 G_TYPE_POINTER);
 
   signalIds[REMOVE] = g_signal_new ("removepeer",
-      G_TYPE_OBJECT,
-      G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-      0,
-      NULL /* accumulator */,
-      NULL /* accumulator data */,
-      NULL /* C marshaller */,
-      G_TYPE_NONE /* return_type */,
-      1,
-      G_TYPE_POINTER);
+                                    G_TYPE_OBJECT,
+                                    G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+                                    0,
+                                    NULL /* accumulator */,
+                                    NULL /* accumulator data */,
+                                    NULL /* C marshaller */,
+                                    G_TYPE_NONE /* return_type */,
+                                    1,
+                                    G_TYPE_POINTER);
 
 }
 

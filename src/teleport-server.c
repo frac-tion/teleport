@@ -15,7 +15,7 @@ static int port;
 static SoupServer *glob_server;
 //static const char *tls_cert_file, *tls_key_file;
 
-  static int
+static int
 compare_strings (gconstpointer a, gconstpointer b)
 {
   const char **sa = (const char **)a;
@@ -24,7 +24,7 @@ compare_strings (gconstpointer a, gconstpointer b)
   return strcmp (*sa, *sb);
 }
 
-  static GString *
+static GString *
 get_directory_listing (const char *path)
 {
   GPtrArray *entries;
@@ -57,8 +57,8 @@ get_directory_listing (const char *path)
   g_free (escaped);
   for (i = 0; i < entries->len; i++) {
     g_string_append_printf (listing, "<a href=\"%s\">%s</a><br>\r\n",
-        (char *)entries->pdata[i], 
-        (char *)entries->pdata[i]);
+                            (char *)entries->pdata[i], 
+                            (char *)entries->pdata[i]);
     g_free (entries->pdata[i]);
   }
   g_string_append (listing, "</body>\r\n</html>\r\n");
@@ -67,7 +67,7 @@ get_directory_listing (const char *path)
   return listing;
 }
 
-  static void
+static void
 do_get (SoupServer *server, SoupMessage *msg, const char *path)
 {
   char *slash;
@@ -94,7 +94,7 @@ do_get (SoupServer *server, SoupMessage *msg, const char *path)
 
       redir_uri = g_strdup_printf ("%s/", soup_message_get_uri (msg)->path);
       soup_message_set_redirect (msg, SOUP_STATUS_MOVED_PERMANENTLY,
-          redir_uri);
+                                 redir_uri);
       g_free (redir_uri);
       return;
     }
@@ -109,8 +109,8 @@ do_get (SoupServer *server, SoupMessage *msg, const char *path)
 
     listing = get_directory_listing (path);
     soup_message_set_response (msg, "text/html",
-        SOUP_MEMORY_TAKE,
-        listing->str, listing->len);
+                               SOUP_MEMORY_TAKE,
+                               listing->str, listing->len);
     soup_message_set_status (msg, SOUP_STATUS_OK);
     g_string_free (listing, FALSE);
     return;
@@ -127,8 +127,8 @@ do_get (SoupServer *server, SoupMessage *msg, const char *path)
     }
 
     buffer = soup_buffer_new_with_owner (g_mapped_file_get_contents (mapping),
-        g_mapped_file_get_length (mapping),
-        mapping, (GDestroyNotify)g_mapped_file_unref);
+                                         g_mapped_file_get_length (mapping),
+                                         mapping, (GDestroyNotify)g_mapped_file_unref);
     soup_message_body_append_buffer (msg->response_body, buffer);
     soup_buffer_free (buffer);
   } else /* msg->method == SOUP_METHOD_HEAD */ {
@@ -140,7 +140,7 @@ do_get (SoupServer *server, SoupMessage *msg, const char *path)
      */
     length = g_strdup_printf ("%lu", (gulong)st.st_size);
     soup_message_headers_append (msg->response_headers,
-        "Content-Length", length);
+                                 "Content-Length", length);
     g_free (length);
   }
 
@@ -160,7 +160,7 @@ static void handle_incoming_file(const char *hash, const char *filename, const i
                                          origin,
                                          port,
                                          hash)),
-  g_variant_builder_add (builder, "s", filename);
+                        g_variant_builder_add (builder, "s", filename);
   value = g_variant_new ("as", builder);
   g_variant_builder_unref (builder);
 
@@ -169,10 +169,10 @@ static void handle_incoming_file(const char *hash, const char *filename, const i
   create_user_notification(filename, size, origin, value);
 }
 
-  static void
+static void
 server_callback (SoupServer *server, SoupMessage *msg,
-    const char *path, GHashTable *query,
-    SoupClientContext *context, gpointer data)
+                 const char *path, GHashTable *query,
+                 SoupClientContext *context, gpointer data)
 {
   char *file_path;
   SoupMessageHeadersIter iter;
@@ -182,7 +182,7 @@ server_callback (SoupServer *server, SoupMessage *msg,
   origin_addr = soup_client_context_get_host (context);
 
   g_print ("%s %s HTTP/1.%d\n", msg->method, path,
-      soup_message_get_http_version (msg));
+           soup_message_get_http_version (msg));
   soup_message_headers_iter_init (&iter, msg->request_headers);
   while (soup_message_headers_iter_next (&iter, &name, &value))
     g_print ("%s: %s\n", name, value);
@@ -223,8 +223,8 @@ server_callback (SoupServer *server, SoupMessage *msg,
       do_get (server, msg, file_path);
     else {
       soup_message_set_response (msg, "application/json",
-          SOUP_MEMORY_TAKE,
-          response->str, response->len);
+                                 SOUP_MEMORY_TAKE,
+                                 response->str, response->len);
       soup_message_set_status (msg, SOUP_STATUS_OK);
       g_print("Handle response\n");
     }
@@ -245,19 +245,19 @@ int addRouteToServer(char *name, char *file_to_send, char *destination) {
   GFile *file;
   GFileInfo *fileInfo;
   soup_server_add_handler (glob_server, g_strdup_printf("/transfer/%s", name),
-      server_callback, g_strdup(file_to_send), NULL);
+                           server_callback, g_strdup(file_to_send), NULL);
   //send notification of available file to the client
   //For getting file size
   //https://developer.gnome.org/gio/stable/GFile.html#g-file-query-info
   file = g_file_new_for_path(file_to_send);
   //G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME, G_FILE_ATTRIBUTE_STANDARD_SIZE
   fileInfo = g_file_query_info(file, "standard::display-name,standard::size", G_FILE_QUERY_INFO_NONE, NULL, NULL);
-  do_client_notify(g_strdup_printf("http://%s:%d/?token=%s&size=%jd&name=%s\n",
-        destination,
-        port,
-        name,
-        g_file_info_get_size(fileInfo),
-        g_file_info_get_display_name(fileInfo)));
+  teleport_get_do_client_notify(g_strdup_printf("http://%s:%d/?token=%s&size=%jd&name=%s\n",
+                                                destination,
+                                                port,
+                                                name,
+                                                g_file_info_get_size(fileInfo),
+                                                g_file_info_get_display_name(fileInfo)));
   g_object_unref(fileInfo);
   g_object_unref(file);
   return 0;
@@ -271,11 +271,11 @@ extern int run_http_server(void) {
 
   port = 3000;
   glob_server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "teleport-httpd ",
-      NULL);
+                                 NULL);
   soup_server_listen_all (glob_server, port, 0, &error);
 
   soup_server_add_handler (glob_server, NULL,
-      server_callback, NULL, NULL);
+                           server_callback, NULL, NULL);
 
   uris = soup_server_get_uris (glob_server);
   for (u = uris; u; u = u->next) {

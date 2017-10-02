@@ -37,39 +37,39 @@ static void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state,
   /* Called whenever the entry group state changes */
 
   switch (state) {
-    case AVAHI_ENTRY_GROUP_ESTABLISHED :
-      /* The entry group has been established successfully */
-      fprintf(stderr, "Service '%s' successfully established.\n", name);
-      break;
+  case AVAHI_ENTRY_GROUP_ESTABLISHED :
+    /* The entry group has been established successfully */
+    fprintf(stderr, "Service '%s' successfully established.\n", name);
+    break;
 
-    case AVAHI_ENTRY_GROUP_COLLISION : {
-                                         char *n;
+  case AVAHI_ENTRY_GROUP_COLLISION : {
+                                       char *n;
 
-                                         /* A service name collision with a remote service
-                                          * happened. Let's pick a new name */
-                                         n = avahi_alternative_service_name(name);
-                                         avahi_free(name);
-                                         name = n;
+                                       /* A service name collision with a remote service
+                                        * happened. Let's pick a new name */
+                                       n = avahi_alternative_service_name(name);
+                                       avahi_free(name);
+                                       name = n;
 
-                                         fprintf(stderr, "Service name collision, renaming service to '%s'\n", name);
+                                       fprintf(stderr, "Service name collision, renaming service to '%s'\n", name);
 
-                                         /* And recreate the services */
-                                         create_services(avahi_entry_group_get_client(g));
-                                         break;
-                                       }
-
-    case AVAHI_ENTRY_GROUP_FAILURE :
-
-                                       fprintf(stderr, "Entry group failure: %s\n", avahi_strerror(avahi_client_errno(avahi_entry_group_get_client(g))));
-
-                                       /* Some kind of failure happened while we were registering our services */
-                                       //avahi_simple_poll_quit(simple_poll);
-                                       shutdown_avahi_publish_service();
+                                       /* And recreate the services */
+                                       create_services(avahi_entry_group_get_client(g));
                                        break;
+                                     }
 
-    case AVAHI_ENTRY_GROUP_UNCOMMITED:
-    case AVAHI_ENTRY_GROUP_REGISTERING:
-                                       ;
+  case AVAHI_ENTRY_GROUP_FAILURE :
+
+                                   fprintf(stderr, "Entry group failure: %s\n", avahi_strerror(avahi_client_errno(avahi_entry_group_get_client(g))));
+
+                                   /* Some kind of failure happened while we were registering our services */
+                                   //avahi_simple_poll_quit(simple_poll);
+                                   shutdown_avahi_publish_service();
+                                   break;
+
+  case AVAHI_ENTRY_GROUP_UNCOMMITED:
+  case AVAHI_ENTRY_GROUP_REGISTERING:
+                                   ;
   }
 }
 
@@ -146,41 +146,41 @@ static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UN
   /* Called whenever the client or server state changes */
 
   switch (state) {
-    case AVAHI_CLIENT_S_RUNNING:
+  case AVAHI_CLIENT_S_RUNNING:
 
-      /* The server has startup successfully and registered its host
-       * name on the network, so it's time to create our services */
-      create_services(c);
-      break;
+    /* The server has startup successfully and registered its host
+     * name on the network, so it's time to create our services */
+    create_services(c);
+    break;
 
-    case AVAHI_CLIENT_FAILURE:
+  case AVAHI_CLIENT_FAILURE:
 
-      fprintf(stderr, "Client failure: %s\n", avahi_strerror(avahi_client_errno(c)));
-      //avahi_simple_poll_quit(simple_poll);
-      shutdown_avahi_publish_service();
+    fprintf(stderr, "Client failure: %s\n", avahi_strerror(avahi_client_errno(c)));
+    //avahi_simple_poll_quit(simple_poll);
+    shutdown_avahi_publish_service();
 
-      break;
+    break;
 
-    case AVAHI_CLIENT_S_COLLISION:
+  case AVAHI_CLIENT_S_COLLISION:
 
-      /* Let's drop our registered services. When the server is back
-       * in AVAHI_SERVER_RUNNING state we will register them
-       * again with the new host name. */
+    /* Let's drop our registered services. When the server is back
+     * in AVAHI_SERVER_RUNNING state we will register them
+     * again with the new host name. */
 
-    case AVAHI_CLIENT_S_REGISTERING:
+  case AVAHI_CLIENT_S_REGISTERING:
 
-      /* The server records are now being established. This
-       * might be caused by a host name change. We need to wait
-       * for our own records to register until the host name is
-       * properly esatblished. */
+    /* The server records are now being established. This
+     * might be caused by a host name change. We need to wait
+     * for our own records to register until the host name is
+     * properly esatblished. */
 
-      if (group)
-        avahi_entry_group_reset(group);
+    if (group)
+      avahi_entry_group_reset(group);
 
-      break;
+    break;
 
-    case AVAHI_CLIENT_CONNECTING:
-      ;
+  case AVAHI_CLIENT_CONNECTING:
+    ;
   }
 }
 

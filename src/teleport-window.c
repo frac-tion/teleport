@@ -26,7 +26,7 @@ struct _TeleportAppWindowPrivate
 
 G_DEFINE_TYPE_WITH_PRIVATE(TeleportAppWindow, teleport_app_window, GTK_TYPE_APPLICATION_WINDOW);
 
-  static void
+static void
 teleport_app_window_init (TeleportAppWindow *win)
 {
   TeleportAppWindowPrivate *priv;
@@ -62,29 +62,29 @@ open_file_picker(GtkButton *btn, Peer *device) {
   g_print("Open file chooser for submitting a file to %s with Address %s\n", device->name, device->ip);
 
   dialog =  gtk_file_chooser_dialog_new ("Open File",
-      GTK_WINDOW(mainWin),
-      action,
-      ("_Cancel"),
-      GTK_RESPONSE_CANCEL,
-      ("_Open"),
-      GTK_RESPONSE_ACCEPT,
-      NULL);
+                                         GTK_WINDOW(mainWin),
+                                         action,
+                                         ("_Cancel"),
+                                         GTK_RESPONSE_CANCEL,
+                                         ("_Open"),
+                                         GTK_RESPONSE_ACCEPT,
+                                         NULL);
 
   res = gtk_dialog_run (GTK_DIALOG (dialog));
   if (res == GTK_RESPONSE_ACCEPT)
-  {
-    char *filename;
-    GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-    filename = gtk_file_chooser_get_filename (chooser);
-    g_print("Choosen file is %s\n", filename);
-    gtk_widget_destroy (dialog);
-    addRouteToServer(g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), filename, device->ip);
-    g_free (filename);
-  }
+    {
+      char *filename;
+      GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+      filename = gtk_file_chooser_get_filename (chooser);
+      g_print("Choosen file is %s\n", filename);
+      gtk_widget_destroy (dialog);
+      addRouteToServer(g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), filename, device->ip);
+      g_free (filename);
+    }
   else
-  {
-    gtk_widget_destroy (dialog);
-  }
+    {
+      gtk_widget_destroy (dialog);
+    }
 }
 
 void update_remote_device_list(TeleportAppWindow *win, Peer *device) {
@@ -140,7 +140,7 @@ void update_remote_device_list_remove(TeleportAppWindow *win, Peer *device) {
   }
 }
 
-  GtkWidget *
+GtkWidget *
 find_child(GtkWidget *parent, const gchar *name)
 {
   if (g_strcmp0(gtk_widget_get_name((GtkWidget *)parent), (gchar *)name) == 0) {
@@ -166,7 +166,7 @@ find_child(GtkWidget *parent, const gchar *name)
 }
 
 
-  static void
+static void
 teleport_app_window_dispose (GObject *object)
 {
   //TeleportAppWindow *win;
@@ -180,13 +180,13 @@ teleport_app_window_dispose (GObject *object)
   G_OBJECT_CLASS (teleport_app_window_parent_class)->dispose (object);
 }
 
-  static void
+static void
 teleport_app_window_class_init (TeleportAppWindowClass *class)
 {
   G_OBJECT_CLASS (class)->dispose = teleport_app_window_dispose;
 
   gtk_widget_class_set_template_from_resource (GTK_WIDGET_CLASS (class),
-      "/com/frac_tion/teleport/window.ui");
+                                               "/com/frac_tion/teleport/window.ui");
 
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, gears);
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, this_device_name_label);
@@ -194,15 +194,15 @@ teleport_app_window_class_init (TeleportAppWindowClass *class)
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, remote_devices_list);
 }
 
-  TeleportAppWindow *
+TeleportAppWindow *
 teleport_app_window_new (TeleportApp *app)
 {
   return g_object_new (TELEPORT_APP_WINDOW_TYPE, "application", app, NULL);
 }
 
-  void
+void
 teleport_app_window_open (TeleportAppWindow *win,
-    GFile            *file)
+                          GFile            *file)
 {
   //TeleportAppWindowPrivate *priv;
   //priv = teleport_app_window_get_instance_private (win);

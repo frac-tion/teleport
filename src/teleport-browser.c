@@ -22,96 +22,95 @@ static AvahiThreadedPoll *threaded_poll = NULL;
 static AvahiClient *client = NULL;
 static TeleportPeer *peerList = NULL;
 
-static void resolve_callback(
-    AvahiServiceResolver *r,
-    AVAHI_GCC_UNUSED AvahiIfIndex interface,
-    AVAHI_GCC_UNUSED AvahiProtocol protocol,
-    AvahiResolverEvent event,
-    const char *name,
-    const char *type,
-    const char *domain,
-    const char *host_name,
-    const AvahiAddress *address,
-    uint16_t port,
-    AvahiStringList *txt,
-    AvahiLookupResultFlags flags,
-    AVAHI_GCC_UNUSED void* userdata) {
+static void resolve_callback (AvahiServiceResolver *r,
+                              AVAHI_GCC_UNUSED AvahiIfIndex interface,
+                              AVAHI_GCC_UNUSED AvahiProtocol protocol,
+                              AvahiResolverEvent event,
+                              const char *name,
+                              const char *type,
+                              const char *domain,
+                              const char *host_name,
+                              const AvahiAddress *address,
+                              uint16_t port,
+                              AvahiStringList *txt,
+                              AvahiLookupResultFlags flags,
+                              AVAHI_GCC_UNUSED void* userdata) {
   assert(r);
   /* Called whenever a service has been resolved successfully or timed out */
   switch (event) {
-    case AVAHI_RESOLVER_FAILURE:
-      fprintf(stderr, "(Resolver) Failed to resolve service '%s' of type '%s' in domain '%s': %s\n", name, type, domain, avahi_strerror(avahi_client_errno(avahi_service_resolver_get_client(r))));
-      break;
-    case AVAHI_RESOLVER_FOUND: {
-                                 char a[AVAHI_ADDRESS_STR_MAX], *t;
-                                 fprintf(stderr, "Service '%s' of type '%s' in domain '%s':\n", name, type, domain);
-                                 avahi_address_snprint(a, sizeof(a), address);
-                                 t = avahi_string_list_to_string(txt);
-                                 teleport_peer_add_peer(peerList, g_strdup(name), g_strdup(a), port);
-                                 //teleport_app_add_peer(name, port, a);
-                                 /*fprintf(stderr,
-                                   "\t%s:%u (%s)\n"
-                                   "\tTXT=%s\n"
-                                   "\tcookie is %u\n"
-                                   "\tis_local: %i\n"
-                                   "\tour_own: %i\n"
-                                   "\twide_area: %i\n"
-                                   "\tmulticast: %i\n"
-                                   "\tcached: %i\n",
-                                   host_name, port, a,
-                                   t,
-                                   avahi_string_list_get_service_cookie(txt),
-                                   !!(flags & AVAHI_LOOKUP_RESULT_LOCAL),
-                                   !!(flags & AVAHI_LOOKUP_RESULT_OUR_OWN),
-                                   !!(flags & AVAHI_LOOKUP_RESULT_WIDE_AREA),
-                                   !!(flags & AVAHI_LOOKUP_RESULT_MULTICAST),
-                                   !!(flags & AVAHI_LOOKUP_RESULT_CACHED));
-                                   */
-                                 avahi_free(t);
-                               }
+  case AVAHI_RESOLVER_FAILURE:
+    fprintf(stderr, "(Resolver) Failed to resolve service '%s' of type '%s' in domain '%s': %s\n", name, type, domain, avahi_strerror(avahi_client_errno(avahi_service_resolver_get_client(r))));
+    break;
+  case AVAHI_RESOLVER_FOUND: {
+                               char a[AVAHI_ADDRESS_STR_MAX], *t;
+                               fprintf(stderr, "Service '%s' of type '%s' in domain '%s':\n", name, type, domain);
+                               avahi_address_snprint(a, sizeof(a), address);
+                               t = avahi_string_list_to_string(txt);
+                               teleport_peer_add_peer(peerList, g_strdup(name), g_strdup(a), port);
+                               //teleport_app_add_peer(name, port, a);
+                               /*fprintf(stderr,
+                                 "\t%s:%u (%s)\n"
+                                 "\tTXT=%s\n"
+                                 "\tcookie is %u\n"
+                                 "\tis_local: %i\n"
+                                 "\tour_own: %i\n"
+                                 "\twide_area: %i\n"
+                                 "\tmulticast: %i\n"
+                                 "\tcached: %i\n",
+                                 host_name, port, a,
+                                 t,
+                                 avahi_string_list_get_service_cookie(txt),
+                                 !!(flags & AVAHI_LOOKUP_RESULT_LOCAL),
+                                 !!(flags & AVAHI_LOOKUP_RESULT_OUR_OWN),
+                                 !!(flags & AVAHI_LOOKUP_RESULT_WIDE_AREA),
+                                 !!(flags & AVAHI_LOOKUP_RESULT_MULTICAST),
+                                 !!(flags & AVAHI_LOOKUP_RESULT_CACHED));
+                                 */
+                               avahi_free(t);
+                             }
   }
   avahi_service_resolver_free(r);
 }
 static void browse_callback(
-    AvahiServiceBrowser *b,
-    AvahiIfIndex interface,
-    AvahiProtocol protocol,
-    AvahiBrowserEvent event,
-    const char *name,
-    const char *type,
-    const char *domain,
-    AVAHI_GCC_UNUSED AvahiLookupResultFlags flags,
-    void* userdata) {
+                            AvahiServiceBrowser *b,
+                            AvahiIfIndex interface,
+                            AvahiProtocol protocol,
+                            AvahiBrowserEvent event,
+                            const char *name,
+                            const char *type,
+                            const char *domain,
+                            AVAHI_GCC_UNUSED AvahiLookupResultFlags flags,
+                            void* userdata) {
   AvahiClient *c = userdata;
   assert(b);
   /* Called whenever a new services becomes available on the LAN or is removed from the LAN */
   switch (event) {
-    case AVAHI_BROWSER_FAILURE:
-      fprintf(stderr, "(Browser) %s\n", avahi_strerror(avahi_client_errno(avahi_service_browser_get_client(b))));
-      avahi_shutdown();
-      //avahi_simple_poll_quit(simple_poll);
-      return;
-    case AVAHI_BROWSER_NEW:
-      fprintf(stderr, "(Browser) NEW: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
-      if (flags & AVAHI_LOOKUP_RESULT_LOCAL)
-        break;
-      /* We ignore the returned resolver object. In the callback
-         function we free it. If the server is terminated before
-         the callback function is called the server will free
-         the resolver for us. */
-      if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0, resolve_callback, c)))
-        //if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_INET, 0, resolve_callback, c)))
-        fprintf(stderr, "Failed to resolve service '%s': %s\n", name, avahi_strerror(avahi_client_errno(c)));
+  case AVAHI_BROWSER_FAILURE:
+    fprintf(stderr, "(Browser) %s\n", avahi_strerror(avahi_client_errno(avahi_service_browser_get_client(b))));
+    avahi_shutdown();
+    //avahi_simple_poll_quit(simple_poll);
+    return;
+  case AVAHI_BROWSER_NEW:
+    fprintf(stderr, "(Browser) NEW: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
+    if (flags & AVAHI_LOOKUP_RESULT_LOCAL)
       break;
-    case AVAHI_BROWSER_REMOVE:
-      fprintf(stderr, "(Browser) REMOVE: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
-      //teleport_app_remove_peer(name);
-      teleport_peer_remove_peer_by_name(peerList, g_strdup(name));
-      break;
-    case AVAHI_BROWSER_ALL_FOR_NOW:
-    case AVAHI_BROWSER_CACHE_EXHAUSTED:
-      fprintf(stderr, "(Browser) %s\n", event == AVAHI_BROWSER_CACHE_EXHAUSTED ? "CACHE_EXHAUSTED" : "ALL_FOR_NOW");
-      break;
+    /* We ignore the returned resolver object. In the callback
+       function we free it. If the server is terminated before
+       the callback function is called the server will free
+       the resolver for us. */
+    if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0, resolve_callback, c)))
+      //if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_INET, 0, resolve_callback, c)))
+      fprintf(stderr, "Failed to resolve service '%s': %s\n", name, avahi_strerror(avahi_client_errno(c)));
+    break;
+  case AVAHI_BROWSER_REMOVE:
+    fprintf(stderr, "(Browser) REMOVE: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
+    //teleport_app_remove_peer(name);
+    teleport_peer_remove_peer_by_name(peerList, g_strdup(name));
+    break;
+  case AVAHI_BROWSER_ALL_FOR_NOW:
+  case AVAHI_BROWSER_CACHE_EXHAUSTED:
+    fprintf(stderr, "(Browser) %s\n", event == AVAHI_BROWSER_CACHE_EXHAUSTED ? "CACHE_EXHAUSTED" : "ALL_FOR_NOW");
+    break;
   }
 }
 static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata) {
