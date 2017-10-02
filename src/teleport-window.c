@@ -6,16 +6,16 @@
 #include "teleport-peer.h"
 
 GtkWidget *find_child(GtkWidget *, const gchar *);
-TeleportAppWindow *mainWin;
+TeleportWindow *mainWin;
 
-struct _TeleportAppWindow
+struct _TeleportWindow
 {
   GtkApplicationWindow parent;
 };
 
-typedef struct _TeleportAppWindowPrivate TeleportAppWindowPrivate;
+typedef struct _TeleportWindowPrivate TeleportWindowPrivate;
 
-struct _TeleportAppWindowPrivate
+struct _TeleportWindowPrivate
 {
   GSettings *settings;
   GtkWidget *gears;
@@ -24,18 +24,18 @@ struct _TeleportAppWindowPrivate
   GtkWidget *remote_no_devices;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE(TeleportAppWindow, teleport_app_window, GTK_TYPE_APPLICATION_WINDOW);
+G_DEFINE_TYPE_WITH_PRIVATE(TeleportWindow, teleport_window, GTK_TYPE_APPLICATION_WINDOW);
 
 static void
-teleport_app_window_init (TeleportAppWindow *win)
+teleport_window_init (TeleportWindow *win)
 {
-  TeleportAppWindowPrivate *priv;
+  TeleportWindowPrivate *priv;
   GtkBuilder *builder;
   GtkWidget *menu;
   GtkEntry *downloadDir;
   mainWin = win;
 
-  priv = teleport_app_window_get_instance_private (win);
+  priv = teleport_window_get_instance_private (win);
 
   gtk_widget_init_template (GTK_WIDGET (win));
 
@@ -55,7 +55,8 @@ teleport_app_window_init (TeleportAppWindow *win)
 }
 
 static void
-open_file_picker(GtkButton *btn, Peer *device) {
+open_file_picker(GtkButton *btn,
+                 Peer *device) {
   GtkWidget *dialog;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
   gint res;
@@ -87,15 +88,18 @@ open_file_picker(GtkButton *btn, Peer *device) {
     }
 }
 
-void update_remote_device_list(TeleportAppWindow *win, Peer *device) {
-  TeleportAppWindowPrivate *priv;
+void
+update_remote_device_list(TeleportWindow *win,
+                          Peer *device)
+{
+  TeleportWindowPrivate *priv;
   GtkBuilder *builder_remote_list;
   GtkWidget *row;
   GtkLabel *name_label;
   GtkButton *send_btn;
   //GtkWidget *line;
 
-  priv = teleport_app_window_get_instance_private (win);
+  priv = teleport_window_get_instance_private (win);
 
   gtk_widget_hide (priv->remote_no_devices);
 
@@ -114,14 +118,17 @@ void update_remote_device_list(TeleportAppWindow *win, Peer *device) {
 }
 
 
-void update_remote_device_list_remove(TeleportAppWindow *win, Peer *device) {
-  TeleportAppWindowPrivate *priv;
+void
+update_remote_device_list_remove(TeleportWindow *win,
+                                 Peer *device)
+{
+  TeleportWindowPrivate *priv;
   GtkWidget *box;
   GtkListBoxRow *remote_row;
   GtkLabel *name_label;
   gint i = 0;
 
-  priv = teleport_app_window_get_instance_private (win);
+  priv = teleport_window_get_instance_private (win);
   box = priv->remote_devices_list;
 
   remote_row = gtk_list_box_get_row_at_index (GTK_LIST_BOX(box), i);
@@ -167,43 +174,43 @@ find_child(GtkWidget *parent, const gchar *name)
 
 
 static void
-teleport_app_window_dispose (GObject *object)
+teleport_window_dispose (GObject *object)
 {
-  //TeleportAppWindow *win;
-  //TeleportAppWindowPrivate *priv;
+  //TeleportWindow *win;
+  //TeleportWindowPrivate *priv;
 
-  //win = TELEPORT_APP_WINDOW (object);
-  //priv = teleport_app_window_get_instance_private (win);
+  //win = TELEPORT_WINDOW (object);
+  //priv = teleport_window_get_instance_private (win);
 
   //g_clear_object (&priv->settings);
 
-  G_OBJECT_CLASS (teleport_app_window_parent_class)->dispose (object);
+  G_OBJECT_CLASS (teleport_window_parent_class)->dispose (object);
 }
 
 static void
-teleport_app_window_class_init (TeleportAppWindowClass *class)
+teleport_window_class_init (TeleportWindowClass *class)
 {
-  G_OBJECT_CLASS (class)->dispose = teleport_app_window_dispose;
+  G_OBJECT_CLASS (class)->dispose = teleport_window_dispose;
 
   gtk_widget_class_set_template_from_resource (GTK_WIDGET_CLASS (class),
                                                "/com/frac_tion/teleport/window.ui");
 
-  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, gears);
-  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, this_device_name_label);
-  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, remote_no_devices);
-  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportAppWindow, remote_devices_list);
+  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, gears);
+  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, this_device_name_label);
+  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, remote_no_devices);
+  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, remote_devices_list);
 }
 
-TeleportAppWindow *
-teleport_app_window_new (TeleportApp *app)
+TeleportWindow *
+teleport_window_new (TeleportApp *app)
 {
-  return g_object_new (TELEPORT_APP_WINDOW_TYPE, "application", app, NULL);
+  return g_object_new (TELEPORT_WINDOW_TYPE, "application", app, NULL);
 }
 
 void
-teleport_app_window_open (TeleportAppWindow *win,
-                          GFile            *file)
+teleport_window_open (TeleportWindow *win,
+                      GFile *file)
 {
-  //TeleportAppWindowPrivate *priv;
-  //priv = teleport_app_window_get_instance_private (win);
+  //TeleportWindowPrivate *priv;
+  //priv = teleport_window_get_instance_private (win);
 }

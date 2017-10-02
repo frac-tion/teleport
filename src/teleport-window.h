@@ -5,19 +5,19 @@
 #include "teleport-app.h"
 #include "teleport-peer.h"
 
-#define TELEPORT_APP_WINDOW_TYPE (teleport_app_window_get_type ())
-G_DECLARE_FINAL_TYPE (TeleportAppWindow, 
-                      teleport_app_window, 
+#define TELEPORT_WINDOW_TYPE (teleport_window_get_type ())
+G_DECLARE_FINAL_TYPE (TeleportWindow, 
+                      teleport_window, 
                       TELEPORT, 
-                      APP_WINDOW, 
+                      WINDOW, 
                       GtkApplicationWindow)
 
-TeleportAppWindow *teleport_app_window_new          (TeleportApp       *app);
-void               teleport_app_window_open         (TeleportAppWindow *win,
-                                                     GFile             *file);
-void               update_remote_device_list        (TeleportAppWindow *,
+TeleportWindow     *teleport_window_new             (TeleportApp       *);
+void               teleport_window_open             (TeleportWindow    *,
+                                                     GFile             *);
+void               update_remote_device_list        (TeleportWindow    *,
                                                      Peer              *);
-void               update_remote_device_list_remove (TeleportAppWindow *,
+void               update_remote_device_list_remove (TeleportWindow    *,
                                                      Peer              *);
 
 #endif /* __TELEPORT_WINDOW_H */

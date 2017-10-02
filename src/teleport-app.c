@@ -34,7 +34,7 @@ static GActionEntry app_entries[] =
     { "open-file", open_file_callback, "as", NULL, NULL }
 };
 
-static TeleportAppWindow *win;
+static TeleportWindow *win;
 static GApplication *application;
 static gint signalIds [N_SIGNALS];
 
@@ -136,11 +136,11 @@ teleport_app_init (TeleportApp *app) {
 
 static void
 teleport_app_activate (GApplication *app) {
-  //TeleportAppWindow *win;
+  //TeleportWindow *win;
   TeleportPeer *peerList = g_object_new (TELEPORT_TYPE_PEER, NULL);
   application = app;
 
-  win = teleport_app_window_new (TELEPORT_APP (app));
+  win = teleport_window_new (TELEPORT_APP (app));
   gtk_window_present (GTK_WINDOW (win));
 
   g_action_map_add_action_entries (G_ACTION_MAP (app),
@@ -184,12 +184,12 @@ teleport_app_open (GApplication  *app,
 
   windows = gtk_application_get_windows (GTK_APPLICATION (app));
   if (windows)
-    win = TELEPORT_APP_WINDOW (windows->data);
+    win = TELEPORT_WINDOW (windows->data);
   else
-    win = teleport_app_window_new (TELEPORT_APP (app));
+    win = teleport_window_new (TELEPORT_APP (app));
 
   for (i = 0; i < n_files; i++)
-    teleport_app_window_open (win, files[i]);
+    teleport_window_open (win, files[i]);
 
   gtk_window_present (GTK_WINDOW (win));
 }
