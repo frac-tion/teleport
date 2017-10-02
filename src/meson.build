@@ -1,12 +1,12 @@
 
 headers = files(
-  'browser.h',
-  'get.h',
-  'publish.h',
-  'server.h',
-  'teleportappwin.h',
-  'teleportpeer.h',
-  'teleportapp.h'
+  'teleport-browser.h',
+  'teleport-get.h',
+  'teleport-publish.h',
+  'teleport-server.h',
+  'teleport-window.h',
+  'teleport-peer.h',
+  'teleport.h'
 )
 
 install_headers(headers, subdir: meson.project_name())
@@ -17,13 +17,13 @@ install_headers(headers, subdir: meson.project_name())
 ################
 
 sources = files(
-  'browser.c',
-  'get.c',
-  'publish.c',
-  'server.c',
-  'teleportapp.c',
-  'teleportappwin.c',
-  'teleportpeer.c',
+  'teleport-browser.c',
+  'teleport-get.c',
+  'teleport-publish.c',
+  'teleport-server.c',
+  'teleport.c',
+  'teleport-window.c',
+  'teleport-peer.c',
   'main.c'
 )
 

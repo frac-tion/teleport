@@ -1,8 +1,8 @@
-#ifndef __TELEPORTAPP_H
-#define __TELEPORTAPP_H
+#ifndef __TELEPORT_H
+#define __TELEPORT_H
 
 #include <gtk/gtk.h>
-#include "teleportpeer.h"
+#include "teleport-peer.h"
 
 #define TELEPORT_APP_TYPE (teleport_app_get_type ())
 G_DECLARE_FINAL_TYPE (TeleportApp, teleport_app, TELEPORT, APP, GtkApplication)
@@ -33,4 +33,4 @@ void            callback_notify_user         (GObject *,
                                               gpointer);
 
 
-#endif /* __TELEPORTAPP_H */
+#endif /* __TELEPORT_H */

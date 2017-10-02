@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include <libsoup/soup.h>
-#include "teleportapp.h"
-#include "get.h"
+#include "teleport.h"
+#include "teleport-get.h"
 
 static gboolean debug;
 

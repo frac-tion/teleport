@@ -1,8 +1,3 @@
-/* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
-/*
- * Copyright (C) 2001-2003, Ximian, Inc.
- */
-
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,9 +7,9 @@
 #include <libsoup/soup.h>
 #include <glib/gstdio.h>
 
-#include "get.h"
-#include "server.h"
-#include "teleportapp.h"
+#include "teleport-get.h"
+#include "teleport-server.h"
+#include "teleport.h"
 
 static int port;
 static SoupServer *glob_server;

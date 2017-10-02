@@ -1,9 +1,9 @@
-#ifndef __TELEPORTAPPWIN_H
-#define __TELEPORTAPPWIN_H
+#ifndef __TELEPORT_WINDOW_H
+#define __TELEPORT_WINDOW_H
 
 #include <gtk/gtk.h>
-#include "teleportapp.h"
-#include "teleportpeer.h"
+#include "teleport.h"
+#include "teleport-peer.h"
 
 
 #define TELEPORT_APP_WINDOW_TYPE (teleport_app_window_get_type ())
@@ -16,4 +16,4 @@ G_DECLARE_FINAL_TYPE (TeleportAppWindow, teleport_app_window, TELEPORT, APP_WIND
   extern void update_remote_device_list_remove(TeleportAppWindow *, Peer *);
 
 
-#endif /* __TELEPORTAPPWIN_H */
+#endif /* __TELEPORT_WINDOW_H */

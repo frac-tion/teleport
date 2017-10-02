@@ -1,12 +1,12 @@
 #include <gtk/gtk.h>
 
-#include "teleportapp.h"
-#include "teleportpeer.h"
-#include "teleportappwin.h"
-#include "browser.h"
-#include "publish.h"
-#include "server.h"
-#include "get.h"
+#include "teleport.h"
+#include "teleport-peer.h"
+#include "teleport-window.h"
+#include "teleport-browser.h"
+#include "teleport-publish.h"
+#include "teleport-server.h"
+#include "teleport-get.h"
 
 
 void save_file_callback (GSimpleAction *simple,

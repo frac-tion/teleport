@@ -17,9 +17,9 @@
 #include <avahi-common/timeval.h>
 #include <avahi-common/thread-watch.h>
 
-#include "teleportapp.h"
-#include "teleportpeer.h"
-#include "publish.h"
+#include "teleport.h"
+#include "teleport-peer.h"
+#include "teleport-publish.h"
 
 static AvahiThreadedPoll *threaded_poll = NULL;
 static AvahiEntryGroup *group = NULL;

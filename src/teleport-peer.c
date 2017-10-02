@@ -1,5 +1,5 @@
 #include <gtk/gtk.h>
-#include "teleportpeer.h"
+#include "teleport-peer.h"
 
 enum {
   ADD, REMOVE, N_SIGNALS

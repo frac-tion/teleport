@@ -1,8 +1,8 @@
-#ifndef __SERVER_H
-#define __SERVER_H
+#ifndef __TELEPORT_SERVER_H
+#define __TELEPORT_SERVER_H
 
 
 extern int run_http_server(void);
 extern int addRouteToServer(char *, char *, char *);
 
-#endif /* __SERVER_H */
+#endif /* __TELEPORT_SERVER_H */

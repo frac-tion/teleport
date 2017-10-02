@@ -12,9 +12,10 @@
 #include <avahi-common/malloc.h>
 #include <avahi-common/error.h>
 #include <avahi-common/thread-watch.h>
-#include "teleportapp.h"
-#include "teleportpeer.h"
-#include "browser.h"
+
+#include "teleport.h"
+#include "teleport-peer.h"
+#include "teleport-browser.h"
 
 //static AvahiSimplePoll *simple_poll = NULL;
 static AvahiThreadedPoll *threaded_poll = NULL;

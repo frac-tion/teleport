@@ -1,5 +1,5 @@
-#ifndef __TELEPORTPEER_H
-#define __TELEPORTPEER_H
+#ifndef __TELEPORT_PEER_H
+#define __TELEPORT_PEER_H
 
 #include <gtk/gtk.h>
 
@@ -20,4 +20,4 @@ void teleport_peer_add_peer (TeleportPeer *self, gchar * name, gchar * ip, gint 
 void teleport_peer_remove_peer (TeleportPeer *, Peer *);
 void teleport_peer_remove_peer_by_name (TeleportPeer *, gchar *);
 
-#endif /* __TELEPORTPEER_H */
+#endif /* __TELEPORT_PEER_H */

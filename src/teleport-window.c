@@ -1,9 +1,9 @@
 #include <gtk/gtk.h>
 
-#include "teleportapp.h"
-#include "teleportappwin.h"
-#include "server.h"
-#include "teleportpeer.h"
+#include "teleport.h"
+#include "teleport-window.h"
+#include "teleport-server.h"
+#include "teleport-peer.h"
 
 GtkWidget *find_child(GtkWidget *, const gchar *);
 TeleportAppWindow *mainWin;
