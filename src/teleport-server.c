@@ -9,7 +9,7 @@
 
 #include "teleport-get.h"
 #include "teleport-server.h"
-#include "teleport.h"
+#include "teleport-app.h"
 
 static int port;
 static SoupServer *glob_server;

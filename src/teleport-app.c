@@ -1,6 +1,6 @@
 #include <gtk/gtk.h>
 
-#include "teleport.h"
+#include "teleport-app.h"
 #include "teleport-peer.h"
 #include "teleport-window.h"
 #include "teleport-browser.h"

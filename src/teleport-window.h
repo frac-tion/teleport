@@ -2,7 +2,7 @@
 #define __TELEPORT_WINDOW_H
 
 #include <gtk/gtk.h>
-#include "teleport.h"
+#include "teleport-app.h"
 #include "teleport-peer.h"
 
 

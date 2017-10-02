@@ -13,7 +13,7 @@
 #include <avahi-common/error.h>
 #include <avahi-common/thread-watch.h>
 
-#include "teleport.h"
+#include "teleport-app.h"
 #include "teleport-peer.h"
 #include "teleport-browser.h"
 

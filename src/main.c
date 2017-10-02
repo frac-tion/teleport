@@ -1,6 +1,6 @@
 #include <gtk/gtk.h>
 
-#include "teleport.h"
+#include "teleport-app.h"
 
 int
 main (int argc, char *argv[])

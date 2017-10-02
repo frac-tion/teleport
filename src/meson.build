@@ -6,7 +6,7 @@ headers = files(
   'teleport-server.h',
   'teleport-window.h',
   'teleport-peer.h',
-  'teleport.h'
+  'teleport-app.h'
 )
 
 install_headers(headers, subdir: meson.project_name())
@@ -21,7 +21,7 @@ sources = files(
   'teleport-get.c',
   'teleport-publish.c',
   'teleport-server.c',
-  'teleport.c',
+  'teleport-app.c',
   'teleport-window.c',
   'teleport-peer.c',
   'main.c'
