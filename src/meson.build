@@ -28,7 +28,7 @@ sources = files(
 )
 
 sources += gnome.compile_resources(
-  'gtd-resources',
+  'teleport-resources',
   join_paths(data_dir, 'teleport.gresource.xml'),
     source_dir: [ data_dir, join_paths(meson.build_root(), 'plugins') ],
         c_name: 'teleport',
@@ -36,7 +36,7 @@ sources += gnome.compile_resources(
         export: true
 )
 
-#enum = 'gtd-enum-types'
+#enum = 'teleport-enum-types'
 
 #sources += gnome.mkenums(
 #        enum,
@@ -96,8 +96,8 @@ teleport = executable(
 # Private library #
 ###################
 
-libgtd = shared_library(
-                'gtd',
+libteleport = shared_library(
+                'teleport',
               sources: sources,
               version: libversion,
             soversion: soversion,
@@ -106,8 +106,8 @@ libgtd = shared_library(
                c_args: cflags
 )
 
-libgtd_dep = declare_dependency(
-            link_with: libgtd,
+libteleport_dep = declare_dependency(
+            link_with: libteleport,
   include_directories: src_inc,
          dependencies: teleport_deps
 )
