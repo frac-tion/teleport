@@ -4,6 +4,7 @@
 
 #include <libsoup/soup.h>
 #include "teleport-app.h"
+#include "teleport-window.h"
 #include "teleport-get.h"
 
 static int saveFile (SoupMessage *, const gchar *, const gchar *);
@@ -147,7 +148,7 @@ int
 teleport_get_do_downloading (const char *originDevice,
                              const char *url,
                              const char *filename) {
-  const gchar *outputDirectory = g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD);
+  const gchar *outputDirectory = teleport_get_download_directory();
   g_print("Downloading %s to %s\n", url, g_uri_escape_string(filename, NULL, TRUE));
   get (g_strdup(url), originDevice, outputDirectory, filename);
   return 0;
