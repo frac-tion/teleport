@@ -21,5 +21,6 @@ void               update_remote_device_list_remove (TeleportWindow    *,
                                                      Peer              *);
 
 gchar *            teleport_get_download_directory  (void); 
+gchar *            teleport_get_device_name         (void); 
 
 #endif /* __TELEPORT_WINDOW_H */

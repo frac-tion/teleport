@@ -50,6 +50,13 @@ teleport_window_init (TeleportWindow *win)
     }
   }
 
+
+  if (g_settings_get_user_value (priv->settings, "device-name") == NULL) {
+    g_settings_set_string (priv->settings,
+                           "device-name",
+                           g_get_host_name());
+  }
+
   gtk_widget_init_template (GTK_WIDGET (win));
 
   builder = gtk_builder_new_from_resource ("/com/frac_tion/teleport/settings.ui");
@@ -58,7 +65,8 @@ teleport_window_init (TeleportWindow *win)
 
   gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
 
-  gtk_label_set_text (GTK_LABEL (priv->this_device_name_label), g_get_host_name());
+  gtk_label_set_text (GTK_LABEL (priv->this_device_name_label),
+                      g_settings_get_string (priv->settings, "device-name"));
 
   g_settings_bind (priv->settings, "download-dir",
                    downloadDir, "text",
@@ -222,6 +230,14 @@ teleport_window_new (TeleportApp *app)
   return g_object_new (TELEPORT_WINDOW_TYPE, "application", app, NULL);
 }
 
+gchar * 
+teleport_get_device_name (void) 
+{
+  TeleportWindowPrivate *priv;
+  priv = teleport_window_get_instance_private (mainWin);
+
+  return g_settings_get_string (priv->settings, "device-name");
+}
 
 gchar * 
 teleport_get_download_directory (void) 
@@ -231,6 +247,7 @@ teleport_get_download_directory (void)
 
   return g_settings_get_string (priv->settings, "download-dir");
 }
+
 void
 teleport_window_open (TeleportWindow *win,
                       GFile *file)
