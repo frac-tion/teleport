@@ -78,7 +78,7 @@ get (const gchar *url,
     GVariant *target;
 
     builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-    g_variant_builder_add (builder, "s", originDevice);
+    g_variant_builder_add (builder, "s", teleport_peer_get_name_by_addr(self, originDevice));
     g_variant_builder_add (builder, "s", url);
     g_variant_builder_add (builder, "s", outputFilename);
     g_variant_builder_add (builder, "s", downloadDirectory);

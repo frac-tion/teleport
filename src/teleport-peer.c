@@ -126,3 +126,19 @@ void teleport_peer_remove_peer_by_name (TeleportPeer *self, gchar *name)
   }
   g_signal_emit (self, signalIds[REMOVE], 0, element);
 }
+
+gchar *
+teleport_peer_get_name_by_addr (TeleportPeer *self, gchar *addr)
+{
+  Peer *element = NULL;
+  gchar *name = NULL;
+  gboolean found = FALSE;
+  for (int i = 0; i < self->list->len && !found; i++) {
+    element = g_array_index(self->list, Peer *, i);
+    if (g_strcmp0(element->ip, addr) == 0) {
+      found = TRUE;
+      name = element->name;
+    }
+  }
+  return name;
+}
