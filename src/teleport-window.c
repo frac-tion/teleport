@@ -36,6 +36,26 @@ teleport_window_init (TeleportWindow *win)
   mainWin = win;
 
   priv = teleport_window_get_instance_private (win);
+  priv->settings = g_settings_new ("com.frac_tion.teleport");
+
+  if (g_settings_get_user_value (priv->settings, "download-dir") == NULL) {
+    g_print ("Download dir set to XDG DOWNLOAD directory\n");
+    if (g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD) != NULL) {
+      g_settings_set_string (priv->settings,
+                             "download-dir",
+                             g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD));
+    }
+    else {
+      g_print ("Error: XDG DOWNLOAD is not set.\n");
+    }
+  }
+
+
+  if (g_settings_get_user_value (priv->settings, "device-name") == NULL) {
+    g_settings_set_string (priv->settings,
+                           "device-name",
+                           g_get_host_name());
+  }
 
   gtk_widget_init_template (GTK_WIDGET (win));
 
@@ -45,9 +65,12 @@ teleport_window_init (TeleportWindow *win)
 
   gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
 
-  gtk_label_set_text (GTK_LABEL (priv->this_device_name_label), g_get_host_name());
-  gtk_entry_set_text (downloadDir, g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD));
-  gtk_entry_set_width_chars(downloadDir, 30);
+  gtk_label_set_text (GTK_LABEL (priv->this_device_name_label),
+                      g_settings_get_string (priv->settings, "device-name"));
+
+  g_settings_bind (priv->settings, "download-dir",
+                   downloadDir, "text",
+                   G_SETTINGS_BIND_DEFAULT);
 
   //g_object_unref (menu);
   //g_object_unref (label);
@@ -176,13 +199,13 @@ find_child(GtkWidget *parent, const gchar *name)
 static void
 teleport_window_dispose (GObject *object)
 {
-  //TeleportWindow *win;
-  //TeleportWindowPrivate *priv;
+  TeleportWindow *win;
+  TeleportWindowPrivate *priv;
 
-  //win = TELEPORT_WINDOW (object);
-  //priv = teleport_window_get_instance_private (win);
+  win = TELEPORT_WINDOW (object);
+  priv = teleport_window_get_instance_private (win);
 
-  //g_clear_object (&priv->settings);
+  g_clear_object (&priv->settings);
 
   G_OBJECT_CLASS (teleport_window_parent_class)->dispose (object);
 }
@@ -205,6 +228,24 @@ TeleportWindow *
 teleport_window_new (TeleportApp *app)
 {
   return g_object_new (TELEPORT_WINDOW_TYPE, "application", app, NULL);
+}
+
+gchar * 
+teleport_get_device_name (void) 
+{
+  TeleportWindowPrivate *priv;
+  priv = teleport_window_get_instance_private (mainWin);
+
+  return g_settings_get_string (priv->settings, "device-name");
+}
+
+gchar * 
+teleport_get_download_directory (void) 
+{
+  TeleportWindowPrivate *priv;
+  priv = teleport_window_get_instance_private (mainWin);
+
+  return g_settings_get_string (priv->settings, "download-dir");
 }
 
 void

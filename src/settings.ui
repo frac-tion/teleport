@@ -23,8 +23,9 @@
         <child>
           <object class="GtkEntry" id="settings_download_directory">
             <property name="visible">True</property>
-            <property name="sensitive">False</property>
+            <property name="sensitive">True</property>
             <property name="text">~/Downloads</property>
+            <property name="width_chars">25</property>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -36,7 +37,7 @@
         <child>
           <object class="GtkButton">
             <property name="visible">True</property>
-            <property name="sensitive">False</property>
+            <property name="sensitive">false</property>
             <property name="label">Browse...</property>
             <property name="margin_start">12</property>
           </object>
