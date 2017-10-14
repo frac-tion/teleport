@@ -11,6 +11,16 @@ Teleport is designed to be a replacement for using USB keys or emailing stuff to
 
 ![Teleport Notifications Mockup](docs/notifications.png)
 
+## Install
+Teleport is currently in early development, but you can try it by installing it via (flatpak)[https://flatpak.org]. If you're running a modern GNU/Linux distro you should already have flatpak, or be able to install it from your repositories.
+
+If you have GNOME Software (or another GUI app to install flatpaks), just [download this file](https://raw.githubusercontent.com/frac-tion/teleport-flatpak/master/teleport.flatpakref) and open it in Software (your browser should offer to do that before downloading).
+
+Otherwise you can also install it from the command line:
+```
+flatpak install --from  http://frac-tion.com/teleport-flatpak/teleport.flatpakref
+```
+
 ## Roadmap
 We are currently working on an MVP for a native GNOME app that only sends files, but longer term we are interested in doing things like:
 * drag & drop files to send them
