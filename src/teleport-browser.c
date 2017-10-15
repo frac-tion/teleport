@@ -184,8 +184,8 @@ int teleport_browser_run_avahi_service(TeleportPeer *peers) {
   }
 
   /* create some browsers on the client object here, if you wish */
-  //if (!(avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_http._tcp", NULL, 0, browse_callback, client))) {
-  if (!(avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_INET, "_http._tcp", NULL, 0, browse_callback, client))) {
+  //if (!(avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_teleport._tcp", NULL, 0, browse_callback, client))) {
+  if (!(avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_INET, "_teleport._tcp", NULL, 0, browse_callback, client))) {
     /* so something bad */
     return 1;
   }
