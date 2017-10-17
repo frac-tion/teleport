@@ -27,12 +27,27 @@ struct _TeleportWindowPrivate
 G_DEFINE_TYPE_WITH_PRIVATE(TeleportWindow, teleport_window, GTK_TYPE_APPLICATION_WINDOW);
 
 static void
+change_download_directory_cb (GtkWidget *widget,
+                              gpointer user_data) {
+  GSettings *settings;
+  gchar * newDownloadDir;
+  settings = (GSettings *)user_data;
+
+  newDownloadDir = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget));
+  g_print ("Change download directory\n");
+  g_settings_set_string (settings,
+                         "download-dir",
+                         newDownloadDir);
+  g_free(newDownloadDir);
+}
+
+static void
 teleport_window_init (TeleportWindow *win)
 {
   TeleportWindowPrivate *priv;
   GtkBuilder *builder;
   GtkWidget *menu;
-  GtkEntry *downloadDir;
+  GtkFileChooserButton *downloadDir;
   mainWin = win;
 
   priv = teleport_window_get_instance_private (win);
@@ -50,7 +65,6 @@ teleport_window_init (TeleportWindow *win)
     }
   }
 
-
   if (g_settings_get_user_value (priv->settings, "device-name") == NULL) {
     g_settings_set_string (priv->settings,
                            "device-name",
@@ -61,16 +75,22 @@ teleport_window_init (TeleportWindow *win)
 
   builder = gtk_builder_new_from_resource ("/com/frac_tion/teleport/settings.ui");
   menu = GTK_WIDGET (gtk_builder_get_object (builder, "settings"));
-  downloadDir = GTK_ENTRY (gtk_builder_get_object (builder, "settings_download_directory"));
+  downloadDir = GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object (builder, "settings_download_directory"));
 
   gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
 
   gtk_label_set_text (GTK_LABEL (priv->this_device_name_label),
                       g_settings_get_string (priv->settings, "device-name"));
 
-  g_settings_bind (priv->settings, "download-dir",
-                   downloadDir, "text",
-                   G_SETTINGS_BIND_DEFAULT);
+  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (downloadDir),
+                                       g_settings_get_string(priv->settings,
+                                                             "download-dir"));
+
+  g_signal_connect (downloadDir, "file-set", G_CALLBACK (change_download_directory_cb), priv->settings);
+  /*g_settings_bind (priv->settings, "download-dir",
+    GTK_FILE_CHOOSER (downloadDir), "current-folder",
+    G_SETTINGS_BIND_DEFAULT);
+    */
 
   //g_object_unref (menu);
   //g_object_unref (label);
