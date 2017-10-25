@@ -6,6 +6,26 @@
 #include "teleport-peer.h"
 
 GtkWidget *find_child(GtkWidget *, const gchar *);
+
+enum {
+  TARGET_INT32,
+  TARGET_STRING,
+  TARGET_URIS,
+  TARGET_ROOTWIN
+};
+
+/* datatype (string), restrictions on DnD (GtkTargetFlags), datatype (int) */
+static GtkTargetEntry target_list[] = {
+    //{ "INTEGER",    0, TARGET_INT32 },
+    //{ "STRING",     0, TARGET_STRING },
+    //{ "text/plain", 0, TARGET_STRING },
+    { "text/uri-list", 0, TARGET_URIS }
+    //{ "application/octet-stream", 0, TARGET_STRING },
+    //{ "application/x-rootwindow-drop", 0, TARGET_ROOTWIN }
+};
+
+static guint n_targets = G_N_ELEMENTS (target_list);
+
 TeleportWindow *mainWin;
 
 struct _TeleportWindow
@@ -40,6 +60,145 @@ change_download_directory_cb (GtkWidget *widget,
                          newDownloadDir);
   g_free(newDownloadDir);
 }
+
+static void 
+send_file_to_device (gchar *uri, gpointer data)
+{
+  Peer *device = (Peer *) data;
+  GFile *file = g_file_new_for_uri (uri);
+  gchar *filename  = NULL;
+  if (g_file_query_exists (file, NULL)) {
+    filename = g_file_get_path (file);
+    teleport_server_add_route (g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), g_strdup(filename), device->ip);
+    g_free (filename);
+  }
+  else {
+    g_print ("File doesn't exist: %s\n", uri);
+ }
+  g_object_unref(file);
+}
+static void
+drag_data_received_handl
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y,
+ GtkSelectionData *selection_data, guint target_type, guint time,
+ gpointer data)
+{
+  glong   *_idata;
+  gchar   *_sdata;
+  gchar   **uris;
+
+  gboolean dnd_success = FALSE;
+  gboolean delete_selection_data = FALSE;
+
+  /* Deal with what we are given from source */
+  if((selection_data != NULL) && (gtk_selection_data_get_length(selection_data) >= 0))
+    {
+      if (gdk_drag_context_get_suggested_action(context) == GDK_ACTION_ASK)
+        {
+          /* Ask the user to move or copy, then set the context action. */
+        }
+
+      if (gdk_drag_context_get_suggested_action(context) == GDK_ACTION_MOVE)
+        delete_selection_data = TRUE;
+
+      /* Check that we got the format we can use */
+      switch (target_type)
+        {
+        case TARGET_INT32:
+          _idata = (glong*)gtk_selection_data_get_data(selection_data);
+          g_print ("integer: %ld", *_idata);
+          dnd_success = TRUE;
+          break;
+
+        case TARGET_STRING:
+          _sdata = (gchar*)gtk_selection_data_get_data(selection_data);
+          g_print ("string: %s", _sdata);
+          dnd_success = TRUE;
+          break;
+
+        case TARGET_URIS:
+          uris = gtk_selection_data_get_uris(selection_data);
+          if (uris != NULL && uris[1] == NULL) {
+            send_file_to_device (uris[0], data);
+            dnd_success = TRUE;
+          }
+          break;
+
+        default:
+          g_print ("Something bad!");
+        }
+    }
+
+  if (dnd_success == FALSE)
+    {
+      g_print ("DnD data transfer failed!\n");
+      g_print ("You can not drag more then one file!\n");
+    }
+
+  gtk_drag_finish (context, dnd_success, delete_selection_data, time);
+}
+
+/* Emitted when a drag is over the destination */
+static gboolean
+drag_motion_handl
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint t,
+ gpointer user_data)
+{
+  // Fancy stuff here. This signal spams the console something horrible.
+  //const gchar *name = gtk_widget_get_name (widget);
+  //g_print ("%s: drag_motion_handl\n", name);
+  return  FALSE;
+}
+
+/* Emitted when a drag leaves the destination */
+static void
+drag_leave_handl
+(GtkWidget *widget, GdkDragContext *context, guint time, gpointer user_data)
+{
+}
+
+/* Emitted when the user releases (drops) the selection. It should check that
+ * the drop is over a valid part of the widget (if its a complex widget), and
+ * itself to return true if the operation should continue. Next choose the
+ * target type it wishes to ask the source for. Finally call gtk_drag_get_data
+ * which will emit "drag-data-get" on the source. */
+static gboolean
+drag_drop_handl
+(GtkWidget *widget, GdkDragContext *context, gint x, gint y, guint time,
+ gpointer user_data)
+{
+  gboolean        is_valid_drop_site;
+  GdkAtom         target_type;
+
+  /* Check to see if (x,y) is a valid drop site within widget */
+  is_valid_drop_site = TRUE;
+
+  /* If the source offers a target */
+  if (gdk_drag_context_list_targets (context))
+    {
+      /* Choose the best target type */
+      target_type = GDK_POINTER_TO_ATOM
+       (g_list_nth_data (gdk_drag_context_list_targets(context), TARGET_INT32));
+
+
+      /* Request the data from the source. */
+      gtk_drag_get_data
+       (
+        widget,         /* will receive 'drag-data-received' signal */
+        context,        /* represents the current state of the DnD */
+        target_type,    /* the target type we want */
+        time            /* time stamp */
+       );
+    }
+  /* No target offered by source => error */
+  else
+    {
+      is_valid_drop_site = FALSE;
+    }
+
+  return  is_valid_drop_site;
+}
+
 
 static void
 teleport_window_init (TeleportWindow *win)
@@ -95,6 +254,35 @@ teleport_window_init (TeleportWindow *win)
   //g_object_unref (menu);
   //g_object_unref (label);
   g_object_unref (builder);
+}
+
+
+/*Doing Dnd init stuff */
+static void
+add_dnd (GtkWidget *widget, gpointer data)
+{
+  /* Make the widget a DnD destination. */
+  gtk_drag_dest_set
+   (
+    widget,              /* widget that will accept a drop */
+    GTK_DEST_DEFAULT_ALL,
+    target_list,            /* lists of target to support */
+    n_targets,              /* size of list */
+    GDK_ACTION_COPY         /* what to do with data after dropped */
+   );
+
+  /* All possible destination signals */
+  g_signal_connect (widget, "drag-data-received",
+                    G_CALLBACK(drag_data_received_handl), data);
+
+  g_signal_connect (widget, "drag-leave",
+                    G_CALLBACK (drag_leave_handl), data);
+
+  g_signal_connect (widget, "drag-motion",
+                    G_CALLBACK (drag_motion_handl), data);
+
+  g_signal_connect (widget, "drag-drop",
+                    G_CALLBACK (drag_drop_handl), data);
 }
 
 static void
@@ -154,6 +342,9 @@ update_remote_device_list(TeleportWindow *win,
   gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), row, -1);
   send_btn = GTK_BUTTON (gtk_builder_get_object (builder_remote_list, "send_btn"));
   g_signal_connect (send_btn, "clicked", G_CALLBACK (open_file_picker), device);
+
+  //Add drag n drop
+  add_dnd (row, device);
 
   //line = GTK_WIDGET (gtk_builder_get_object (builder_remote_list, "remote_space_row"));
   //gtk_list_box_insert(GTK_LIST_BOX(priv->remote_devices_list), line, -1);
