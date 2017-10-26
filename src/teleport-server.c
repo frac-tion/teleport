@@ -16,62 +16,9 @@ static int port;
 static SoupServer *glob_server;
 //static const char *tls_cert_file, *tls_key_file;
 
-static int
-compare_strings (gconstpointer a, gconstpointer b)
-{
-  const char **sa = (const char **)a;
-  const char **sb = (const char **)b;
-
-  return strcmp (*sa, *sb);
-}
-
-static GString *
-get_directory_listing (const char *path)
-{
-  GPtrArray *entries;
-  GString *listing;
-  char *escaped;
-  GDir *dir;
-  const gchar *d_name;
-  int i;
-
-  entries = g_ptr_array_new ();
-  dir = g_dir_open (path, 0, NULL);
-  if (dir) {
-    while ((d_name = g_dir_read_name (dir))) {
-      if (!strcmp (d_name, ".") ||
-          (!strcmp (d_name, "..") &&
-           !strcmp (path, "./")))
-        continue;
-      escaped = g_markup_escape_text (d_name, -1);
-      g_ptr_array_add (entries, escaped);
-    }
-    g_dir_close (dir);
-  }
-
-  g_ptr_array_sort (entries, (GCompareFunc)compare_strings);
-
-  listing = g_string_new ("<html>\r\n");
-  escaped = g_markup_escape_text (strchr (path, '/'), -1);
-  g_string_append_printf (listing, "<head><title>Index of %s</title></head>\r\n", escaped);
-  g_string_append_printf (listing, "<body><h1>Index of %s</h1>\r\n<p>\r\n", escaped);
-  g_free (escaped);
-  for (i = 0; i < entries->len; i++) {
-    g_string_append_printf (listing, "<a href=\"%s\">%s</a><br>\r\n",
-                            (char *)entries->pdata[i], 
-                            (char *)entries->pdata[i]);
-    g_free (entries->pdata[i]);
-  }
-  g_string_append (listing, "</body>\r\n</html>\r\n");
-
-  g_ptr_array_free (entries, TRUE);
-  return listing;
-}
-
 static void
 do_get (SoupServer *server, SoupMessage *msg, const char *path)
 {
-  char *slash;
   GStatBuf st;
 
   printf("paths: %s", path);
@@ -82,38 +29,6 @@ do_get (SoupServer *server, SoupMessage *msg, const char *path)
       soup_message_set_status (msg, SOUP_STATUS_NOT_FOUND);
     else
       soup_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR);
-    return;
-  }
-
-  if (g_file_test (path, G_FILE_TEST_IS_DIR)) {
-    GString *listing;
-    char *index_path;
-
-    slash = strrchr (path, '/');
-    if (!slash || slash[1]) {
-      char *redir_uri;
-
-      redir_uri = g_strdup_printf ("%s/", soup_message_get_uri (msg)->path);
-      soup_message_set_redirect (msg, SOUP_STATUS_MOVED_PERMANENTLY,
-                                 redir_uri);
-      g_free (redir_uri);
-      return;
-    }
-
-    index_path = g_strdup_printf ("%s/index.html", path);
-    if (g_stat (path, &st) != -1) {
-      do_get (server, msg, index_path);
-      g_free (index_path);
-      return;
-    }
-    g_free (index_path);
-
-    listing = get_directory_listing (path);
-    soup_message_set_response (msg, "text/html",
-                               SOUP_MEMORY_TAKE,
-                               listing->str, listing->len);
-    soup_message_set_status (msg, SOUP_STATUS_OK);
-    g_string_free (listing, FALSE);
     return;
   }
 
