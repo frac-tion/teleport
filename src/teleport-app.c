@@ -9,18 +9,21 @@
 #include "teleport-get.h"
 
 
-void save_file_callback (GSimpleAction *simple,
-                         GVariant      *parameter,
-                         gpointer       user_data);
+static void save_file_callback  (GSimpleAction *simple,
+                                 GVariant      *parameter,
+                                 gpointer       user_data);
 
-void do_nothing_callback (GSimpleAction *simple,
-                          GVariant      *parameter,
-                          gpointer       user_data);
+static void do_nothing_callback (GSimpleAction *simple,
+                                 GVariant      *parameter,
+                                 gpointer       user_data);
 
-void open_file_callback (GSimpleAction *simple,
-                         GVariant      *parameter,
-                         gpointer       user_data);
+static void open_file_callback  (GSimpleAction *simple,
+                                 GVariant      *parameter,
+                                 gpointer       user_data);
 
+static void teleport_app_quit   (GSimpleAction        *simple,
+                                 GVariant             *parameter,
+                                 gpointer              user_data);
 
 enum {
   NOTIFY_USER, NOTIFY_FINISED, N_SIGNALS
@@ -31,7 +34,8 @@ static GActionEntry app_entries[] =
     { "save", save_file_callback, "as", NULL, NULL },
     { "decline", do_nothing_callback, "as", NULL, NULL },
     { "do-nothing", do_nothing_callback, "as", NULL, NULL },
-    { "open-file", open_file_callback, "as", NULL, NULL }
+    { "open-file", open_file_callback, "as", NULL, NULL },
+    { "quit",   teleport_app_quit }
 };
 
 static TeleportApp *mainApplication;
@@ -54,7 +58,8 @@ struct _TeleportApp {
 G_DEFINE_TYPE_WITH_PRIVATE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
 
 
-void save_file_callback (GSimpleAction *simple,
+static void 
+save_file_callback (GSimpleAction *simple,
                          GVariant      *parameter,
                          gpointer       user_data) {
   teleport_get_do_downloading(g_variant_get_string (g_variant_get_child_value (parameter, 0), NULL),
@@ -62,13 +67,15 @@ void save_file_callback (GSimpleAction *simple,
                               g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
 }
 
-void do_nothing_callback (GSimpleAction *simple,
+static void 
+do_nothing_callback (GSimpleAction *simple,
                           GVariant      *parameter,
                           gpointer       user_data) {
   g_print ("No action\n");
 }
 
-void open_file_callback (GSimpleAction *simple,
+static void
+open_file_callback (GSimpleAction *simple,
                          GVariant      *parameter,
                          gpointer       user_data) {
   g_print("Open file\n %s%s",
@@ -80,7 +87,8 @@ void open_file_callback (GSimpleAction *simple,
                                              g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL)), NULL);
 }
 
-void create_user_notification (const char *file_name, const int file_size, const char *origin_device, GVariant *target) {
+void 
+create_user_notification (const char *file_name, const int file_size, const char *origin_device, GVariant *target) {
   GIcon *icon;
   GNotification *notification = g_notification_new ("Teleport");
   TeleportAppPrivate *priv = mainApplication->priv;
@@ -103,7 +111,8 @@ void create_user_notification (const char *file_name, const int file_size, const
   //g_variant_unref (target);
 }
 
-void create_finished_notification (const char *origin, const int filesize, const char *filename, GVariant *target) {
+void
+create_finished_notification (const char *origin, const int filesize, const char *filename, GVariant *target) {
   GIcon *icon;
   GNotification *notification = g_notification_new ("Teleport");
   TeleportAppPrivate *priv = mainApplication->priv;
@@ -123,7 +132,8 @@ void create_finished_notification (const char *origin, const int filesize, const
 }
 
 
-gboolean mainLoopAddPeerCallback (gpointer peer) {
+gboolean
+mainLoopAddPeerCallback (gpointer peer) {
   TeleportAppPrivate *priv = mainApplication->priv;
   GtkWidget *window = priv->window;
 
@@ -131,7 +141,8 @@ gboolean mainLoopAddPeerCallback (gpointer peer) {
   return G_SOURCE_REMOVE;
 }
 
-gboolean mainLoopRemovePeerCallback (gpointer peer)  {
+gboolean
+mainLoopRemovePeerCallback (gpointer peer)  {
   TeleportAppPrivate *priv = mainApplication->priv;
   GtkWidget *window = priv->window;
 
@@ -139,15 +150,18 @@ gboolean mainLoopRemovePeerCallback (gpointer peer)  {
   return G_SOURCE_REMOVE;
 }
 
-void callback_add_peer (GObject *instance, Peer *peer, gpointer window) {
+void
+callback_add_peer (GObject *instance, Peer *peer, gpointer window) {
   g_idle_add(mainLoopAddPeerCallback, peer);
 }
 
-void callback_remove_peer (GObject *instance, Peer *peer, gpointer window) {
+void
+callback_remove_peer (GObject *instance, Peer *peer, gpointer window) {
   g_idle_add(mainLoopRemovePeerCallback, peer);
 }
 
-void callback_notify_user (GObject *instance, gchar *name, gpointer window) {
+void
+callback_notify_user (GObject *instance, gchar *name, gpointer window) {
   //create_user_notification("icon.png", 2000, "Mark's laptop");
 }
 
@@ -158,7 +172,8 @@ teleport_app_startup (GApplication *app) {
   priv = mainApplication->priv;
 
   g_action_map_add_action_entries (G_ACTION_MAP (app),
-                                   app_entries, G_N_ELEMENTS (app_entries),
+                                   app_entries,
+                                   G_N_ELEMENTS (app_entries),
                                    app);
 
   G_APPLICATION_CLASS (teleport_app_parent_class)->startup (app);
@@ -186,25 +201,9 @@ teleport_app_activate (GApplication *app) {
 }
 
 static void
-teleport_app_open (GApplication  *app,
-                   GFile        **files,
-                   gint           n_files,
-                   const gchar   *hint)
+teleport_app_finalize (GObject *object)
 {
-  /*GList *windows;
-  int i;
-
-  windows = gtk_application_get_windows (GTK_APPLICATION (app));
-  if (windows)
-    win = TELEPORT_WINDOW (windows->data);
-  else
-    win = teleport_window_new (TELEPORT_APP (app));
-
-  for (i = 0; i < n_files; i++)
-    teleport_window_open (win, files[i]);
-
-  gtk_window_present (GTK_WINDOW (win));
-  */
+  G_OBJECT_CLASS (teleport_app_parent_class)->finalize (object);
 }
 
 static void
@@ -212,7 +211,8 @@ teleport_app_class_init (TeleportAppClass *class)
 {
   G_APPLICATION_CLASS (class)->startup = teleport_app_startup;
   G_APPLICATION_CLASS (class)->activate = teleport_app_activate;
-  G_APPLICATION_CLASS (class)->open = teleport_app_open;
+
+  G_OBJECT_CLASS (class)->finalize = teleport_app_finalize;
 
   signalIds[NOTIFY_USER] = g_signal_new ("notify_user",
                                          G_TYPE_OBJECT,
@@ -224,6 +224,16 @@ teleport_app_class_init (TeleportAppClass *class)
                                          G_TYPE_NONE /* return_type */,
                                          1,
                                          G_TYPE_STRING);
+}
+
+static void
+teleport_app_quit (GSimpleAction *simple,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+  TeleportAppPrivate *priv = TELEPORT_APP (user_data)->priv;
+
+  gtk_widget_destroy (priv->window);
 }
 
 TeleportApp *
