@@ -102,12 +102,12 @@ static void create_services(AvahiClient *c) {
      * same name should be put in the same entry group. */
 
     /* Add the service for Teleport */
-    if ((ret = avahi_entry_group_add_service(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, name, "_http._tcp", NULL, NULL, 3000, "test=blah", r, NULL)) < 0) {
+    if ((ret = avahi_entry_group_add_service(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, name, "_teleport._tcp", NULL, NULL, 3000, "test=blah", r, NULL)) < 0) {
 
       if (ret == AVAHI_ERR_COLLISION)
         goto collision;
 
-      fprintf(stderr, "Failed to add _http._tcp service: %s\n", avahi_strerror(ret));
+      fprintf(stderr, "Failed to add _teleport._tcp service: %s\n", avahi_strerror(ret));
       goto fail;
     }
 
