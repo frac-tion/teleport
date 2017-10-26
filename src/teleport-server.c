@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 
 #include <libsoup/soup.h>
+#include <glib.h>
 #include <glib/gstdio.h>
 
 #include "teleport-server.h"
@@ -245,13 +246,32 @@ server_callback (SoupServer *server, SoupMessage *msg,
   g_print ("  -> %d %s\n\n", msg->status_code, msg->reason_phrase);
 }
 
+static void
+remove_server_route (SoupServer *server, const gchar *path)
+{
+  soup_server_remove_handler (server, path);
+  g_print ("Route to file %s is experienced, server has removed it\n", path);
+}
+
+static gboolean
+do_server_timeout (gpointer user_data)
+{
+  gchar *path = user_data;
+  remove_server_route(glob_server, path);
+  g_free(path);
+  return FALSE;
+}
+
 int
 teleport_server_add_route (gchar *name,
                            gchar *file_to_send,
                            gchar *destination) {
   GFile *file;
   GFileInfo *fileInfo;
-  soup_server_add_handler (glob_server, g_strdup_printf("/transfer/%s", name),
+  gchar *path;
+
+  path = g_strdup_printf("/transfer/%s", name);
+  soup_server_add_handler (glob_server, path,
                            server_callback, g_strdup(file_to_send), NULL);
   //send notification of available file to the client
   //For getting file size
@@ -265,6 +285,7 @@ teleport_server_add_route (gchar *name,
                                                 name,
                                                 g_file_info_get_size(fileInfo),
                                                 g_file_info_get_display_name(fileInfo)));
+  g_timeout_add_seconds (2*60, do_server_timeout, path);
   g_object_unref(fileInfo);
   g_object_unref(file);
   return 0;
