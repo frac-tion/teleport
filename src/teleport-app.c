@@ -78,13 +78,16 @@ static void
 open_file_callback (GSimpleAction *simple,
                          GVariant      *parameter,
                          gpointer       user_data) {
+  const gchar *path;
   g_print("Open file\n %s%s",
           g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
           g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
 
-  g_spawn_command_line_async(g_strdup_printf("xdg-open %s/%s",
-                                             g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
-                                             g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL)), NULL);
+  path = g_strdup_printf("%s/%s",
+                         g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
+                         g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
+
+  gtk_show_uri_on_window (NULL, g_filename_to_uri(path, NULL, NULL), GDK_CURRENT_TIME, NULL);
 }
 
 void 
