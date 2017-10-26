@@ -165,7 +165,7 @@ static void
 remove_server_route (SoupServer *server, const gchar *path)
 {
   soup_server_remove_handler (server, path);
-  g_print ("Route to file %s is experienced, server has removed it\n", path);
+  g_print ("Route %s has expired, removing it\n", path);
 }
 
 static gboolean
@@ -200,7 +200,7 @@ teleport_server_add_route (gchar *name,
                                                 name,
                                                 g_file_info_get_size(fileInfo),
                                                 g_file_info_get_display_name(fileInfo)));
-  g_timeout_add_seconds (2*60, do_server_timeout, path);
+  g_timeout_add_seconds (2 * 60, do_server_timeout, path);
   g_object_unref(fileInfo);
   g_object_unref(file);
   return 0;
