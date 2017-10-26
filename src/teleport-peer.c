@@ -58,7 +58,7 @@ teleport_peer_init (TeleportPeer *self)
   self->list = g_array_new (FALSE, FALSE, sizeof(Peer *));
 }
 
-gchar * teleport_peer_get_name (TeleportPeer *self, gint index, GError **error)
+gchar *teleport_peer_get_name (TeleportPeer *self, gint index, GError **error)
 {
   Peer *element;
   //g_return_if_fail (TELEPORT_IS_PEER (self));
@@ -69,7 +69,7 @@ gchar * teleport_peer_get_name (TeleportPeer *self, gint index, GError **error)
   return element->name;
 }
 
-gchar * teleport_peer_get_ip (TeleportPeer *self, gint index, GError **error)
+gchar *teleport_peer_get_ip (TeleportPeer *self, gint index, GError **error)
 {
   //g_return_if_fail (TELEPORT_IS_PEER (self));
   //g_return_if_fail (error == NULL || *error == NULL);
@@ -86,7 +86,7 @@ gint teleport_peer_get_port (TeleportPeer *self, gint index, GError **error)
   return element->port;
 }
 
-void teleport_peer_add_peer (TeleportPeer *self, gchar * name, gchar * ip, gint port)
+void teleport_peer_add_peer (TeleportPeer *self, gchar *name, gchar *ip, gint port)
 {
   Peer *new = g_new(Peer, 1);
   new->ip = ip;
