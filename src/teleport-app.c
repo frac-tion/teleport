@@ -9,21 +9,26 @@
 #include "teleport-get.h"
 
 
-static void save_file_callback  (GSimpleAction *simple,
-                                 GVariant      *parameter,
-                                 gpointer       user_data);
+static void save_file_callback          (GSimpleAction *simple,
+                                         GVariant      *parameter,
+                                         gpointer       user_data);
 
-static void do_nothing_callback (GSimpleAction *simple,
-                                 GVariant      *parameter,
-                                 gpointer       user_data);
+static void do_nothing_callback         (GSimpleAction *simple,
+                                         GVariant      *parameter,
+                                         gpointer       user_data);
 
-static void open_file_callback  (GSimpleAction *simple,
-                                 GVariant      *parameter,
-                                 gpointer       user_data);
+static void open_file_callback          (GSimpleAction *simple,
+                                         GVariant      *parameter,
+                                         gpointer       user_data);
 
-static void teleport_app_quit   (GSimpleAction        *simple,
-                                 GVariant             *parameter,
-                                 gpointer              user_data);
+
+static void open_folder_callback        (GSimpleAction        *simple,
+                                         GVariant             *parameter,
+                                         gpointer              user_data);
+
+static void teleport_app_quit           (GSimpleAction        *simple,
+                                         GVariant             *parameter,
+                                         gpointer              user_data);
 
 enum {
   NOTIFY_USER, NOTIFY_FINISED, N_SIGNALS
@@ -35,6 +40,7 @@ static GActionEntry app_entries[] =
     { "decline", do_nothing_callback, "as", NULL, NULL },
     { "do-nothing", do_nothing_callback, "as", NULL, NULL },
     { "open-file", open_file_callback, "as", NULL, NULL },
+    { "open-folder", open_folder_callback, "as", NULL, NULL },
     { "quit",   teleport_app_quit }
 };
 
@@ -60,8 +66,8 @@ G_DEFINE_TYPE_WITH_PRIVATE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
 
 static void 
 save_file_callback (GSimpleAction *simple,
-                         GVariant      *parameter,
-                         gpointer       user_data) {
+                    GVariant      *parameter,
+                    gpointer       user_data) {
   teleport_get_do_downloading(g_variant_get_string (g_variant_get_child_value (parameter, 0), NULL),
                               g_variant_get_string (g_variant_get_child_value (parameter, 1), NULL),
                               g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
@@ -69,15 +75,73 @@ save_file_callback (GSimpleAction *simple,
 
 static void 
 do_nothing_callback (GSimpleAction *simple,
-                          GVariant      *parameter,
-                          gpointer       user_data) {
+                     GVariant      *parameter,
+                     gpointer       user_data) {
   g_print ("No action\n");
 }
 
 static void
+open_folder_callback (GSimpleAction *simple,
+                      GVariant      *parameter,
+                      gpointer       user_data)
+{
+  GDBusProxy      *proxy;
+  GVariant        *retval;
+  GVariantBuilder *builder;
+  const gchar     *uri;
+  GError **error = NULL;
+  const gchar     *path;
+
+  path = g_strdup_printf("%s/%s",
+                         g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
+                         g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
+
+  uri = g_filename_to_uri (path, NULL, error);
+  g_debug ("Show file: %s", uri);
+
+  proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SESSION,
+                                         G_DBUS_PROXY_FLAGS_NONE,
+                                         NULL,
+                                         "org.freedesktop.FileManager1",
+                                         "/org/freedesktop/FileManager1",
+                                         "org.freedesktop.FileManager1",
+                                         NULL, error);
+
+  if (!proxy) {
+    g_prefix_error (error,
+                    ("Connecting to org.freedesktop.FileManager1 failed: "));
+  }
+  else {
+
+    builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+    g_variant_builder_add (builder, "s", uri);
+
+    retval = g_dbus_proxy_call_sync (proxy,
+                                     "ShowItems",
+                                     g_variant_new ("(ass)",
+                                                    builder,
+                                                    ""),
+                                     G_DBUS_CALL_FLAGS_NONE,
+                                     -1, NULL, error);
+
+    g_variant_builder_unref (builder);
+    g_object_unref (proxy);
+
+    if (!retval)
+      {
+        g_prefix_error (error, ("Calling ShowItems failed: "));
+      }
+    else
+      g_variant_unref (retval);
+  }
+}
+
+
+static void
 open_file_callback (GSimpleAction *simple,
-                         GVariant      *parameter,
-                         gpointer       user_data) {
+                    GVariant      *parameter,
+                    gpointer       user_data)
+{
   const gchar *path;
   g_print("Open file\n %s%s",
           g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
@@ -127,6 +191,7 @@ create_finished_notification (const char *origin, const int filesize, const char
   icon = g_themed_icon_new ("dialog-information");
   g_notification_set_icon (notification, icon);
   g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
+  g_notification_add_button_with_target_value (notification, "Show in folder", "app.open-folder", target);
   g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
   g_application_send_notification ((GApplication *) mainApplication, NULL, notification);
