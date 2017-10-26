@@ -171,6 +171,8 @@ callback_notify_user (GObject *instance, gchar *name, gpointer window) {
 static void
 teleport_app_startup (GApplication *app) {
   TeleportAppPrivate *priv;
+  GtkStyleProvider *provider;
+
   mainApplication = TELEPORT_APP (app);
   priv = mainApplication->priv;
 
@@ -181,10 +183,22 @@ teleport_app_startup (GApplication *app) {
 
   G_APPLICATION_CLASS (teleport_app_parent_class)->startup (app);
 
+  /* window */
   priv->window = GTK_WIDGET (teleport_window_new (TELEPORT_APP (app)));
 
+  /* CSS style */
+  provider = GTK_STYLE_PROVIDER (gtk_css_provider_new ());
+  gtk_css_provider_load_from_resource (GTK_CSS_PROVIDER (provider),
+                                       "com/frac_tion/teleport/style.css");
+  gtk_style_context_add_provider_for_screen (gdk_screen_get_default(),
+                                             provider,
+                                             GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+  g_object_unref (provider);
+
+  /* PeerList */
   priv->peerList = g_object_new (TELEPORT_TYPE_PEER, NULL);
 
+  /* Add signals */
   g_signal_connect (priv->peerList, "addpeer", (GCallback)callback_add_peer, priv->window);
   g_signal_connect (priv->peerList, "removepeer", (GCallback)callback_remove_peer, priv->window);
   g_signal_connect (app, "notify_user", (GCallback)callback_notify_user, priv->window);
