@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>com.frac_tion.teleport.desktop</id>
+  <metadata_license>CC0</metadata_license>
+  <project_license>AGPL-3.0+</project_license>
+  <name>Teleport</name>
+  <summary>An IDE for GNOME</summary>
+
+  <description>
+    <p>
+      Teleport is a native GTK3 app to effortlessly share files on the local network.
+      It's our answer to the question
+      </p>
+      <p>
+        Why is the easiest way to move a file between two computers in the same room
+        sending it to a server in another country and retrieving it from there?
+      </p>
+      <p>
+        Teleport is designed to be a replacement for using USB keys or emailing stuff
+        to yourself just so you have them on another device on your desk.
+      </p>
+    </description>
+
+    <screenshots>
+      <screenshot type="default">
+        <caption>Mockup</caption>
+        <image width="1600" height="900">https://raw.githubusercontent.com/frac-tion/teleport/master/docs/mvp-mockup.png</image>
+      </screenshot>
+    </screenshots>
+
+    <url type="homepage">https://github.com/frac-tion/teleport/</url>
+    <url type="bugtracker">https://github.com/frac-tion/teleport/</url>
+    <project_group>GNOME</project_group>
+
+    <kudos>
+      <kudo>AppMenu</kudo>
+      <kudo>HiDpiIcon</kudo>
+      <kudo>ModernToolkit</kudo>
+      <kudo>Notifications</kudo>
+      <kudo>UserDocs</kudo>
+    </kudos>
+
+    <update_contact>jualin@sparber.net</update_contact>
+    <translation type="gettext">teleport</translation>
+
+    <releases>
+      <release version="MVP" date="2017-10-27">
+        <description>
+          <p>
+            Basic version that only sends individual files.
+          </p>
+        </description>
+      </release>
+    </releases>
+  </component>

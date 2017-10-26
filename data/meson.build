@@ -10,6 +10,23 @@ i18n.merge_file(
   install_dir: join_paths(teleport_datadir, 'applications')
 )
 
+# Appdata file.
+appdata_file = i18n.merge_file(
+  input: 'com.frac_tion.teleport.appdata.xml.in',
+  output: 'com.frac_tion.teleport.appdata.xml',
+  po_dir: po_dir,
+  install: true,
+  install_dir: join_paths(get_option('datadir'), 'appdata'),
+)
+
+appstream_util = find_program('appstream-util', required: false)
+if appstream_util.found()
+  test('Validate appstream file', appstream_util,
+    # FIXME: Screenshots are wrong size for 'validate'
+    args: ['validate-relax', appdata_file]
+  )
+endif
+
 #gnome.mkenums(
 #  'org.gtk.teleport.enums.xml',
 #  sources: enum_headers,
