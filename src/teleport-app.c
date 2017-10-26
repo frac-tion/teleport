@@ -97,8 +97,8 @@ void create_finished_notification (const char *origin, const int filesize, const
   GNotification *notification = g_notification_new ("Teleport");
   g_notification_set_body (notification,
                            g_strdup_printf("Transfer of %s from %s is complete", 
-                                           teleport_peer_get_name_by_addr (peerList, origin),
-                                           origin));
+                                           filename,
+                                           teleport_peer_get_name_by_addr (peerList, origin)));
   icon = g_themed_icon_new ("dialog-information");
   g_notification_set_icon (notification, icon);
   g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
