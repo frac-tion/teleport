@@ -34,16 +34,24 @@ static GActionEntry app_entries[] =
     { "open-file", open_file_callback, "as", NULL, NULL }
 };
 
-static TeleportWindow *win;
-static GApplication *application;
-static TeleportPeer *peerList;
+static TeleportApp *mainApplication;
 static gint signalIds [N_SIGNALS];
 
+typedef struct
+{
+  GtkWidget     *window;
+  TeleportPeer  *peerList;
+} TeleportAppPrivate;
+
+
 struct _TeleportApp {
-  GtkApplication parent;
+  GtkApplication        parent;
+
+  /*< private >*/
+  TeleportAppPrivate    *priv;
 };
 
-G_DEFINE_TYPE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
+G_DEFINE_TYPE_WITH_PRIVATE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
 
 
 void save_file_callback (GSimpleAction *simple,
@@ -75,9 +83,10 @@ void open_file_callback (GSimpleAction *simple,
 void create_user_notification (const char *file_name, const int file_size, const char *origin_device, GVariant *target) {
   GIcon *icon;
   GNotification *notification = g_notification_new ("Teleport");
+  TeleportAppPrivate *priv = mainApplication->priv;
   g_notification_set_body (notification,
                            g_strdup_printf("%s is sending %s (%s)",
-                                           teleport_peer_get_name_by_addr (peerList, origin_device),
+                                           teleport_peer_get_name_by_addr (priv->peerList, origin_device),
                                            file_name,
                                            g_format_size (file_size)));
   icon = g_themed_icon_new ("dialog-information");
@@ -86,7 +95,7 @@ void create_user_notification (const char *file_name, const int file_size, const
   g_notification_add_button_with_target_value (notification, "Decline", "app.decline", target);
   g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
-  g_application_send_notification (application, NULL, notification);
+  g_application_send_notification ((GApplication *) mainApplication, NULL, notification);
   g_object_unref (icon);
   g_object_unref (notification);
   //the example says I have to unref it but it gives a critival error
@@ -97,30 +106,36 @@ void create_user_notification (const char *file_name, const int file_size, const
 void create_finished_notification (const char *origin, const int filesize, const char *filename, GVariant *target) {
   GIcon *icon;
   GNotification *notification = g_notification_new ("Teleport");
+  TeleportAppPrivate *priv = mainApplication->priv;
+
   g_notification_set_body (notification,
                            g_strdup_printf("Transfer of %s from %s is complete", 
                                            filename,
-                                           teleport_peer_get_name_by_addr (peerList, origin)));
+                                           teleport_peer_get_name_by_addr (priv->peerList, origin)));
   icon = g_themed_icon_new ("dialog-information");
   g_notification_set_icon (notification, icon);
   g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
   g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
-  g_application_send_notification (application, NULL, notification);
+  g_application_send_notification ((GApplication *) mainApplication, NULL, notification);
   g_object_unref (icon);
   g_object_unref (notification);
 }
 
 
 gboolean mainLoopAddPeerCallback (gpointer peer) {
-  //g_print("new New device name is %p\n", ((Peer *)peer));
-  //g_print("new New device name is %s\n", ((Peer *)peer)->name);
-  update_remote_device_list(win, (Peer *) peer);
+  TeleportAppPrivate *priv = mainApplication->priv;
+  GtkWidget *window = priv->window;
+
+  update_remote_device_list((TeleportWindow *) window, (Peer *) peer);
   return G_SOURCE_REMOVE;
 }
 
 gboolean mainLoopRemovePeerCallback (gpointer peer)  {
-  update_remote_device_list_remove(win, (Peer *) peer);
+  TeleportAppPrivate *priv = mainApplication->priv;
+  GtkWidget *window = priv->window;
+
+  update_remote_device_list_remove((TeleportWindow *) window, (Peer *) peer);
   return G_SOURCE_REMOVE;
 }
 
@@ -137,47 +152,37 @@ void callback_notify_user (GObject *instance, gchar *name, gpointer window) {
 }
 
 static void
-teleport_app_init (TeleportApp *app) {
-
-}
-
-static void
-teleport_app_activate (GApplication *app) {
-  //TeleportWindow *win;
-  peerList = g_object_new (TELEPORT_TYPE_PEER, NULL);
-  application = app;
-
-  win = teleport_window_new (TELEPORT_APP (app));
-  gtk_window_present (GTK_WINDOW (win));
+teleport_app_startup (GApplication *app) {
+  TeleportAppPrivate *priv;
+  mainApplication = TELEPORT_APP (app);
+  priv = mainApplication->priv;
 
   g_action_map_add_action_entries (G_ACTION_MAP (app),
                                    app_entries, G_N_ELEMENTS (app_entries),
                                    app);
 
-  g_signal_connect (peerList, "addpeer", (GCallback)callback_add_peer, win);
-  g_signal_connect (peerList, "removepeer", (GCallback)callback_remove_peer, win);
-  g_signal_connect (app, "notify_user", (GCallback)callback_notify_user, win);
-  /*teleport_peer_add_peer(peerList, "julian", "192.168.0.1", 3000);
-    g_print("Data: %s\n", teleport_peer_get_name(peerList, 0, NULL));
-    g_print("Data: %s\n", teleport_peer_get_ip(peerList, 0, NULL));
-    g_print("Data: %d\n", teleport_peer_get_port(peerList, 0, NULL));
-    */
+  G_APPLICATION_CLASS (teleport_app_parent_class)->startup (app);
 
-  /*GVariantBuilder *builder;
-    GVariant *value;
+  priv->window = GTK_WIDGET (teleport_window_new (TELEPORT_APP (app)));
 
-    builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-    g_variant_builder_add (builder, "s", "devicename");
-    g_variant_builder_add (builder, "s", "https://downloadlink");
-    g_variant_builder_add (builder, "s", "filename");
-    value = g_variant_new ("as", builder);
-    g_variant_builder_unref (builder);
+  priv->peerList = g_object_new (TELEPORT_TYPE_PEER, NULL);
 
-    create_finished_notification ("USER", 2000, "FILENAME", value);
-    */
+  g_signal_connect (priv->peerList, "addpeer", (GCallback)callback_add_peer, priv->window);
+  g_signal_connect (priv->peerList, "removepeer", (GCallback)callback_remove_peer, priv->window);
+  g_signal_connect (app, "notify_user", (GCallback)callback_notify_user, priv->window);
+
   teleport_server_run();
   teleport_publish_run (teleport_get_device_name());
-  teleport_browser_run_avahi_service(peerList);
+  teleport_browser_run_avahi_service(priv->peerList);
+}
+
+static void
+teleport_app_activate (GApplication *app) {
+  TeleportAppPrivate *priv;
+  priv = mainApplication->priv;
+
+  gtk_widget_show (priv->window);
+  gtk_window_present (GTK_WINDOW (priv->window));
 }
 
 static void
@@ -186,7 +191,7 @@ teleport_app_open (GApplication  *app,
                    gint           n_files,
                    const gchar   *hint)
 {
-  GList *windows;
+  /*GList *windows;
   int i;
 
   windows = gtk_application_get_windows (GTK_APPLICATION (app));
@@ -199,11 +204,13 @@ teleport_app_open (GApplication  *app,
     teleport_window_open (win, files[i]);
 
   gtk_window_present (GTK_WINDOW (win));
+  */
 }
 
 static void
 teleport_app_class_init (TeleportAppClass *class)
 {
+  G_APPLICATION_CLASS (class)->startup = teleport_app_startup;
   G_APPLICATION_CLASS (class)->activate = teleport_app_activate;
   G_APPLICATION_CLASS (class)->open = teleport_app_open;
 
@@ -227,3 +234,11 @@ teleport_app_new (void)
                        "flags", G_APPLICATION_HANDLES_OPEN,
                        NULL);
 }
+
+static void
+teleport_app_init (TeleportApp *app) {
+  TeleportAppPrivate *priv = teleport_app_get_instance_private (app);
+  app->priv = priv;
+}
+
+

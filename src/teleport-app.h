@@ -5,6 +5,7 @@
 #include "teleport-peer.h"
 
 #define TELEPORT_APP_TYPE (teleport_app_get_type ())
+
 G_DECLARE_FINAL_TYPE (TeleportApp, teleport_app, TELEPORT, APP, GtkApplication)
 
 
