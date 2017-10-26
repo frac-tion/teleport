@@ -8,7 +8,7 @@ icon_sizes = [
   '128x128',
   '256x256',
   '512x512',
-#  'symbolic'
+  'symbolic'
 ]
 
 foreach icon_size: icon_sizes
