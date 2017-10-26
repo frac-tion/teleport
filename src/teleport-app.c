@@ -57,6 +57,7 @@ void save_file_callback (GSimpleAction *simple,
 void do_nothing_callback (GSimpleAction *simple,
                           GVariant      *parameter,
                           gpointer       user_data) {
+  g_print ("No action\n");
 }
 
 void open_file_callback (GSimpleAction *simple,
@@ -84,6 +85,7 @@ void create_user_notification (const char *file_name, const int file_size, const
   g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
   g_notification_add_button_with_target_value (notification, "Decline", "app.decline", target);
   g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
+  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
   g_application_send_notification (application, NULL, notification);
   g_object_unref (icon);
   g_object_unref (notification);
@@ -103,6 +105,7 @@ void create_finished_notification (const char *origin, const int filesize, const
   g_notification_set_icon (notification, icon);
   g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
   g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
+  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
   g_application_send_notification (application, NULL, notification);
   g_object_unref (icon);
   g_object_unref (notification);
