@@ -3,7 +3,7 @@
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkListBoxRow" id="remote_device_row">
     <property name="visible">True</property>
-    <property name="can_focus">True</property>
+    <property name="can_focus">false</property>
     <property name="activatable">false</property>
     <property name="selectable">false</property>
     <child>
