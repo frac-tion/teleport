@@ -16,9 +16,9 @@ TeleportWindow     *teleport_window_new             (TeleportApp       *);
 void               teleport_window_open             (TeleportWindow    *,
                                                      GFile             *);
 void               update_remote_device_list        (TeleportWindow    *,
-                                                     Peer              *);
+                                                     Peer      *);
 void               update_remote_device_list_remove (TeleportWindow    *,
-                                                     Peer              *);
+                                                     Peer      *);
 
 gchar *            teleport_get_download_directory  (void); 
 gchar *            teleport_get_device_name         (void); 

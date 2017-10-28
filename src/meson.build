@@ -1,5 +1,6 @@
 
 headers = files(
+  'teleport-remote-device.h',
   'teleport-browser.h',
   'teleport-get.h',
   'teleport-publish.h',
@@ -17,6 +18,7 @@ install_headers(headers, subdir: meson.project_name())
 ################
 
 sources = files(
+  'teleport-remote-device.c',
   'teleport-browser.c',
   'teleport-get.c',
   'teleport-publish.c',
