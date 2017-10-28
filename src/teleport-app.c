@@ -215,6 +215,9 @@ mainLoopRemovePeerCallback (gpointer peer)  {
   GtkWidget *window = priv->window;
 
   update_remote_device_list_remove((TeleportWindow *) window, (Peer *) peer);
+  //if (teleport_peer_get_number (priv->peerList) == 0)
+  if (teleport_peer_get_number (priv->peerList) == 0)
+    teleport_show_no_device_message (TELEPORT_WINDOW (window));
   return G_SOURCE_REMOVE;
 }
 

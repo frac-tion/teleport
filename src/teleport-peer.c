@@ -112,7 +112,8 @@ void teleport_peer_remove_peer (TeleportPeer *self, Peer *device)
   g_signal_emit (self, signalIds[REMOVE], 0, device);
 }
 
-void teleport_peer_remove_peer_by_name (TeleportPeer *self, const gchar *name)
+void
+teleport_peer_remove_peer_by_name (TeleportPeer *self, const gchar *name)
 {
   Peer *element = NULL;
   gboolean found = FALSE;
@@ -141,4 +142,9 @@ teleport_peer_get_name_by_addr (TeleportPeer *self, const gchar *addr)
     }
   }
   return name;
+}
+int 
+teleport_peer_get_number (TeleportPeer *self)
+{
+  return (self->list->len);
 }

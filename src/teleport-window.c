@@ -193,6 +193,14 @@ teleport_get_download_directory (void)
 }
 
 void
+teleport_show_no_device_message (TeleportWindow *self)
+{
+  TeleportWindowPrivate *priv;
+  priv = teleport_window_get_instance_private (self);
+  gtk_widget_show (priv->remote_no_devices);
+}
+
+void
 teleport_window_open (TeleportWindow *win,
                       GFile *file)
 {
