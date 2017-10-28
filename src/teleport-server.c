@@ -17,10 +17,6 @@
 */
 
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
 
 #include <libsoup/soup.h>
 #include <glib.h>
@@ -39,7 +35,6 @@ do_get (SoupServer *server, SoupMessage *msg, const char *path)
 {
   GStatBuf st;
 
-  printf("paths: %s", path);
   if (g_stat (path, &st) == -1) {
     if (errno == EPERM)
       soup_message_set_status (msg, SOUP_STATUS_FORBIDDEN);
@@ -166,8 +161,6 @@ server_callback (SoupServer *server, SoupMessage *msg,
       soup_message_set_status (msg, SOUP_STATUS_OK);
       g_print("Handle response\n");
     }
-
-    //do_get_response_json (server, msg, "hello world");
   }
   else
     soup_message_set_status (msg, SOUP_STATUS_NOT_IMPLEMENTED);
@@ -206,19 +199,26 @@ teleport_server_add_route (gchar *name,
   path = g_strdup_printf("/transfer/%s", name);
   soup_server_add_handler (glob_server, path,
                            server_callback, g_strdup(file_to_send), NULL);
-  //send notification of available file to the client
-  //For getting file size
-  //https://developer.gnome.org/gio/stable/GFile.html#g-file-query-info
+
+  /* send notification of available file to the client */
+  /* getting file size */
   file = g_file_new_for_path(file_to_send);
-  //G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME, G_FILE_ATTRIBUTE_STANDARD_SIZE
-  fileInfo = g_file_query_info(file, "standard::display-name,standard::size", G_FILE_QUERY_INFO_NONE, NULL, NULL);
+  fileInfo = g_file_query_info(file,
+                               "standard::display-name,standard::size",
+                               G_FILE_QUERY_INFO_NONE,
+                               NULL,
+                               NULL);
+
   teleport_get_do_client_notify(g_strdup_printf("http://%s:%d/?token=%s&size=%jd&name=%s\n",
                                                 destination,
                                                 port,
                                                 name,
                                                 g_file_info_get_size(fileInfo),
                                                 g_file_info_get_display_name(fileInfo)));
+
+  /* Add timeout of 2 min which removes the route again */
   g_timeout_add_seconds (2 * 60, do_server_timeout, path);
+
   g_object_unref(fileInfo);
   g_object_unref(file);
   return 0;
@@ -247,8 +247,6 @@ teleport_server_run (void) {
     soup_uri_free (u->data);
   }
   g_slist_free (uris);
-
-  g_print ("\nWaiting for requests...\n");
 
   return 0;
 }
