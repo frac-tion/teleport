@@ -4,20 +4,19 @@
   <metadata_license>CC0</metadata_license>
   <project_license>AGPL-3.0+</project_license>
   <name>Teleport</name>
-  <summary>An IDE for GNOME</summary>
+  <summary>Share files over the local network</summary>
 
   <description>
     <p>
-      Teleport is a native GTK3 app to effortlessly share files on the local network.
-      It's our answer to the question
+      Teleport let you share files on the local network. It's designed to be a
+      replacement for using USB keys or emailing stuff to yourself just so you
+      have them on another device on your desk.
     </p>
     <p>
-      Why is the easiest way to move a file between two computers in the same room
-      sending it to a server in another country and retrieving it from there?
-    </p>
-    <p>
-      Teleport is designed to be a replacement for using USB keys or emailing stuff
-      to yourself just so you have them on another device on your desk.
+      Just open Teleport on both computers and drag and drop a file to send it.
+      On the other device, the transfer can be accepted directly from the
+      notification. Then the file is downloaded from the other computer over the
+      local network.
     </p>
   </description>
 
@@ -37,7 +36,6 @@
     <kudo>HiDpiIcon</kudo>
     <kudo>ModernToolkit</kudo>
     <kudo>Notifications</kudo>
-    <kudo>UserDocs</kudo>
   </kudos>
 
   <update_contact>jualin@sparber.net</update_contact>
