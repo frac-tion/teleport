@@ -20,5 +20,6 @@ void teleport_peer_add_peer (TeleportPeer *self, gchar * name, gchar * ip, gint 
 void teleport_peer_remove_peer (TeleportPeer *, Peer *);
 void teleport_peer_remove_peer_by_name (TeleportPeer *, const gchar *);
 gchar * teleport_peer_get_name_by_addr (TeleportPeer *, const gchar *);
+int  teleport_peer_get_number (TeleportPeer *self);
 
 #endif /* __TELEPORT_PEER_H */
