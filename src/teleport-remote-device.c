@@ -385,14 +385,20 @@ teleport_remote_device_set_peer (TeleportRemoteDevice *widget,
   g_return_if_fail (TELEPORT_IS_REMOTE_DEVICE (widget));
   widget->peer = peer;
 
-  /*if (!g_set_object (&row->peer, peer))
+  /*
+     we need to create a peer object instate of a struct to be able to bind it
+  if (!g_set_object (&widget->peer, peer))
     return;
-    */
 
+  g_object_bind_property (peer,
+                          "name",
+                          widget->device_name,
+                          "label",
+                          G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+                          */
 
   if (peer)
     {
-
       gtk_label_set_text(GTK_LABEL (widget->device_name), peer->name);
 
       g_signal_connect (widget->send_btn, "clicked", G_CALLBACK (open_file_picker), peer);
