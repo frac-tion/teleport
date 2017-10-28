@@ -97,8 +97,14 @@ teleport_window_init (TeleportWindow *win)
 
   gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
 
-  gtk_label_set_text (GTK_LABEL (priv->this_device_name_label),
-                      g_settings_get_string (priv->settings, "device-name"));
+
+  g_settings_bind (priv->settings, "device-name",
+                   priv->this_device_name_label, "label",
+                   G_SETTINGS_BIND_DEFAULT);
+
+  /*gtk_label_set_text (GTK_LABEL (priv->this_device_name_label),
+    g_settings_get_string (priv->settings, "device-name"));
+    */
 
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (downloadDir),
                                        g_settings_get_string(priv->settings,
