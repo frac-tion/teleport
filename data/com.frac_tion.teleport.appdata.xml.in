@@ -8,15 +8,9 @@
 
   <description>
     <p>
-      Teleport let you share files on the local network. It's designed to be a
-      replacement for using USB keys or emailing stuff to yourself just so you
-      have them on another device on your desk.
-    </p>
-    <p>
-      Just open Teleport on both computers and drag and drop a file to send it.
-      On the other device, the transfer can be accepted directly from the
-      notification. Then the file is downloaded from the other computer over the
-      local network.
+      Teleport is a fast way to share files over the local network. It's
+      designed to be a replacement for using USB keys or emailing stuff to
+      yourself just to move them on another device on your desk.
     </p>
   </description>
 
