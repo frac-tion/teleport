@@ -156,22 +156,20 @@ open_file_callback (GSimpleAction *simple,
 
 void 
 create_user_notification (const char *file_name, const int file_size, const char *origin_device, GVariant *target) {
-  GIcon *icon;
   GNotification *notification = g_notification_new ("Teleport");
   TeleportAppPrivate *priv = mainApplication->priv;
+
   g_notification_set_body (notification,
                            g_strdup_printf("%s is sending %s (%s)",
                                            teleport_peer_get_name_by_addr (priv->peerList, origin_device),
                                            file_name,
                                            g_format_size (file_size)));
-  icon = g_themed_icon_new ("dialog-information");
-  g_notification_set_icon (notification, icon);
+
   g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
   g_notification_add_button_with_target_value (notification, "Decline", "app.decline", target);
   g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
   g_application_send_notification ((GApplication *) mainApplication, NULL, notification);
-  g_object_unref (icon);
   g_object_unref (notification);
   //the example says I have to unref it but it gives a critival error
   //https://developer.gnome.org/glib/stable/gvariant-format-strings.html
@@ -180,7 +178,6 @@ create_user_notification (const char *file_name, const int file_size, const char
 
 void
 create_finished_notification (const char *origin, const int filesize, const char *filename, GVariant *target) {
-  GIcon *icon;
   GNotification *notification = g_notification_new ("Teleport");
   TeleportAppPrivate *priv = mainApplication->priv;
 
@@ -188,14 +185,11 @@ create_finished_notification (const char *origin, const int filesize, const char
                            g_strdup_printf("Transfer of %s from %s is complete", 
                                            filename,
                                            teleport_peer_get_name_by_addr (priv->peerList, origin)));
-  icon = g_themed_icon_new ("dialog-information");
-  g_notification_set_icon (notification, icon);
   g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
   g_notification_add_button_with_target_value (notification, "Show in folder", "app.open-folder", target);
   g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
   g_application_send_notification ((GApplication *) mainApplication, NULL, notification);
-  g_object_unref (icon);
   g_object_unref (notification);
 }
 
