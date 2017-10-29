@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyleft 2017 Julian Sparber <julian@sparber.net> -->
 <component type="desktop">
   <id>com.frac_tion.teleport.desktop</id>
   <metadata_license>CC0</metadata_license>
@@ -16,8 +17,12 @@
 
   <screenshots>
     <screenshot type="default">
-      <caption>Screenshot of the Teleport window</caption>
-      <image width="1600" height="900">https://raw.githubusercontent.com/frac-tion/teleport/master/docs/screenshots/window.png</image>
+      <caption>Teleport window with multiple devices</caption>
+      <image width="1366" height="768">https://raw.githubusercontent.com/frac-tion/teleport/master/data/screenshots/window.png</image>
+    </screenshot>
+    <screenshot type="default">
+      <caption>Teleport notification</caption>
+      <image width="1366" height="768">https://raw.githubusercontent.com/frac-tion/teleport/master/data/screenshots/notification.png</image>
     </screenshot>
   </screenshots>
 
@@ -32,14 +37,15 @@
     <kudo>Notifications</kudo>
   </kudos>
 
-  <update_contact>jualin@sparber.net</update_contact>
+  <update_contact>julian@sparber.net</update_contact>
   <translation type="gettext">teleport</translation>
 
   <releases>
-    <release version="MVP" date="2017-10-26">
+    <release version="MVP" date="2017-10-29">
       <description>
         <p>
-          Basic version that only sends individual files.
+          This basic initial version sends files chose via the file chooser or
+          drag and drop. The Downloads directory can be set from the menu.
         </p>
       </description>
     </release>
