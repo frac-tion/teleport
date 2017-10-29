@@ -1,15 +1,13 @@
 # Teleport
 Teleport is a native GTK3 app to effortlessly share files on the local network.
 
-![Teleport Mockup](docs/mvp-mockup.png)
+![Screenshot of the Teleport application window](docs/screenshots/window.png)
 
-It's our answer to the question
-
-> Why is the easiest way to move a file between two computers in the same room sending it to a server in another country and retrieving it from there?
+Have you ever asked yourself why the easiest way to move a file between two computers in the same room involves sending it to a server in another country?
 
 Teleport is designed to be a replacement for using USB keys or emailing stuff to yourself just so you have them on another device on your desk. The main user interface on the receiver's side are notifications:
 
-![Teleport Notifications Mockup](docs/notifications.png)
+![Screenshot of a Teleport notification](docs/screenshots/notification.png)
 
 ## Install
 Teleport is currently in early development, but you can try it by installing it via [flatpak](http://flatpak.org). If you're running a modern GNU/Linux distro you should already have flatpak, or be able to install it from your repositories.
@@ -22,12 +20,11 @@ flatpak install --from  http://frac-tion.com/teleport-flatpak/teleport.flatpakre
 ```
 
 ## Roadmap
-We are currently working on an MVP for a native GNOME app that only sends files, but longer term we are interested in doing things like:
-* drag & drop files to send them
+It's still early days, but we have exciting plans for the future. While Teleport can currently only send individual files, longer term we are interested in doing things like:
+* sending multiple files and folders
 * sending text snippets
 * file transfer progress bars
-* settings dialog
-* file encryption
+* encryption in transit
 * native Android/iOS/macOS/Windows apps
 
 ## Build
