@@ -2,7 +2,7 @@
 <component type="desktop">
   <id>com.frac_tion.teleport.desktop</id>
   <metadata_license>CC0</metadata_license>
-  <project_license>AGPL-3.0</project_license>
+  <project_license>AGPL-3.0+</project_license>
   <name>Teleport</name>
   <summary>Share files over the local network</summary>
 
