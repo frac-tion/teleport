@@ -1,7 +1,7 @@
 project(
      'teleport',
               'c',
-          version: '0.1.0',
+          version: '0.0.1',
           license: 'AGPL3+',
   default_options: [ 'buildtype=debugoptimized', 'warning_level=1' ],
     meson_version: '>= 0.40.0'
@@ -13,7 +13,7 @@ teleport_major_version = version_array[0].to_int()
 teleport_minor_version = version_array[1].to_int()
 teleport_micro_version = version_array[2].to_int()
 
-teleport_gir_namespace = 'Gtd'
+teleport_gir_namespace = 'Teleport'
 teleport_gir_version = '1.0'
 
 teleport_prefix = get_option('prefix')
@@ -45,17 +45,17 @@ config_h = configuration_data()
 config_h.set_quoted('GETTEXT_PACKAGE', meson.project_name())
 
 # debug options
-config_h.set('GNOME_TODO_ENABLE_DEBUG', teleport_debug)
+config_h.set('TELPORT_ENABLE_DEBUG', teleport_debug)
 config_h.set('NDEBUG', not teleport_debug)
 
 # package
 set_defines = [
   ['PACKAGE', meson.project_name()],
-  ['PACKAGE_BUGREPORT', 'http://bugzilla.gnome.org/enter_bug.cgi?product=' + meson.project_name()],
+  ['PACKAGE_BUGREPORT', 'https://github.com/frac-tion/teleport/issues'],
   ['PACKAGE_NAME', meson.project_name()],
   ['PACKAGE_STRING', '@0@ @1@'.format(meson.project_name(), teleport_version)],
   ['PACKAGE_TARNAME', meson.project_name()],
-  ['PACKAGE_URL', 'https://wiki.gnome.org/Apps/Todo'],
+  ['PACKAGE_URL', 'https://github.com/frac-tion/teleport'],
   ['PACKAGE_VERSION', teleport_version],
   ['VERSION', teleport_version],
   # i18n
