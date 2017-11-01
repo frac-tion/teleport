@@ -14,9 +14,13 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 #include <gtk/gtk.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "teleport-app.h"
 #include "teleport-peer.h"
@@ -44,6 +48,11 @@ static void open_folder_callback        (GSimpleAction        *simple,
                                          GVariant             *parameter,
                                          gpointer              user_data);
 
+
+static void teleport_app_show_about     (GSimpleAction        *simple,
+                                         GVariant             *parameter,
+                                         gpointer              user_data);
+
 static void teleport_app_quit           (GSimpleAction        *simple,
                                          GVariant             *parameter,
                                          gpointer              user_data);
@@ -59,6 +68,7 @@ static GActionEntry app_entries[] =
     { "do-nothing", do_nothing_callback, "as", NULL, NULL },
     { "open-file", open_file_callback, "as", NULL, NULL },
     { "open-folder", open_folder_callback, "as", NULL, NULL },
+    { "about", teleport_app_show_about },
     { "quit",   teleport_app_quit }
 };
 
@@ -322,6 +332,54 @@ teleport_app_class_init (TeleportAppClass *class)
                                          1,
                                          G_TYPE_STRING);
 }
+
+static void
+teleport_app_show_about (GSimpleAction *simple,
+                         GVariant      *parameter,
+                         gpointer       user_data)
+{
+  TeleportAppPrivate *priv = TELEPORT_APP (user_data)->priv;
+  char *copyright;
+  GDateTime *date;
+  int created_year = 2017;
+
+  static const gchar *authors[] = {
+    "Julian Sparber <julian@sparber.net>",
+    NULL
+  };
+
+  static const gchar *artists[] = {
+    "Tobias Bernard <tbernard@gnome.org>",
+    NULL
+  };
+
+  date = g_date_time_new_now_local ();
+
+  if (g_date_time_get_year (date) <= created_year)
+    {
+      copyright = g_strdup_printf (("Copyright \xC2\xA9 %d "
+                                     "The Teleport authors"), created_year);
+    }
+  else
+    {
+      copyright = g_strdup_printf (("Copyright \xC2\xA9 %d\xE2\x80\x93%d "
+                                     "The Telport authors"), created_year, g_date_time_get_year (date));
+    }
+
+  gtk_show_about_dialog (GTK_WINDOW (priv->window),
+                         "program-name", ("Teleport"),
+                         "version", VERSION,
+                         "copyright", copyright,
+                         "license-type", GTK_LICENSE_AGPL_3_0,
+                         "authors", authors,
+                         "artists", artists,
+                         "logo-icon-name", "com.frac_tion.teleport",
+                         "translator-credits", ("translator-credits"),
+                         NULL);
+  g_free (copyright);
+  g_date_time_unref (date);
+}
+
 
 static void
 teleport_app_quit (GSimpleAction *simple,
