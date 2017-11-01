@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=Teleport
+Comment=Share files on the local network
 Exec=teleport
 Icon=com.frac_tion.teleport
 Type=Application
