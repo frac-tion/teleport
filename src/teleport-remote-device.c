@@ -155,7 +155,7 @@ teleport_remote_device_class_init (TeleportRemoteDeviceClass *klass)
 static void
 open_file_picker(GtkButton *btn,
                  Peer *device) {
-  GtkWidget *dialog;
+  GtkFileChooserNative *dialog;
   GtkWidget * window;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
   gint res;
@@ -164,29 +164,26 @@ open_file_picker(GtkButton *btn,
   window = gtk_widget_get_toplevel (GTK_WIDGET (btn));
   if (gtk_widget_is_toplevel (window))
     {
-      dialog =  gtk_file_chooser_dialog_new ("Open File",
+      dialog =  gtk_file_chooser_native_new ("Open File",
                                              GTK_WINDOW(window),
                                              action,
-                                             ("_Cancel"),
-                                             GTK_RESPONSE_CANCEL,
                                              ("_Open"),
-                                             GTK_RESPONSE_ACCEPT,
-                                             NULL);
+                                             ("_Cancel"));
 
-      res = gtk_dialog_run (GTK_DIALOG (dialog));
+      res = gtk_native_dialog_run (GTK_NATIVE_DIALOG (dialog));
       if (res == GTK_RESPONSE_ACCEPT)
         {
           char *filename;
           GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
           filename = gtk_file_chooser_get_filename (chooser);
           g_print("Choosen file is %s\n", filename);
-          gtk_widget_destroy (dialog);
+          g_object_unref (dialog);
           teleport_server_add_route (g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), filename, device->ip);
           g_free (filename);
         }
       else
         {
-          gtk_widget_destroy (dialog);
+          g_object_unref (dialog);
         }
 
     }
