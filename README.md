@@ -39,7 +39,7 @@ It's still early days, but we have exciting plans for the future. While Teleport
 ```
 #### Ubuntu
 ```
-  apt install pkg-config libsoup2.4-dev libavahi-client3 libgtk-3-dev meson
+  apt install pkg-config libsoup2.4-dev libavahi-client3 libavahi-client-dev libgtk-3-dev meson
   git clone https://github.com/frac-tion/teleport.git
   cd teleport
   ./configure
