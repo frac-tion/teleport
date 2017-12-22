@@ -40,6 +40,7 @@ struct _TeleportWindowPrivate
   GtkWidget *remote_devices_box;
   GtkWidget *this_device_name_label;
   GtkWidget *remote_no_devices;
+  GtkWidget *remote_no_avahi;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(TeleportWindow, teleport_window, GTK_TYPE_APPLICATION_WINDOW);
@@ -190,6 +191,7 @@ teleport_window_class_init (TeleportWindowClass *class)
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, this_device_name_label);
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, remote_no_devices);
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, remote_devices_box);
+  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, remote_no_avahi);
 }
 
 TeleportWindow *

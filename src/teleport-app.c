@@ -294,8 +294,11 @@ teleport_app_startup (GApplication *app) {
   g_signal_connect (app, "notify_user", (GCallback)callback_notify_user, priv->window);
 
   teleport_server_run();
-  teleport_publish_run (teleport_get_device_name());
-  teleport_browser_run_avahi_service(priv->peerList);
+
+  if (!teleport_publish_run (teleport_get_device_name()))
+    if (!teleport_browser_run_avahi_service(priv->peerList)) {
+      /* Error when avahi doesn't run */
+  }
 }
 
 static void

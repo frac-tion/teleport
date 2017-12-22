@@ -208,7 +208,6 @@
 
                   </object>
                 </child>
-
                 <child>
                   <object class="GtkBox" id="remote_devices_box">
                     <property name="visible">True</property>
@@ -216,6 +215,63 @@
                     <property name="spacing">6</property>
                     <property name="margin_top">6</property>
                     <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkFrame" id="remote_no_avahi">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="shadow_type">in</property>
+                        <child>
+                          <object class="GtkListBox">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="selection_mode">none</property>
+                            <child>
+                              <object class="GtkListBoxRow">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="activatable">False</property>
+                                <property name="selectable">False</property>
+                                <child>
+                                  <object class="GtkAlignment">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="top_padding">50</property>
+                                    <property name="bottom_padding">50</property>
+                                    <child>
+                                      <object class="GtkBox">
+                                        <property name="visible">True</property>
+                                        <property name="spacing">20</property>
+                                        <property name="orientation">vertical</property>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="max-width-chars">40</property>
+                                            <property name="halign">center</property>
+                                            <property name="wrap">True</property>
+                                            <property name="justify">center</property>
+                                            <property name="label">The Avahi daemon is not running. You can run this command to start it now:</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkEntry">
+                                            <property name="visible">True</property>
+                                            <property name="halign">center</property>
+                                            <property name="editable">False</property>
+                                            <property name="width-request">206</property>
+                                            <property name="text">systemctl start avahi-daemon</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
                     <child>
                       <object class="GtkFrame" id="remote_no_devices">
                         <property name="visible">True</property>
