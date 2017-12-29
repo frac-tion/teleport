@@ -3,6 +3,6 @@
 	font-weight: bold;
 }
 
-list, border {
+frame, list, border {
 	border-radius: 4px;
 }
