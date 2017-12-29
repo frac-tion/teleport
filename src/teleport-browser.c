@@ -156,7 +156,7 @@ client_callback (AvahiClient *c,
     fprintf(stderr,
             "Server connection failure: %s\n",
             avahi_strerror(avahi_client_errno(c)));
-    teleport_browser_avahi_shutdown();
+    avahi_client_free(client);
   }
 }
 
