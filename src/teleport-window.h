@@ -40,6 +40,9 @@ void               update_remote_device_list_remove (TeleportWindow    *,
 
 gchar *            teleport_get_download_directory  (void); 
 gchar *            teleport_get_device_name         (void); 
-void               teleport_show_no_device_message  (TeleportWindow *);
+void               teleport_show_no_device_message  (TeleportWindow *,
+                                                     gboolean);
+void               teleport_show_no_avahi_message   (TeleportWindow *,
+                                                     gboolean);
 
 #endif /* __TELEPORT_WINDOW_H */

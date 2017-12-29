@@ -91,6 +91,45 @@ struct _TeleportApp {
 
 G_DEFINE_TYPE_WITH_PRIVATE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
 
+static void
+on_avahi_appeared (GDBusConnection *connection,
+                  const gchar     *name,
+                  const gchar     *name_owner,
+                  gpointer         user_data)
+{
+  TeleportApp *app = user_data;
+  TeleportAppPrivate *priv = app->priv;
+  GtkWidget *window = priv->window;
+
+  teleport_show_no_device_message (TELEPORT_WINDOW (window), TRUE);
+  teleport_publish_run (teleport_get_device_name());
+  teleport_browser_run_avahi_service(priv->peerList);
+  teleport_show_no_avahi_message (TELEPORT_WINDOW (window), FALSE);
+}
+
+static void
+on_avahi_vanished (GDBusConnection *connection,
+                  const gchar     *name,
+                  gpointer         user_data)
+{
+  TeleportApp *app = user_data;
+  TeleportAppPrivate *priv = app->priv;
+  GtkWidget *window = priv->window;
+
+  teleport_show_no_device_message (TELEPORT_WINDOW (window), FALSE);
+  teleport_show_no_avahi_message (TELEPORT_WINDOW (window), TRUE);
+}
+
+static void
+watch_for_avahi_service (TeleportApp *application) {
+    g_bus_watch_name (G_BUS_TYPE_SYSTEM,
+                                 "org.freedesktop.Avahi",
+                                 G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                 on_avahi_appeared,
+                                 on_avahi_vanished,
+                                 application,
+                                 NULL);
+}
 
 static void 
 save_file_callback (GSimpleAction *simple,
@@ -239,7 +278,7 @@ mainLoopRemovePeerCallback (gpointer peer)  {
   update_remote_device_list_remove((TeleportWindow *) window, (Peer *) peer);
   //if (teleport_peer_get_number (priv->peerList) == 0)
   if (teleport_peer_get_number (priv->peerList) == 0)
-    teleport_show_no_device_message (TELEPORT_WINDOW (window));
+    teleport_show_no_device_message (TELEPORT_WINDOW (window), TRUE);
   return G_SOURCE_REMOVE;
 }
 
@@ -295,10 +334,7 @@ teleport_app_startup (GApplication *app) {
 
   teleport_server_run();
 
-  if (!teleport_publish_run (teleport_get_device_name()))
-    if (!teleport_browser_run_avahi_service(priv->peerList)) {
-      /* Error when avahi doesn't run */
-  }
+  watch_for_avahi_service (TELEPORT_APP (app));
 }
 
 static void
