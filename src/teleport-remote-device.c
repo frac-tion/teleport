@@ -338,8 +338,9 @@ teleport_remote_device_init (TeleportRemoteDevice *self)
   /* Make the widget a DnD destination. */
   gtk_drag_dest_set
    (
-    GTK_WIDGET (self),              /* widget that will accept a drop */
-    GTK_DEST_DEFAULT_ALL,
+    GTK_WIDGET (self->remote_device_row),              /* widget that will accept a drop */
+    GTK_DEST_DEFAULT_MOTION /* default actions for dest on DnD */
+    | GTK_DEST_DEFAULT_HIGHLIGHT,
     target_list,            /* lists of target to support */
     n_targets,              /* size of list */
     GDK_ACTION_COPY         /* what to do with data after dropped */

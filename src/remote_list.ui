@@ -17,9 +17,9 @@
         <child>
           <object class="GtkListBoxRow" id="remote_device_row">
             <property name="visible">True</property>
-            <property name="can_focus">false</property>
-            <property name="activatable">false</property>
-            <property name="selectable">false</property>
+            <property name="can_focus">True</property>
+            <property name="activatable">True</property>
+            <property name="selectable">True</property>
             <child>
               <object class="GtkGrid">
                 <property name="visible">True</property>
