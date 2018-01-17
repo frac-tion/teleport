@@ -34,8 +34,8 @@ It's still early days, but we have exciting plans for the future. While Teleport
   git clone https://github.com/frac-tion/teleport.git
   cd teleport
   ./configure
-  make
-  ./_build/src/teleport
+  sudo make install
+  teleport # or ./_build/src/teleport
 ```
 #### Ubuntu
 ```
@@ -44,7 +44,8 @@ It's still early days, but we have exciting plans for the future. While Teleport
   cd teleport
   ./configure
   make
-  ./_build/src/teleport
+  sudo make install
+  teleport # or ./_build/src/teleport
 ```
 
 
