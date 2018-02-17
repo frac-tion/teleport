@@ -132,8 +132,8 @@
                                       <class name="linked"/>
                                     </style>
                                     <child>
-                                      <object class="GtkMenuButton" id="this-device-settings-button">
-                                        <property name="visible">False</property>
+                                      <object class="GtkMenuButton" id="this_device_settings_button">
+                                        <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="use-popover">True</property>
                                         <property name="height_request">35</property>

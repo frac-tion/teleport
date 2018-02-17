@@ -4,6 +4,7 @@
     <file alias="gtk/menus.ui">gtk/menus.ui</file>
     <file preprocess="xml-stripblanks">window.ui</file>
     <file preprocess="xml-stripblanks">settings.ui</file>
+    <file preprocess="xml-stripblanks">device_settings.ui</file>
     <file preprocess="xml-stripblanks">remote_list.ui</file>
     <file compressed="true">style.css</file>
   </gresource>

@@ -37,10 +37,12 @@ struct _TeleportWindowPrivate
 {
   GSettings *settings;
   GtkWidget *gears;
+  GtkWidget *this_device_settings_button;
   GtkWidget *remote_devices_box;
   GtkWidget *this_device_name_label;
   GtkWidget *remote_no_devices;
   GtkWidget *remote_no_avahi;
+  GtkWidget *this_device_settings_entry;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(TeleportWindow, teleport_window, GTK_TYPE_APPLICATION_WINDOW);
@@ -58,6 +60,15 @@ change_download_directory_cb (GtkWidget *widget,
                          "download-dir",
                          newDownloadDir);
   g_free(newDownloadDir);
+}
+
+static void
+on_click_this_device_settings_button (GtkWidget *widget,
+                                      gpointer user_data) {
+  TeleportWindowPrivate *priv = (TeleportWindowPrivate *) user_data;
+  g_settings_set_string (priv->settings,
+                         "device-name",
+                         gtk_entry_get_text (GTK_ENTRY (priv->this_device_settings_entry)));
 }
 
 static void
@@ -119,6 +130,27 @@ teleport_window_init (TeleportWindow *win)
 
   //g_object_unref (menu);
   //g_object_unref (label);
+  g_object_unref (builder);
+
+  /* Add popover for device settings */
+  builder = gtk_builder_new_from_resource ("/com/frac_tion/teleport/device_settings.ui");
+  menu = GTK_WIDGET (gtk_builder_get_object (builder, "device-settings"));
+  gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->this_device_settings_button), menu);
+
+  priv->this_device_settings_entry = GTK_WIDGET (gtk_builder_get_object (builder,
+                                                                         "this_device_settings_entry"));
+  g_settings_bind (priv->settings,
+                   "device-name",
+                   priv->this_device_settings_entry,
+                   "text",
+                   G_SETTINGS_BIND_GET);
+
+  g_signal_connect (GTK_WIDGET (gtk_builder_get_object (builder, "this_device_settings_button")),
+                    "clicked", G_CALLBACK (on_click_this_device_settings_button), priv);
+
+  g_signal_connect (priv->this_device_settings_entry,
+                    "activate", G_CALLBACK (on_click_this_device_settings_button), priv);
+
   g_object_unref (builder);
 }
 
@@ -188,6 +220,7 @@ teleport_window_class_init (TeleportWindowClass *class)
                                                "/com/frac_tion/teleport/window.ui");
 
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, gears);
+  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, this_device_settings_button);
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, this_device_name_label);
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, remote_no_devices);
   gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, remote_devices_box);
