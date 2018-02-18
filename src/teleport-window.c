@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 #include <gtk/gtk.h>
 
@@ -49,7 +49,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(TeleportWindow, teleport_window, GTK_TYPE_APPLICATION
 
 static void
 change_download_directory_cb (GtkWidget *widget,
-                              gpointer user_data) {
+			      gpointer user_data) {
   GSettings *settings;
   gchar * newDownloadDir;
   settings = (GSettings *)user_data;
@@ -57,9 +57,19 @@ change_download_directory_cb (GtkWidget *widget,
   newDownloadDir = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget));
   g_print ("Change download directory\n");
   g_settings_set_string (settings,
-                         "download-dir",
-                         newDownloadDir);
+			 "download-dir",
+			 newDownloadDir);
   g_free(newDownloadDir);
+}
+
+static void
+update_download_directory (GSettings    *settings,
+                           gchar        *key,
+                           gpointer     *data) {
+  if (g_strcmp0 (key, "download-dir") == 0) {
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (data),
+                                         g_settings_get_string(settings, key));
+  }
 }
 
 static void
@@ -114,22 +124,13 @@ teleport_window_init (TeleportWindow *win)
                    priv->this_device_name_label, "label",
                    G_SETTINGS_BIND_DEFAULT);
 
-  /*gtk_label_set_text (GTK_LABEL (priv->this_device_name_label),
-    g_settings_get_string (priv->settings, "device-name"));
-    */
-
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (downloadDir),
                                        g_settings_get_string(priv->settings,
                                                              "download-dir"));
 
   g_signal_connect (downloadDir, "file-set", G_CALLBACK (change_download_directory_cb), priv->settings);
-  /*g_settings_bind (priv->settings, "download-dir",
-    GTK_FILE_CHOOSER (downloadDir), "current-folder",
-    G_SETTINGS_BIND_DEFAULT);
-    */
+  g_signal_connect (priv->settings, "changed", G_CALLBACK (update_download_directory), downloadDir);
 
-  //g_object_unref (menu);
-  //g_object_unref (label);
   g_object_unref (builder);
 
   /* Add popover for device settings */
