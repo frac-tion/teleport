@@ -17,6 +17,7 @@
  */
 
 #include <gtk/gtk.h>
+#include <string.h>
 
 #include "teleport-app.h"
 #include "teleport-window.h"
@@ -59,6 +60,25 @@ change_download_directory_cb (GtkWidget *widget,
   g_free(newDownloadDir);
 }
 
+static gboolean
+valid_device_name (const gchar *name) {
+  if (strlen (name) == 0)
+    return FALSE;
+  return TRUE;
+}
+
+static gchar *
+get_new_name (GtkWidget *widget) {
+  return g_strstrip (g_strdup (gtk_entry_get_text (GTK_ENTRY (widget))));
+}
+
+static void
+on_new_device_name (GtkWidget *widget,
+                    gpointer  data) {
+  g_autofree gchar * name = get_new_name (widget);
+  gtk_widget_set_sensitive (GTK_WIDGET (data), valid_device_name (name));
+}
+
 static void
 update_download_directory (GSettings    *settings,
                            gchar        *key,
@@ -73,9 +93,22 @@ static void
 on_click_this_device_settings_button (GtkWidget *widget,
                                       gpointer user_data) {
   TeleportWindowPrivate *priv = (TeleportWindowPrivate *) user_data;
-  g_settings_set_string (teleport_app_get_settings (),
-                         "device-name",
-                         gtk_entry_get_text (GTK_ENTRY (priv->this_device_settings_entry)));
+  g_autofree gchar * name = get_new_name (priv->this_device_settings_entry);
+  if (valid_device_name (name)) {
+    g_settings_set_string (teleport_app_get_settings (),
+                           "device-name",
+                           name);
+    gtk_popover_popdown (GTK_POPOVER (gtk_menu_button_get_popover (GTK_MENU_BUTTON (priv->this_device_settings_button))));
+  }
+}
+
+static void
+on_show_popover (GtkPopover *widget,
+                 gpointer    data) {
+  TeleportWindowPrivate *priv = (TeleportWindowPrivate *) data;
+  gtk_entry_set_text(GTK_ENTRY (priv->this_device_settings_entry),
+                     g_settings_get_string(teleport_app_get_settings (),
+                                           "device-name"));
 }
 
 static void
@@ -100,7 +133,7 @@ teleport_window_init (TeleportWindow *win)
 
   g_settings_bind (settings, "device-name",
                    priv->this_device_name_label, "label",
-                   G_SETTINGS_BIND_DEFAULT);
+                   G_SETTINGS_BIND_GET);
 
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (downloadDir),
                                        g_settings_get_string(settings,
@@ -129,6 +162,12 @@ teleport_window_init (TeleportWindow *win)
 
   g_signal_connect (priv->this_device_settings_entry,
                     "activate", G_CALLBACK (on_click_this_device_settings_button), priv);
+
+  g_signal_connect (priv->this_device_settings_entry,
+                    "changed", G_CALLBACK (on_new_device_name), gtk_builder_get_object (builder, "this_device_settings_button"));
+
+  g_signal_connect (menu,
+                    "show", G_CALLBACK (on_show_popover), priv);
 
   g_object_unref (builder);
 }
@@ -179,12 +218,6 @@ update_remote_device_list_remove(TeleportWindow *win,
 static void
 teleport_window_dispose (GObject *object)
 {
-  TeleportWindow *win;
-  TeleportWindowPrivate *priv;
-
-  win = TELEPORT_WINDOW (object);
-  priv = teleport_window_get_instance_private (win);
-
   G_OBJECT_CLASS (teleport_window_parent_class)->dispose (object);
 }
 
