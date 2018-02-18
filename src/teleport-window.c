@@ -24,8 +24,6 @@
 #include "teleport-peer.h"
 #include "teleport-remote-device.h"
 
-TeleportWindow *mainWin;
-
 struct _TeleportWindow
 {
   GtkApplicationWindow parent;
@@ -35,7 +33,6 @@ typedef struct _TeleportWindowPrivate TeleportWindowPrivate;
 
 struct _TeleportWindowPrivate
 {
-  GSettings *settings;
   GtkWidget *gears;
   GtkWidget *this_device_settings_button;
   GtkWidget *remote_devices_box;
@@ -76,7 +73,7 @@ static void
 on_click_this_device_settings_button (GtkWidget *widget,
                                       gpointer user_data) {
   TeleportWindowPrivate *priv = (TeleportWindowPrivate *) user_data;
-  g_settings_set_string (priv->settings,
+  g_settings_set_string (teleport_app_get_settings (),
                          "device-name",
                          gtk_entry_get_text (GTK_ENTRY (priv->this_device_settings_entry)));
 }
@@ -88,28 +85,9 @@ teleport_window_init (TeleportWindow *win)
   GtkBuilder *builder;
   GtkWidget *menu;
   GtkFileChooserButton *downloadDir;
-  mainWin = win;
+  GSettings *settings = teleport_app_get_settings ();
 
   priv = teleport_window_get_instance_private (win);
-  priv->settings = g_settings_new ("com.frac_tion.teleport");
-
-  if (g_settings_get_user_value (priv->settings, "download-dir") == NULL) {
-    g_print ("Download dir set to XDG DOWNLOAD directory\n");
-    if (g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD) != NULL) {
-      g_settings_set_string (priv->settings,
-                             "download-dir",
-                             g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD));
-    }
-    else {
-      g_print ("Error: XDG DOWNLOAD is not set.\n");
-    }
-  }
-
-  if (g_settings_get_user_value (priv->settings, "device-name") == NULL) {
-    g_settings_set_string (priv->settings,
-                           "device-name",
-                           g_get_host_name());
-  }
 
   gtk_widget_init_template (GTK_WIDGET (win));
 
@@ -120,16 +98,16 @@ teleport_window_init (TeleportWindow *win)
   gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
 
 
-  g_settings_bind (priv->settings, "device-name",
+  g_settings_bind (settings, "device-name",
                    priv->this_device_name_label, "label",
                    G_SETTINGS_BIND_DEFAULT);
 
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (downloadDir),
-                                       g_settings_get_string(priv->settings,
+                                       g_settings_get_string(settings,
                                                              "download-dir"));
 
-  g_signal_connect (downloadDir, "file-set", G_CALLBACK (change_download_directory_cb), priv->settings);
-  g_signal_connect (priv->settings, "changed", G_CALLBACK (update_download_directory), downloadDir);
+  g_signal_connect (downloadDir, "file-set", G_CALLBACK (change_download_directory_cb), settings);
+  g_signal_connect (settings, "changed", G_CALLBACK (update_download_directory), downloadDir);
 
   g_object_unref (builder);
 
@@ -140,7 +118,7 @@ teleport_window_init (TeleportWindow *win)
 
   priv->this_device_settings_entry = GTK_WIDGET (gtk_builder_get_object (builder,
                                                                          "this_device_settings_entry"));
-  g_settings_bind (priv->settings,
+  g_settings_bind (settings,
                    "device-name",
                    priv->this_device_settings_entry,
                    "text",
@@ -207,8 +185,6 @@ teleport_window_dispose (GObject *object)
   win = TELEPORT_WINDOW (object);
   priv = teleport_window_get_instance_private (win);
 
-  g_clear_object (&priv->settings);
-
   G_OBJECT_CLASS (teleport_window_parent_class)->dispose (object);
 }
 
@@ -232,24 +208,6 @@ TeleportWindow *
 teleport_window_new (TeleportApp *app)
 {
   return g_object_new (TELEPORT_WINDOW_TYPE, "application", app, NULL);
-}
-
-gchar * 
-teleport_get_device_name (void) 
-{
-  TeleportWindowPrivate *priv;
-  priv = teleport_window_get_instance_private (mainWin);
-
-  return g_settings_get_string (priv->settings, "device-name");
-}
-
-gchar * 
-teleport_get_download_directory (void) 
-{
-  TeleportWindowPrivate *priv;
-  priv = teleport_window_get_instance_private (mainWin);
-
-  return g_settings_get_string (priv->settings, "download-dir");
 }
 
 void

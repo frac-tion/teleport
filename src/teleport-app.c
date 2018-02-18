@@ -77,6 +77,7 @@ static gint signalIds [N_SIGNALS];
 
 typedef struct
 {
+  GSettings     *settings;
   GtkWidget     *window;
   TeleportPeer  *peerList;
 } TeleportAppPrivate;
@@ -297,6 +298,46 @@ callback_notify_user (GObject *instance, gchar *name, gpointer window) {
   //create_user_notification("icon.png", 2000, "Mark's laptop");
 }
 
+GSettings *
+teleport_app_get_settings (void) {
+  TeleportAppPrivate *priv;
+  priv = teleport_app_get_instance_private (mainApplication);
+  return priv->settings;
+}
+
+static void
+init_settings (GSettings *settings) {
+  if (g_settings_get_user_value (settings, "download-dir") == NULL) {
+    g_print ("Download dir set to XDG DOWNLOAD directory\n");
+    if (g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD) != NULL) {
+      g_settings_set_string (settings,
+                             "download-dir",
+                             g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD));
+    }
+    else {
+      g_print ("Error: XDG DOWNLOAD is not set.\n");
+    }
+  }
+
+  if (g_settings_get_user_value (settings, "device-name") == NULL) {
+    g_settings_set_string (settings,
+                           "device-name",
+                           g_get_host_name());
+  }
+}
+
+gchar * 
+teleport_get_device_name (void) 
+{
+  return g_settings_get_string (teleport_app_get_settings (), "device-name");
+}
+
+gchar * 
+teleport_get_download_directory (void) 
+{
+  return g_settings_get_string (teleport_app_get_settings (), "download-dir");
+}
+
 static void
 teleport_app_startup (GApplication *app) {
   TeleportAppPrivate *priv;
@@ -349,6 +390,8 @@ teleport_app_activate (GApplication *app) {
 static void
 teleport_app_finalize (GObject *object)
 {
+  /*TeleportAppPrivate priv = mainApplication->priv;
+  g_clear_object (&priv->settings);*/
   G_OBJECT_CLASS (teleport_app_parent_class)->finalize (object);
 }
 
@@ -443,6 +486,9 @@ static void
 teleport_app_init (TeleportApp *app) {
   TeleportAppPrivate *priv = teleport_app_get_instance_private (app);
   app->priv = priv;
+
+  priv->settings = g_settings_new ("com.frac_tion.teleport");
+  init_settings (priv->settings);
 }
 
 

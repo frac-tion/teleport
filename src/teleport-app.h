@@ -28,6 +28,9 @@ G_DECLARE_FINAL_TYPE (TeleportApp, teleport_app, TELEPORT, APP, GtkApplication)
 
 
 TeleportApp     *teleport_app_new            (void);
+GSettings       *teleport_app_get_settings   (void);
+gchar           *teleport_get_download_directory  (void); 
+gchar           *teleport_get_device_name         (void); 
 void            create_user_notification     (const char *,
                                               const int,
                                               const char *,
