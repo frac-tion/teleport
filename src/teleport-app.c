@@ -92,6 +92,16 @@ struct _TeleportApp {
 
 G_DEFINE_TYPE_WITH_PRIVATE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
 
+
+static void
+restart_avahi_publish_server (GSettings    *settings,
+                              gchar        *key,
+                              gpointer     *data) {
+  if (g_strcmp0 (key, "device-name") == 0) {
+    teleport_publish_update (teleport_get_device_name());
+  }
+}
+
 static void
 on_avahi_appeared (GDBusConnection *connection,
                   const gchar     *name,
@@ -104,6 +114,7 @@ on_avahi_appeared (GDBusConnection *connection,
 
   teleport_show_no_device_message (TELEPORT_WINDOW (window), TRUE);
   teleport_publish_run (teleport_get_device_name());
+  g_signal_connect (teleport_app_get_settings(), "changed", G_CALLBACK (restart_avahi_publish_server), NULL);
   teleport_browser_run_avahi_service(priv->peerList);
   teleport_show_no_avahi_message (TELEPORT_WINDOW (window), FALSE);
 }
@@ -119,6 +130,7 @@ on_avahi_vanished (GDBusConnection *connection,
 
   teleport_show_no_device_message (TELEPORT_WINDOW (window), FALSE);
   teleport_show_no_avahi_message (TELEPORT_WINDOW (window), TRUE);
+  g_signal_connect (teleport_app_get_settings(), "changed", G_CALLBACK (restart_avahi_publish_server), NULL);
 }
 
 static void
