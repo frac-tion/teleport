@@ -49,5 +49,12 @@
         </p>
       </description>
     </release>
+    <release version="0.0.1" date="2018-10-28">
+      <description>
+        <p>
+          Some small fixes.
+        </p>
+      </description>
+    </release>
   </releases>
 </component>
