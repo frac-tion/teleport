@@ -18,16 +18,16 @@
   <screenshots>
     <screenshot type="default">
       <caption>Teleport window with multiple devices</caption>
-      <image width="1366" height="768">https://raw.githubusercontent.com/frac-tion/teleport/master/data/screenshots/window.png</image>
+      <image width="1366" height="768">https://gitlab.gnome.org/jsparber/teleport/raw/master/data/screenshots/window.png</image>
     </screenshot>
     <screenshot type="default">
       <caption>Teleport notification</caption>
-      <image width="1366" height="768">https://raw.githubusercontent.com/frac-tion/teleport/master/data/screenshots/notification.png</image>
+      <image width="1366" height="768">https://gitlab.gnome.org/jsparber/teleport/raw/master/data/screenshots/notification.png</image>
     </screenshot>
   </screenshots>
 
-  <url type="homepage">https://github.com/frac-tion/teleport/</url>
-  <url type="bugtracker">https://github.com/frac-tion/teleport/</url>
+  <url type="homepage">https://gitlab.gnome.org/jsparber/teleport</url>
+  <url type="bugtracker">https://gitlab.gnome.org/jsparber/teleport/issues</url>
   <project_group>GNOME</project_group>
 
   <kudos>
@@ -40,19 +40,19 @@
   <update_contact>julian@sparber.net</update_contact>
   <translation type="gettext">teleport</translation>
 
-  <releases>
+  <releases>    
+    <release version="0.0.1" date="2018-10-28">
+      <description>
+        <p>
+          Some small fixes.
+        </p>
+      </description>
+    </release>
     <release version="MVP" date="2017-10-29">
       <description>
         <p>
           This basic initial version sends files chose via the file chooser or
           drag and drop. The Downloads directory can be set from the menu.
-        </p>
-      </description>
-    </release>
-    <release version="0.0.1" date="2018-10-28">
-      <description>
-        <p>
-          Some small fixes.
         </p>
       </description>
     </release>
