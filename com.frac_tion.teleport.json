@@ -1,0 +1,64 @@
+{
+  "app-id": "com.frac_tion.teleport",
+  "runtime": "org.gnome.Platform",
+  "runtime-version": "master",
+  "sdk": "org.gnome.Sdk",
+  "command": "teleport",
+  "finish-args": [
+    "--share=network",
+    "--share=ipc",
+    "--socket=x11",
+    "--socket=wayland",
+    "--system-talk-name=org.freedesktop.Avahi",
+    "--talk-name=org.freedesktop.FileManager1",
+    "--filesystem=home",
+    "--env=GSETTINGS_SCHEMA_DIR=/app/share/glib-2.0/schemas",
+    "--filesystem=xdg-run/dconf",
+    "--filesystem=~/.config/dconf:ro",
+    "--talk-name=ca.desrt.dconf",
+    "--env=DCONF_USER_CONFIG_DIR=.config/dconf"
+  ],
+  "cleanup": ["/include", "/lib/pkgconfig",
+    "/share/pkgconfig", "/share/aclocal",
+    "/man", "/share/man", "/share/gtk-doc",
+    "/share/vala",
+    "*.la", "*.a"],
+    "modules": [
+      {
+        "name": "avahi",
+        "cleanup": [ "/bin" ],
+        "config-opts": [
+          "--with-distro=none",
+          "--enable-gobject",
+          "--with-xml=expat",
+          "--disable-libdaemon",
+          "--disable-libevent",
+          "--disable-core-docs",
+          "--disable-manpages",
+          "--disable-mono",
+          "--disable-qt3",
+          "--disable-qt4",
+          "--disable-qt5",
+          "--disable-python",
+          "--disable-gtk",
+          "--disable-gtk3"
+        ],
+        "sources": [
+          {
+            "type": "git",
+            "url": "https://github.com/lathiat/avahi.git"
+          }
+        ]
+      },
+      {
+        "name": "teleport",
+        "buildsystem": "meson",
+        "sources": [
+          {
+            "type": "git",
+            "url": "https://gitlab.gnome.org/jsparber/teleport.git"
+          }
+        ]
+      }
+    ]
+}
