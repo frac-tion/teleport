@@ -354,6 +354,7 @@ static void
 teleport_app_startup (GApplication *app) {
   TeleportAppPrivate *priv;
   GtkStyleProvider *provider;
+  static const gchar *quit_accels[] = { "<Primary>q", NULL };
 
   mainApplication = TELEPORT_APP (app);
   priv = mainApplication->priv;
@@ -362,6 +363,8 @@ teleport_app_startup (GApplication *app) {
                                    app_entries,
                                    G_N_ELEMENTS (app_entries),
                                    app);
+
+  gtk_application_set_accels_for_action (GTK_APPLICATION (app), "app.quit", quit_accels);
 
   G_APPLICATION_CLASS (teleport_app_parent_class)->startup (app);
 
