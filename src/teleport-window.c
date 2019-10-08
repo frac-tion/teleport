@@ -18,6 +18,8 @@
 
 #include <gtk/gtk.h>
 #include <string.h>
+#define HANDY_USE_UNSTABLE_API
+#include <handy.h>
 
 #include "teleport-app.h"
 #include "teleport-window.h"
@@ -122,6 +124,7 @@ teleport_window_init (TeleportWindow *win)
 
   priv = teleport_window_get_instance_private (win);
 
+  g_type_ensure (HDY_TYPE_COLUMN);
   gtk_widget_init_template (GTK_WIDGET (win));
 
   builder = gtk_builder_new_from_resource ("/com/frac_tion/teleport/settings.ui");
