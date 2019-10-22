@@ -48,7 +48,7 @@
         </p>
       </description>
     </release>
-    <release version="MVP" date="2017-10-29">
+    <release version="0.0.0" date="2017-10-29">
       <description>
         <p>
           This basic initial version sends files chose via the file chooser or
