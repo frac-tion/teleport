@@ -51,11 +51,11 @@ config_h.set('NDEBUG', not teleport_debug)
 # package
 set_defines = [
   ['PACKAGE', meson.project_name()],
-  ['PACKAGE_BUGREPORT', 'https://github.com/frac-tion/teleport/issues'],
+  ['PACKAGE_BUGREPORT', 'https://gitlab.gnome.org/jsparber/teleport/-/issues'],
   ['PACKAGE_NAME', meson.project_name()],
   ['PACKAGE_STRING', '@0@ @1@'.format(meson.project_name(), teleport_version)],
   ['PACKAGE_TARNAME', meson.project_name()],
-  ['PACKAGE_URL', 'https://github.com/frac-tion/teleport'],
+  ['PACKAGE_URL', 'https://gitlab.gnome.org/jsparber/teleport'],
   ['PACKAGE_VERSION', teleport_version],
   ['VERSION', teleport_version],
   # i18n

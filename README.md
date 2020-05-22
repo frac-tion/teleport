@@ -28,7 +28,7 @@ It's still early days, but we have exciting plans for the future. While Teleport
 #### Archlinux
 ```
   pacman -S base-devel libsoup avahi gtk3 meson
-  git clone https://github.com/frac-tion/teleport.git
+  git clone https://gitlab.gnome.org/jsparber/teleport
   cd teleport
   ./configure
   sudo make install
@@ -37,7 +37,7 @@ It's still early days, but we have exciting plans for the future. While Teleport
 #### Ubuntu
 ```
   apt install pkg-config libsoup2.4-dev libavahi-client3 libavahi-client-dev libgtk-3-dev meson
-  git clone https://github.com/frac-tion/teleport.git
+  git clone https://gitlab.gnome.org/jsparber/teleport
   cd teleport
   ./configure
   make
