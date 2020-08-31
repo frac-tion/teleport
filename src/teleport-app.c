@@ -61,9 +61,7 @@ enum {
   NOTIFY_USER, NOTIFY_FINISED, N_SIGNALS
 };
 
-static const gchar *quit_accels[] = { "<Primary>q", NULL };
-
-static GActionEntry app_entries[] =
+static const GActionEntry app_entries[] =
 {
     { "save", save_file_callback, "as", NULL, NULL },
     { "decline", do_nothing_callback, "as", NULL, NULL },
@@ -293,15 +291,16 @@ teleport_app_startup (GApplication *application) {
   g_autoptr(GtkCssProvider) provider = NULL;
   TeleportWindow *window;
   TeleportPeer *dummy_peer;
+  const gchar *quit_accels[] = { "<Primary>q", NULL };
 
   g_action_map_add_action_entries (G_ACTION_MAP (self),
                                    app_entries,
                                    G_N_ELEMENTS (app_entries),
                                    self);
 
-  gtk_application_set_accels_for_action (GTK_APPLICATION (self), "app.quit", quit_accels);
-
   G_APPLICATION_CLASS (teleport_app_parent_class)->startup (application);
+
+  gtk_application_set_accels_for_action (GTK_APPLICATION (application), "app.quit", quit_accels);
 
   /* CSS style */
   provider = gtk_css_provider_new ();
