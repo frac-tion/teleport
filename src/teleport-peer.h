@@ -24,20 +24,17 @@
 #define TELEPORT_TYPE_PEER teleport_peer_get_type ()
 G_DECLARE_FINAL_TYPE (TeleportPeer, teleport_peer, TELEPORT, PEER, GObject)
 
-typedef struct Peers {
-  char *name;
-  char *ip;
-  gint port;
-} Peer;
-
-
-gchar * teleport_peer_get_name (TeleportPeer  *self, gint index, GError **error);
-gchar * teleport_peer_get_ip (TeleportPeer  *self, gint index, GError **error);
-gint teleport_peer_get_port (TeleportPeer  *self, gint index, GError **error);
-void teleport_peer_add_peer (TeleportPeer *self, gchar * name, gchar * ip, gint port);
-void teleport_peer_remove_peer (TeleportPeer *, Peer *);
-void teleport_peer_remove_peer_by_name (TeleportPeer *, const gchar *);
-gchar * teleport_peer_get_name_by_addr (TeleportPeer *, const gchar *);
-int  teleport_peer_get_number (TeleportPeer *self);
+TeleportPeer* teleport_peer_new (const gchar        *name,
+                                 const gchar        *ip,
+                                 guint                port);
+const gchar* teleport_peer_get_name (TeleportPeer   *self);
+void teleport_peer_set_name (TeleportPeer           *self,
+                            const gchar             *name);
+const gchar* teleport_peer_get_ip (TeleportPeer     *self);
+void teleport_peer_set_ip (TeleportPeer             *self,
+                             const gchar            *ip);
+guint teleport_peer_get_port (TeleportPeer          *self);
+void teleport_peer_set_port  (TeleportPeer          *self,
+                              guint                 port);
 
 #endif /* __TELEPORT_PEER_H */

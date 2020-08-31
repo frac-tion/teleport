@@ -29,11 +29,10 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (TeleportRemoteDevice, teleport_remote_device, TELEPORT, REMOTE_DEVICE, GtkFrame)
 
-GtkWidget *     teleport_remote_device_new      (Peer         *         );
+GtkWidget *teleport_remote_device_new      (TeleportPeer         *);
 
-Peer *  teleport_remote_device_get_peer (GtkWidget            *         );
-void    teleport_remote_device_set_peer (TeleportRemoteDevice *, Peer  *);
-void    teleport_remote_device_destroy  (TeleportRemoteDevice *);
+TeleportPeer *teleport_remote_device_get_peer (TeleportRemoteDevice            *);
+void    teleport_remote_device_set_peer (TeleportRemoteDevice *, TeleportPeer  *);
 
 
 G_END_DECLS

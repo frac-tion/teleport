@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 #include <gtk/gtk.h>
 #include "teleport-remote-device.h"
@@ -55,28 +55,10 @@ struct _TeleportRemoteDevice
   GtkWidget 	*send_btn;
 
   /* data */
-  Peer          *peer;
+  TeleportPeer  *peer;
 };
 
 G_DEFINE_TYPE (TeleportRemoteDevice, teleport_remote_device, GTK_TYPE_FRAME)
-
-    /*
-     * GObject overrides
-     */
-
-static void
-teleport_remote_device_finalize (GObject *object)
-{
-  //TeleportRemoteDevice *self = TELEPORT_REMOTE_DEVICE (object);
-
-  G_OBJECT_CLASS (teleport_remote_device_parent_class)->finalize (object);
-}
-
-static void
-teleport_remote_device_dispose (GObject *object)
-{
-  G_OBJECT_CLASS (teleport_remote_device_parent_class)->dispose (object);
-}
 
 static void
 teleport_remote_device_get_property (GObject    *object,
@@ -122,8 +104,6 @@ teleport_remote_device_class_init (TeleportRemoteDeviceClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->dispose = teleport_remote_device_dispose;
-  object_class->finalize = teleport_remote_device_finalize;
   object_class->get_property = teleport_remote_device_get_property;
   object_class->set_property = teleport_remote_device_set_property;
 
@@ -137,14 +117,7 @@ teleport_remote_device_class_init (TeleportRemoteDeviceClass *klass)
                                    g_param_spec_pointer ("peer",
                                                          "Peer of the row",
                                                          "The peer that this row represents",
-                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-
-  /*g_param_spec_object ("peer",
-    "Task of the row",
-    "The task that this row represents",
-    (Peer *),
-    G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-    */
+                                                         G_PARAM_READWRITE));
 
   gtk_widget_class_set_template_from_resource (widget_class, "/com/frac_tion/teleport/remote_list.ui");
   gtk_widget_class_bind_template_child (widget_class, TeleportRemoteDevice, remote_device_row);
@@ -153,13 +126,15 @@ teleport_remote_device_class_init (TeleportRemoteDeviceClass *klass)
 }
 
 static void
-open_file_picker(GtkButton *btn,
-                 Peer *device) {
+open_file_picker (GtkButton *btn,
+                  TeleportPeer *device) {
   GtkFileChooserNative *dialog;
-  GtkWidget * window;
+  GtkWidget *window;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
   gint res;
-  g_print("Open file chooser for submitting a file to %s with Address %s\n", device->name, device->ip);
+  g_print("Open file chooser for submitting a file to %s with Address %s\n",
+          teleport_peer_get_name (device),
+          teleport_peer_get_ip (device));
 
   window = gtk_widget_get_toplevel (GTK_WIDGET (btn));
   if (gtk_widget_is_toplevel (window))
@@ -173,32 +148,30 @@ open_file_picker(GtkButton *btn,
       res = gtk_native_dialog_run (GTK_NATIVE_DIALOG (dialog));
       if (res == GTK_RESPONSE_ACCEPT)
         {
-          char *filename;
+          gchar *filename;
           GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
           filename = gtk_file_chooser_get_filename (chooser);
           g_print("Choosen file is %s\n", filename);
           g_object_unref (dialog);
-          teleport_server_add_route (g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), filename, device->ip);
+          teleport_server_add_route (g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), filename, teleport_peer_get_ip (device));
           g_free (filename);
         }
       else
         {
           g_object_unref (dialog);
         }
-
     }
 }
-
 
 static void 
 send_file_to_device (gchar *uri, gpointer data)
 {
-  Peer *device = (Peer *) data;
+  TeleportPeer *device = TELEPORT_PEER (data);
   GFile *file = g_file_new_for_uri (uri);
   gchar *filename  = NULL;
   if (g_file_query_exists (file, NULL)) {
     filename = g_file_get_path (file);
-    teleport_server_add_route (g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), g_strdup(filename), device->ip);
+    teleport_server_add_route (g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), g_strdup(filename), teleport_peer_get_ip (device));
     g_free (filename);
   }
   else {
@@ -348,7 +321,7 @@ teleport_remote_device_init (TeleportRemoteDevice *self)
 }
 
 GtkWidget*
-teleport_remote_device_new (Peer *peer)
+teleport_remote_device_new (TeleportPeer *peer)
 {
   return g_object_new (TELEPORT_TYPE_REMOTE_DEVICE,
                        "peer", peer,
@@ -357,73 +330,61 @@ teleport_remote_device_new (Peer *peer)
 
 /**
  * teleport_remote_device_get_peer:
- * @row: a #TeleportRemoteDevice
+ * @self: a #TeleportRemoteDevice
  *
  * Retrieves the #Peer that @row manages, or %NULL if none
  * is set.
  *
  * Returns: (transfer none): the internal peer of @row
  */
-Peer *
-      teleport_remote_device_get_peer (GtkWidget *widget)
+TeleportPeer *
+              teleport_remote_device_get_peer (TeleportRemoteDevice *self)
 {
-  TeleportRemoteDevice *row;
+  g_return_val_if_fail (TELEPORT_IS_REMOTE_DEVICE (self), NULL);
 
-  g_return_val_if_fail (TELEPORT_IS_REMOTE_DEVICE (widget), NULL);
-
-  row = TELEPORT_REMOTE_DEVICE (widget);
-
-  return row->peer;
-}
-
-void
-teleport_remote_device_set_peer (TeleportRemoteDevice *widget,
-                                 Peer    *peer)
-{
-  g_return_if_fail (TELEPORT_IS_REMOTE_DEVICE (widget));
-  widget->peer = peer;
-
-  /*
-     we need to create a peer object instate of a struct to be able to bind it
-  if (!g_set_object (&widget->peer, peer))
-    return;
-
-  g_object_bind_property (peer,
-                          "name",
-                          widget->device_name,
-                          "label",
-                          G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
-                          */
-
-  if (peer)
-    {
-      gtk_label_set_text(GTK_LABEL (widget->device_name), peer->name);
-
-      g_signal_connect (widget->send_btn, "clicked", G_CALLBACK (open_file_picker), peer);
-
-
-      g_signal_connect (widget, "drag-data-received",
-                        G_CALLBACK(drag_data_received_handl), peer);
-
-      g_signal_connect (widget, "drag-leave",
-                        G_CALLBACK (drag_leave_handl), peer);
-
-      g_signal_connect (widget, "drag-motion",
-                        G_CALLBACK (drag_motion_handl), peer);
-
-      g_signal_connect (widget, "drag-drop",
-                        G_CALLBACK (drag_drop_handl), peer);
-    }
+  return self->peer;
 }
 
 /**
- * teleport_remote_device_destroy:
+ * teleport_remote_device_get_peer:
  * @self: a #TeleportRemoteDevice
  *
- * Destroy @self after hiding it.
+ * Sets the peer for a row
+ *
  */
-void
-teleport_remote_device_destroy (TeleportRemoteDevice *self)
-{
-}
 
+void
+teleport_remote_device_set_peer (TeleportRemoteDevice *self,
+                                 TeleportPeer         *peer)
+{
+  if (peer == self->peer)
+    return;
+
+  g_return_if_fail (TELEPORT_IS_REMOTE_DEVICE (self));
+
+  g_clear_object (&self->peer);
+
+  self->peer = peer;
+  g_object_ref (peer);
+
+  g_object_bind_property (peer,
+                          "name",
+                          self->device_name,
+                          "label",
+                          G_BINDING_SYNC_CREATE);
+
+  g_signal_connect (self->send_btn, "clicked", G_CALLBACK (open_file_picker), peer);
+
+
+  g_signal_connect (self, "drag-data-received",
+                    G_CALLBACK(drag_data_received_handl), peer);
+
+  g_signal_connect (self, "drag-leave",
+                    G_CALLBACK (drag_leave_handl), peer);
+
+  g_signal_connect (self, "drag-motion",
+                    G_CALLBACK (drag_motion_handl), peer);
+
+  g_signal_connect (self, "drag-drop",
+                    G_CALLBACK (drag_drop_handl), peer);
+}

@@ -21,7 +21,7 @@
 
 #include "teleport-peer.h"
 
-int teleport_browser_run_avahi_service(TeleportPeer *);
+int teleport_browser_run_avahi_service(void);
 void teleport_browser_avahi_shutdown(void);
 
 #endif /* __TELEPORT_BROWSER_H */

@@ -32,8 +32,14 @@
 
 static AvahiThreadedPoll *threaded_poll = NULL;
 static AvahiClient *client = NULL;
-static TeleportPeer *peerList = NULL;
 
+static void add_peer (TeleportPeer *peer)
+{
+  TeleportApp *app;
+  app = TELEPORT_APP (g_application_get_default ());
+  teleport_app_add_peer (app, peer);
+
+}
 static void
 resolve_callback (AvahiServiceResolver *r,
                   AVAHI_GCC_UNUSED AvahiIfIndex interface,
@@ -62,6 +68,7 @@ resolve_callback (AvahiServiceResolver *r,
     break;
   case AVAHI_RESOLVER_FOUND: {
                                char a[AVAHI_ADDRESS_STR_MAX], *t;
+                               TeleportPeer *peer;
                                fprintf(stderr,
                                        "Service '%s' of type '%s' in domain '%s':\n",
                                        name,
@@ -69,7 +76,10 @@ resolve_callback (AvahiServiceResolver *r,
                                        domain);
                                avahi_address_snprint(a, sizeof(a), address);
                                t = avahi_string_list_to_string(txt);
-                               teleport_peer_add_peer(peerList, g_strdup(name), g_strdup(a), port);
+                               /* Add newly found peer */
+                               g_print ("Add new thing\n");
+                               peer = teleport_peer_new(name, a, port);
+                               g_idle_add(G_SOURCE_FUNC (add_peer), peer);
                                avahi_free(t);
                              }
   }
@@ -134,7 +144,7 @@ browse_callback(
             name,
             type,
             domain);
-    teleport_peer_remove_peer_by_name(peerList, g_strdup(name));
+    //teleport_peer_remove_peer_by_name(peerList, g_strdup(name));
     break;
   case AVAHI_BROWSER_ALL_FOR_NOW:
   case AVAHI_BROWSER_CACHE_EXHAUSTED:
@@ -161,10 +171,9 @@ client_callback (AvahiClient *c,
 }
 
 int
-teleport_browser_run_avahi_service (TeleportPeer *peers)
+teleport_browser_run_avahi_service (void)
 {
   int error;
-  peerList = peers;
 
   /* Call this when the application starts up. */
 

@@ -45,12 +45,14 @@ finished (SoupSession *session,
              (char *) g_variant_get_string (
                                             g_variant_get_child_value ((GVariant *) target, 2), NULL));
 
+    /*
     create_finished_notification ((char *) g_variant_get_string (
                                                                  g_variant_get_child_value ((GVariant *) target, 0), NULL),
                                   0,
                                   g_variant_get_string (
                                                         g_variant_get_child_value ((GVariant *) target, 2), NULL),
                                   target);
+                                  */
   }
 }
 
@@ -166,8 +168,10 @@ int
 teleport_get_do_downloading (const char *originDevice,
                              const char *url,
                              const char *filename) {
+  /*
   const gchar *outputDirectory = teleport_get_download_directory();
   g_print("Downloading %s to %s\n", url, g_uri_escape_string(filename, NULL, TRUE));
   get (g_strdup(url), originDevice, outputDirectory, filename);
+  */
   return 0;
 }

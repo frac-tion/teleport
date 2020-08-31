@@ -137,7 +137,7 @@ server_callback (SoupServer *server, SoupMessage *msg,
       if (token != NULL && size != NULL && file_name != NULL) {
         g_print("Token: %s, Size: %s, Name: %s\n", token, size, file_name);
         response = g_string_new("{\"error\": false, \"message\": \"Success\"}");
-        handle_incoming_file(token, file_name, g_ascii_strtoull (size, NULL, 0), origin_addr);
+        //handle_incoming_file(token, file_name, g_ascii_strtoull (size, NULL, 0), origin_addr);
       }
       else 
         response = g_string_new("{\"error\": true, \"message\": \"query malformed\"}");

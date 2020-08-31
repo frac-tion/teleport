@@ -14,30 +14,89 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 #include <gtk/gtk.h>
 #include "teleport-peer.h"
 
-enum {
-  ADD, REMOVE, N_SIGNALS
-};
-
-static gint signalIds [N_SIGNALS];
-
 struct _TeleportPeer
 {
   GObject parent;
-  GArray *list;
-  /* instance members */
+
+  gchar *name;
+  gchar *ip;
+  guint port;
 };
+
+enum {
+  PROP_0,
+  PROP_NAME,
+  PROP_IP,
+  PROP_PORT,
+  PROP_LAST_PROP,
+};
+static GParamSpec *props[PROP_LAST_PROP];
+
 
 G_DEFINE_TYPE (TeleportPeer, teleport_peer, G_TYPE_OBJECT)
 
 static void
-teleport_peer_constructed (GObject *obj)
+teleport_peer_set_property (GObject      *object,
+                            guint         property_id,
+                            const GValue *value,
+                            GParamSpec   *pspec)
 {
-  G_OBJECT_CLASS (teleport_peer_parent_class)->constructed (obj);
+  TeleportPeer *self = TELEPORT_PEER (object);
+
+  switch (property_id) {
+  case PROP_NAME:
+    teleport_peer_set_name (self, g_value_get_string (value));
+    break;
+  case PROP_IP:
+    teleport_peer_set_ip (self, g_value_get_string (value));
+    break;
+  case PROP_PORT:
+    teleport_peer_set_port (self, g_value_get_uint (value));
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+    break;
+  }
+}
+
+static void
+teleport_peer_get_property (GObject    *object,
+                            guint       property_id,
+                            GValue     *value,
+                            GParamSpec *pspec)
+{
+  TeleportPeer *self = TELEPORT_PEER (object);
+
+  switch (property_id) {
+  case PROP_NAME:
+    g_value_set_string (value, teleport_peer_get_name (self));
+    break;
+  case PROP_IP:
+    g_value_set_string (value, teleport_peer_get_ip (self));
+    break;
+  case PROP_PORT:
+    g_value_set_uint (value, teleport_peer_get_port (self));
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+    break;
+  }
+}
+
+static void 
+teleport_peer_finalize (GObject *object)
+{
+  TeleportPeer *self = TELEPORT_PEER (object);
+
+  g_free (self->name);
+  g_free (self->ip);
+
+  G_OBJECT_CLASS (teleport_peer_parent_class)->finalize (object);
 }
 
 static void
@@ -45,124 +104,109 @@ teleport_peer_class_init (TeleportPeerClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->constructed = teleport_peer_constructed;
-  signalIds[ADD] = g_signal_new ("addpeer",
-                                 G_TYPE_OBJECT,
-                                 G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-                                 0,
-                                 NULL /* accumulator */,
-                                 NULL /* accumulator data */,
-                                 NULL /* C marshaller */,
-                                 G_TYPE_NONE /* return_type */,
-                                 1,
-                                 G_TYPE_POINTER);
+  object_class->set_property = teleport_peer_set_property;
+  object_class->get_property = teleport_peer_get_property;
+  object_class->finalize = teleport_peer_finalize;
 
-  signalIds[REMOVE] = g_signal_new ("removepeer",
-                                    G_TYPE_OBJECT,
-                                    G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-                                    0,
-                                    NULL /* accumulator */,
-                                    NULL /* accumulator data */,
-                                    NULL /* C marshaller */,
-                                    G_TYPE_NONE /* return_type */,
-                                    1,
-                                    G_TYPE_POINTER);
+  props[PROP_NAME] =
+   g_param_spec_string ("name",
+                        "Name",
+                        "The name of the peer",
+                        NULL,
+                        G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
+  props[PROP_IP] =
+   g_param_spec_string ("ip",
+                        "Ip address",
+                        "The ip address of the peer",
+                        NULL,
+                        G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+  props[PROP_PORT] =
+   g_param_spec_uint ("port",
+                      "Port",
+                      "The port used by the peer",
+                      0, G_MAXINT16, 0,
+                      G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+
+  g_object_class_install_properties (object_class, PROP_LAST_PROP, props);
 }
 
 static void
 teleport_peer_init (TeleportPeer *self)
 {
-  self->list = g_array_new (FALSE, FALSE, sizeof(Peer *));
+  self->name = NULL;
+  self->ip = NULL;
+  self->port = 0;
+
 }
 
-gchar *teleport_peer_get_name (TeleportPeer *self, gint index, GError **error)
+TeleportPeer *
+teleport_peer_new (const gchar *name, const gchar *ip, guint port)
 {
-  Peer *element;
-  //g_return_if_fail (TELEPORT_IS_PEER (self));
-  //g_return_if_fail (error == NULL || *error == NULL);
-  if (index > self->list->len-1)
-    return NULL;
-  element = g_array_index(self->list, Peer *, index);
-  return element->name;
-}
-
-gchar *teleport_peer_get_ip (TeleportPeer *self, gint index, GError **error)
-{
-  //g_return_if_fail (TELEPORT_IS_PEER (self));
-  //g_return_if_fail (error == NULL || *error == NULL);
-  Peer *element = g_array_index(self->list, Peer *, index);
-  if (index > self->list->len-1)
-    return NULL;
-  return element->ip;
-}
-gint teleport_peer_get_port (TeleportPeer *self, gint index, GError **error)
-{
-  Peer *element = g_array_index(self->list, Peer*, index);
-  if (index > self->list->len-1)
-    return 0;
-  return element->port;
-}
-
-void teleport_peer_add_peer (TeleportPeer *self, gchar *name, gchar *ip, gint port)
-{
-  Peer *new = g_new(Peer, 1);
-  new->ip = ip;
-  new->port = port;
-  new->name = name;
-  g_array_append_val(self->list, new);
-
-  g_signal_emit (self, signalIds[ADD], 0, new);
-}
-
-void teleport_peer_remove_peer (TeleportPeer *self, Peer *device)
-{
-  Peer *element;
-  gboolean found = FALSE;
-  //Maybe I could just compare the addresses
-  for (int i = 0; i < self->list->len && !found; i++) {
-    element = g_array_index(self->list, Peer *, i);
-    if (g_strcmp0(element->name, device->name) == 0) {
-      found = TRUE;
-      g_array_remove_index(self->list, i);
-    }
-  }
-  g_signal_emit (self, signalIds[REMOVE], 0, device);
+  return g_object_new (TELEPORT_TYPE_PEER, "name", name, "ip", ip, "port", port, NULL);
 }
 
 void
-teleport_peer_remove_peer_by_name (TeleportPeer *self, const gchar *name)
+teleport_peer_set_name (TeleportPeer *self, const gchar *name)
 {
-  Peer *element = NULL;
-  gboolean found = FALSE;
-  g_print("Remove this device %s", name);
-  for (int i = 0; i < self->list->len && !found; i++) {
-    element = g_array_index(self->list, Peer *, i);
-    if (g_strcmp0(element->name, name) == 0) {
-      found = TRUE;
-      g_array_remove_index(self->list, i);
-    }
-  }
-  g_signal_emit (self, signalIds[REMOVE], 0, element);
+  g_return_if_fail (TELEPORT_IS_PEER (self));
+
+  if (g_strcmp0 (name, self->name) == 0)
+    return;
+
+  g_free(self->name);
+  self->name = g_strdup(name);
+
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_NAME]);
 }
 
-gchar *
-teleport_peer_get_name_by_addr (TeleportPeer *self, const gchar *addr)
+const gchar *
+teleport_peer_get_name (TeleportPeer *self)
 {
-  Peer *element = NULL;
-  gchar *name = NULL;
-  gboolean found = FALSE;
-  for (int i = 0; i < self->list->len && !found; i++) {
-    element = g_array_index(self->list, Peer *, i);
-    if (g_strcmp0(element->ip, addr) == 0) {
-      found = TRUE;
-      name = element->name;
-    }
-  }
-  return name;
+  g_return_val_if_fail (TELEPORT_IS_PEER (self), NULL);
+
+  return self->name;
 }
-int 
-teleport_peer_get_number (TeleportPeer *self)
+
+void
+teleport_peer_set_ip (TeleportPeer *self, const gchar *ip)
 {
-  return (self->list->len);
+  g_return_if_fail (TELEPORT_IS_PEER (self));
+
+  if (g_strcmp0 (ip, self->ip) == 0)
+    return;
+
+  g_free(self->ip);
+  self->ip = g_strdup(ip);
+
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_IP]);
+}
+
+const gchar *
+teleport_peer_get_ip (TeleportPeer *self)
+{
+  g_return_val_if_fail (TELEPORT_IS_PEER (self), NULL);
+
+  return self->ip;
+}
+
+void
+teleport_peer_set_port (TeleportPeer *self, guint port)
+{
+  g_return_if_fail (TELEPORT_IS_PEER (self));
+
+  if (port == self->port)
+    return;
+
+  self->port = port;
+
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_PORT]);
+}
+
+guint
+teleport_peer_get_port (TeleportPeer *self)
+{
+  g_return_val_if_fail (TELEPORT_IS_PEER (self), 0);
+
+  return self->port;
 }
