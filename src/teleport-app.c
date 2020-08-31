@@ -234,6 +234,16 @@ teleport_app_add_peer (TeleportApp *self, TeleportPeer *peer) {
 }
 
 void
+teleport_app_remove_peer (TeleportApp *self, TeleportPeer *peer) {
+  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
+  guint position = 0;
+
+  if (g_list_store_find (priv->peer_list, peer, &position))
+    g_list_store_remove (priv->peer_list, position);
+}
+
+
+void
 callback_notify_user (GObject *instance, gchar *name, gpointer window) {
   //create_user_notification("icon.png", 2000, "Mark's laptop");
 }

@@ -32,14 +32,30 @@
 
 static AvahiThreadedPoll *threaded_poll = NULL;
 static AvahiClient *client = NULL;
+static GHashTable *peers = NULL;
 
 static void add_peer (TeleportPeer *peer)
 {
   TeleportApp *app;
   app = TELEPORT_APP (g_application_get_default ());
+  g_hash_table_insert (peers, g_strdup(teleport_peer_get_name(peer)), g_object_ref(peer));
   teleport_app_add_peer (app, peer);
-
 }
+
+static void remove_peer (gchar *name)
+{
+  g_hash_table_remove (peers, name);
+  g_free (name);
+}
+
+static void remove_peer_from_app (TeleportPeer *peer)
+{
+  TeleportApp *app;
+  app = TELEPORT_APP (g_application_get_default ());
+  g_object_unref (peer);
+  teleport_app_remove_peer (app, peer);
+}
+
 static void
 resolve_callback (AvahiServiceResolver *r,
                   AVAHI_GCC_UNUSED AvahiIfIndex interface,
@@ -77,7 +93,6 @@ resolve_callback (AvahiServiceResolver *r,
                                avahi_address_snprint(a, sizeof(a), address);
                                t = avahi_string_list_to_string(txt);
                                /* Add newly found peer */
-                               g_print ("Add new thing\n");
                                peer = teleport_peer_new(name, a, port);
                                g_idle_add(G_SOURCE_FUNC (add_peer), peer);
                                avahi_free(t);
@@ -144,7 +159,8 @@ browse_callback(
             name,
             type,
             domain);
-    //teleport_peer_remove_peer_by_name(peerList, g_strdup(name));
+    /* Remove the peer */
+      g_idle_add(G_SOURCE_FUNC (remove_peer), g_strdup(name));
     break;
   case AVAHI_BROWSER_ALL_FOR_NOW:
   case AVAHI_BROWSER_CACHE_EXHAUSTED:
@@ -177,6 +193,10 @@ teleport_browser_run_avahi_service (void)
 
   /* Call this when the application starts up. */
 
+  peers = g_hash_table_new_full (g_str_hash,
+                                 g_str_equal,
+                                 g_free,
+                                 (GDestroyNotify) remove_peer_from_app);
   if (!(threaded_poll = avahi_threaded_poll_new())) {
     /* do something bad */
     return 1;
@@ -221,4 +241,5 @@ teleport_browser_avahi_shutdown(void)
   avahi_threaded_poll_stop(threaded_poll);
   avahi_client_free(client);
   avahi_threaded_poll_free(threaded_poll);
+  g_hash_table_destroy(peers);
 }

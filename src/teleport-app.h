@@ -33,6 +33,8 @@ gchar           *teleport_get_download_directory  (TeleportApp *self);
 gchar           *teleport_get_device_name         (TeleportApp *self); 
 void            teleport_app_add_peer        (TeleportApp *self,
                                               TeleportPeer *peer);
+void            teleport_app_remove_peer        (TeleportApp *self,
+                                              TeleportPeer *peer);
 void            create_user_notification     (const char *,
                                               const int,
                                               const char *,
