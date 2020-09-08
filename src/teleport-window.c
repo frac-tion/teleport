@@ -169,11 +169,6 @@ teleport_window_class_init (TeleportWindowClass *class)
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), TeleportWindow, remote_no_avahi);
 }
 
-static GtkWidget *
-create_device_row (TeleportPeer *peer) {
-  return teleport_remote_device_new (peer);
-}
-
 void
 teleport_window_bind_device_list (TeleportWindow *self,
                                   GListStore *list)
@@ -182,7 +177,7 @@ teleport_window_bind_device_list (TeleportWindow *self,
 
   gtk_list_box_bind_model (GTK_LIST_BOX (self->remote_devices),
                          G_LIST_MODEL (list),
-                         (GtkListBoxCreateWidgetFunc) create_device_row,
+                         (GtkListBoxCreateWidgetFunc) teleport_remote_device_new,
                          NULL,
                          NULL);
 }

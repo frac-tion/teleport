@@ -27,7 +27,7 @@ G_BEGIN_DECLS
 
 #define TELEPORT_TYPE_REMOTE_DEVICE (teleport_remote_device_get_type())
 
-G_DECLARE_FINAL_TYPE (TeleportRemoteDevice, teleport_remote_device, TELEPORT, REMOTE_DEVICE, GtkFrame)
+G_DECLARE_FINAL_TYPE (TeleportRemoteDevice, teleport_remote_device, TELEPORT, REMOTE_DEVICE, GtkListBoxRow)
 
 GtkWidget *teleport_remote_device_new      (TeleportPeer         *);
 
