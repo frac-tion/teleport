@@ -19,9 +19,19 @@
 #ifndef __TELEPORT_SERVER_H
 #define __TELEPORT_SERVER_H
 
-int teleport_server_run         (void);
-int teleport_server_add_route   (gchar *,
-                                 gchar *,
-                                 gchar *);
+#include <libsoup/soup.h>
+#include "teleport-file.h"
+
+#define TELEPORT_TYPE_SERVER teleport_server_get_type ()
+G_DECLARE_FINAL_TYPE (TeleportServer, teleport_server, TELEPORT, SERVER, SoupServer)
+
+TeleportServer *teleport_server_new (guint port);
+
+void teleport_server_add_file (TeleportServer *self,
+                               TeleportFile *file);
+void teleport_server_add_peer (TeleportServer *self,
+                               TeleportPeer *device);
+void teleport_server_remove_peer (TeleportServer *self,
+                                  TeleportPeer *device);
 
 #endif /* __TELEPORT_SERVER_H */

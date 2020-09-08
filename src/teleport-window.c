@@ -30,12 +30,7 @@
 struct _TeleportWindow
 {
   GtkApplicationWindow parent;
-};
 
-typedef struct _TeleportWindowPrivate TeleportWindowPrivate;
-
-struct _TeleportWindowPrivate
-{
   GtkWidget *gears;
   GtkWidget *this_device_settings_button;
   GtkWidget *remote_devices;
@@ -45,7 +40,7 @@ struct _TeleportWindowPrivate
   GtkWidget *this_device_settings_entry;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE(TeleportWindow, teleport_window, GTK_TYPE_APPLICATION_WINDOW);
+G_DEFINE_TYPE (TeleportWindow, teleport_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static void
 change_download_directory_cb (GtkWidget *widget,
@@ -71,10 +66,9 @@ valid_device_name (const gchar *name) {
 
 static void
 on_new_device_name (TeleportWindow *self, GtkWidget *entry) {
-  TeleportWindowPrivate *priv = teleport_window_get_instance_private (self);
   g_autofree gchar *text = g_strdup (gtk_entry_get_text (GTK_ENTRY (entry)));
   g_strstrip (text);
-  gtk_widget_set_sensitive (priv->this_device_settings_button, valid_device_name (text));
+  gtk_widget_set_sensitive (self->this_device_settings_button, valid_device_name (text));
   if (!valid_device_name (text)) {
     g_signal_stop_emission_by_name (entry, "insert-text");
   }
@@ -91,28 +85,26 @@ update_download_directory (GSettings    *settings,
 }
 
 static void
-teleport_window_init (TeleportWindow *win)
+teleport_window_init (TeleportWindow *self)
 {
-  TeleportWindowPrivate *priv;
   GtkBuilder *builder;
   GtkWidget *menu;
   GtkFileChooserButton *downloadDir;
   GApplication *app = g_application_get_default ();
   GSettings *settings = teleport_app_get_settings (TELEPORT_APP (app));
 
-  priv = teleport_window_get_instance_private (win);
 
   g_type_ensure (HDY_TYPE_COLUMN);
-  gtk_widget_init_template (GTK_WIDGET (win));
+  gtk_widget_init_template (GTK_WIDGET (self));
 
   builder = gtk_builder_new_from_resource ("/com/frac_tion/teleport/settings.ui");
   menu = GTK_WIDGET (gtk_builder_get_object (builder, "settings"));
   downloadDir = GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object (builder, "settings_download_directory"));
 
-  gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->gears), menu);
+  gtk_menu_button_set_popover(GTK_MENU_BUTTON (self->gears), menu);
 
   g_settings_bind (settings, "device-name",
-                   priv->this_device_name_label, "label",
+                   self->this_device_name_label, "label",
                    G_SETTINGS_BIND_GET);
 
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (downloadDir),
@@ -127,31 +119,31 @@ teleport_window_init (TeleportWindow *win)
   /* Add popover for device settings */
   builder = gtk_builder_new_from_resource ("/com/frac_tion/teleport/device_settings.ui");
   menu = GTK_WIDGET (gtk_builder_get_object (builder, "device-settings"));
-  gtk_menu_button_set_popover(GTK_MENU_BUTTON (priv->this_device_settings_button), menu);
+  gtk_menu_button_set_popover(GTK_MENU_BUTTON (self->this_device_settings_button), menu);
 
-  priv->this_device_settings_entry = GTK_WIDGET (gtk_builder_get_object (builder,
+  self->this_device_settings_entry = GTK_WIDGET (gtk_builder_get_object (builder,
                                                                          "this_device_settings_entry"));
   g_settings_bind (settings,
                    "device-name",
-                   priv->this_device_settings_entry,
+                   self->this_device_settings_entry,
                    "text",
                    G_SETTINGS_BIND_DEFAULT);
 
   // TODO: implemt the button press
   /*
   g_signal_connect (GTK_WIDGET (gtk_builder_get_object (builder, "this_device_settings_button")),
-                    "clicked", G_CALLBACK (on_click_this_device_settings_button), priv);
+                    "clicked", G_CALLBACK (on_click_this_device_settings_button), self);
                     */
 
   /*
-  g_signal_connect (priv->this_device_settings_entry,
-                    "activate", G_CALLBACK (on_click_this_device_settings_button), priv);
+  g_signal_connect (self->this_device_settings_entry,
+                    "activate", G_CALLBACK (on_click_this_device_settings_button), self);
                     */
 
-  g_signal_connect_swapped (G_OBJECT (priv->this_device_settings_entry),
+  g_signal_connect_swapped (G_OBJECT (self->this_device_settings_entry),
                             "insert-text",
                             G_CALLBACK (on_new_device_name),
-                            win);
+                            self);
   g_object_unref (builder);
 }
 
@@ -169,12 +161,12 @@ teleport_window_class_init (TeleportWindowClass *class)
   gtk_widget_class_set_template_from_resource (GTK_WIDGET_CLASS (class),
                                                "/com/frac_tion/teleport/window.ui");
 
-  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, gears);
-  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, this_device_settings_button);
-  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, this_device_name_label);
-  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, remote_no_devices);
-  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, remote_devices);
-  gtk_widget_class_bind_template_child_private (GTK_WIDGET_CLASS (class), TeleportWindow, remote_no_avahi);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), TeleportWindow, gears);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), TeleportWindow, this_device_settings_button);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), TeleportWindow, this_device_name_label);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), TeleportWindow, remote_no_devices);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), TeleportWindow, remote_devices);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), TeleportWindow, remote_no_avahi);
 }
 
 static GtkWidget *
@@ -186,11 +178,9 @@ void
 teleport_window_bind_device_list (TeleportWindow *self,
                                   GListStore *list)
 {
-  TeleportWindowPrivate *priv;
   g_return_if_fail (TELEPORT_IS_WINDOW (self));
-  priv = teleport_window_get_instance_private (self);
 
-  gtk_list_box_bind_model (GTK_LIST_BOX (priv->remote_devices),
+  gtk_list_box_bind_model (GTK_LIST_BOX (self->remote_devices),
                          G_LIST_MODEL (list),
                          (GtkListBoxCreateWidgetFunc) create_device_row,
                          NULL,
@@ -206,69 +196,17 @@ teleport_window_new (TeleportApp *app)
 void
 teleport_show_no_device_message (TeleportWindow *self, gboolean show)
 {
-  TeleportWindowPrivate *priv;
-  priv = teleport_window_get_instance_private (self);
   if (show)
-    gtk_widget_show (priv->remote_no_devices);
+    gtk_widget_show (self->remote_no_devices);
   else
-    gtk_widget_hide (priv->remote_no_devices);
+    gtk_widget_hide (self->remote_no_devices);
 }
 
 void
 teleport_show_no_avahi_message (TeleportWindow *self, gboolean show)
 {
-  TeleportWindowPrivate *priv;
-  priv = teleport_window_get_instance_private (self);
   if (show)
-    gtk_widget_show (priv->remote_no_avahi);
+    gtk_widget_show (self->remote_no_avahi);
   else
-    gtk_widget_hide (priv->remote_no_avahi);
-}
-
-void
-teleport_window_open (TeleportWindow *win,
-                      GFile *file)
-{
-  //TeleportWindowPrivate *priv;
-  //priv = teleport_window_get_instance_private (win);
-}
-
-static void 
-show_incoming_notification (const char *file_name, const int file_size, const char *origin_device, GVariant *target) {
-  GApplication *app = g_application_get_default ();
-  GNotification *notification = g_notification_new ("Teleport");
-
-  /*
-  g_notification_set_body (notification,
-                           g_strdup_printf("%s is sending %s (%s)",
-                                           teleport_peer_get_name_by_addr (priv->peerList, origin_device),
-                                           file_name,
-                                           g_format_size (file_size)));
-                                           */
-
-  g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
-  g_notification_add_button_with_target_value (notification, "Decline", "app.decline", target);
-  g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
-  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
-  g_application_send_notification (app, NULL, notification);
-  g_object_unref (notification);
-}
-
-static void
-show_finish_notification(const char *origin, const int filesize, const char *filename, GVariant *target) {
-  GApplication *app = g_application_get_default ();
-  GNotification *notification = g_notification_new ("Teleport");
-
-  /*
-  g_notification_set_body (notification,
-                           g_strdup_printf("Transfer of %s from %s is complete", 
-                                           filename,
-                                           teleport_peer_get_name_by_addr (priv->peerList, origin)));
-                                           */
-  g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
-  g_notification_add_button_with_target_value (notification, "Show in folder", "app.open-folder", target);
-  g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
-  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
-  g_application_send_notification (app, NULL, notification);
-  g_object_unref (notification);
+    gtk_widget_hide (self->remote_no_avahi);
 }

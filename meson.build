@@ -147,6 +147,7 @@ endif
 add_project_arguments(common_flags + compiler_flags, language: 'c')
 
 glib_dep = dependency('glib-2.0', version: '>= 2.43.4')
+json_glib_dep = dependency('json-glib-1.0', version: '>= 1.4.4')
 gtk_dep = dependency('gtk+-3.0', version: '>= 3.22.0')
 
 libhandy_dep = dependency('libhandy-0.0', version: '>= 0.0.9', required: false)
@@ -165,9 +166,9 @@ if not libhandy_dep.found()
   libhandy_dep = libhandy.get_variable('libhandy_dep')
 endif
 
-
 teleport_deps = [
   glib_dep,
+  json_glib_dep,
   gtk_dep,
   libhandy_dep,
   dependency('gio-2.0', version: '>= 2.43.4'),

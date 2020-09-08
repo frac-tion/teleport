@@ -21,6 +21,7 @@
 
 #include <gtk/gtk.h>
 #include "teleport-peer.h"
+#include "teleport-file.h"
 
 #define TELEPORT_APP_TYPE (teleport_app_get_type ())
 
@@ -35,19 +36,12 @@ void            teleport_app_add_peer        (TeleportApp *self,
                                               TeleportPeer *peer);
 void            teleport_app_remove_peer        (TeleportApp *self,
                                               TeleportPeer *peer);
-void            create_user_notification     (const char *,
-                                              const int,
-                                              const char *,
-                                              GVariant *);
-
-void            create_finished_notification (const char *,
-                                              const int,
-                                              const char *,
-                                              GVariant *);
-
 void            callback_notify_user         (GObject *,
                                               gchar *,
                                               gpointer);
+void            teleport_app_send_file (TeleportApp  *self,
+                                        TeleportFile *file,                             
+                                        TeleportPeer *device);
 
 
 #endif /* __TELEPORT_APP_H */

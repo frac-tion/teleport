@@ -28,7 +28,6 @@
 #include "teleport-browser.h"
 #include "teleport-publish.h"
 #include "teleport-server.h"
-#include "teleport-get.h"
 
 
 static void save_file_callback          (GSimpleAction *simple,
@@ -63,9 +62,9 @@ enum {
 
 static const GActionEntry app_entries[] =
 {
-    { "save", save_file_callback, "as", NULL, NULL },
-    { "decline", do_nothing_callback, "as", NULL, NULL },
-    { "do-nothing", do_nothing_callback, "as", NULL, NULL },
+    { "save", save_file_callback, "s", NULL, NULL },
+    { "decline", do_nothing_callback, "s", NULL, NULL },
+    { "do-nothing", do_nothing_callback, "s", NULL, NULL },
     { "open-file", open_file_callback, "as", NULL, NULL },
     { "open-folder", open_folder_callback, "as", NULL, NULL },
     { "about", teleport_app_show_about },
@@ -76,17 +75,67 @@ static gint signalIds [N_SIGNALS];
 
 typedef struct
 {
-  GSettings     *settings;
-  GtkWidget     *window;
-  GListStore    *peer_list;
+  GSettings      *settings;
+  GtkWidget      *window;
+  TeleportServer *server;
+  GListStore     *peer_list;
+  GHashTable     *files;
 } TeleportAppPrivate;
 
 struct _TeleportApp {
   GtkApplication        parent;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION);
+G_DEFINE_TYPE_WITH_PRIVATE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION)
 
+static void
+create_user_notification (TeleportApp *self,
+                          TeleportFile *file,
+                          TeleportPeer *device)
+{
+  g_autoptr (GNotification) notification;
+  TeleportAppPrivate *priv;
+  GVariant *target;
+  const gchar *notification_id;
+
+  priv = teleport_app_get_instance_private (self);
+
+  notification = g_notification_new ("Teleport");
+  notification_id = teleport_file_get_id (file);
+  target = g_variant_new_string (notification_id);
+  g_notification_set_body (notification,
+                           g_strdup_printf("%s is sending %s (%s)",
+                                           teleport_peer_get_name(device),
+                                           teleport_file_get_destination_path(file),
+                                           g_format_size (teleport_file_get_size(file))));
+
+  g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
+  g_notification_add_button_with_target_value (notification, "Decline", "app.decline", target);
+  g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
+  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
+  g_application_send_notification (G_APPLICATION (self), notification_id, notification);
+  g_hash_table_insert (priv->files, g_strdup (notification_id), file);
+}
+
+/*
+void
+create_finished_notification (const char *origin, const int filesize, const char *filename, GVariant *target) {
+  GNotification *notification = g_notification_new ("Teleport");
+  TeleportAppPrivate *priv = mainApplication->priv;
+
+  g_notification_set_body (notification,
+                           g_strdup_printf("Transfer of %s from %s is complete", 
+                                           filename,
+                                           teleport_peer_get_name_by_addr (priv->peerList, origin)));
+  g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
+  g_notification_add_button_with_target_value (notification, "Show in folder", "app.open-folder", target);
+  g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
+  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
+  g_application_send_notification ((GApplication *) mainApplication, NULL, notification);
+  g_object_unref (notification);
+}
+*/
+ 
 static void
 restart_avahi_publish_server (GSettings    *settings,
                               gchar        *key,
@@ -134,16 +183,29 @@ watch_for_avahi_service (TeleportApp *application) {
                                  NULL);
 }
 
-static void 
+static void
 save_file_callback (GSimpleAction *simple,
                     GVariant      *parameter,
                     gpointer       user_data) {
-  teleport_get_do_downloading(g_variant_get_string (g_variant_get_child_value (parameter, 0), NULL),
-                              g_variant_get_string (g_variant_get_child_value (parameter, 1), NULL),
-                              g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
+  TeleportApp *self;
+  TeleportAppPrivate *priv;
+  TeleportFile *file;
+  g_autofree gchar *download_directory = NULL;
+  const gchar *file_id;
+
+  self = TELEPORT_APP (user_data);
+  priv = teleport_app_get_instance_private (self);
+  file_id = g_variant_get_string (parameter, NULL);
+  file = g_hash_table_lookup (priv->files, file_id);
+
+  if (TELEPORT_IS_FILE (file)) {
+    g_print ("The file will be downloaded and saved.\n");
+    download_directory = teleport_get_download_directory (self);
+    teleport_file_download (file, download_directory);
+  }
 }
 
-static void 
+static void
 do_nothing_callback (GSimpleAction *simple,
                      GVariant      *parameter,
                      gpointer       user_data) {
@@ -224,11 +286,27 @@ open_file_callback (GSimpleAction *simple,
   gtk_show_uri_on_window (NULL, g_filename_to_uri(path, NULL, NULL), GDK_CURRENT_TIME, NULL);
 }
 
+static void
+recived_file_cb (TeleportApp *self,
+                 TeleportPeer *peer,
+                 TeleportFile *file,
+                 TeleportServer *server)
+{
+  g_print ("%s is sending %s (%s)\n",
+           teleport_peer_get_name (peer),
+           teleport_file_get_destination_path (file),
+           g_format_size (teleport_file_get_size (file)));
+
+
+  create_user_notification (self, file, peer);
+}
+
 void
 teleport_app_add_peer (TeleportApp *self, TeleportPeer *peer) {
   TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
 
   g_list_store_append (priv->peer_list, peer);
+  teleport_server_add_peer (priv->server, peer);
 }
 
 void
@@ -238,12 +316,8 @@ teleport_app_remove_peer (TeleportApp *self, TeleportPeer *peer) {
 
   if (g_list_store_find (priv->peer_list, peer, &position))
     g_list_store_remove (priv->peer_list, position);
-}
 
-
-void
-callback_notify_user (GObject *instance, gchar *name, gpointer window) {
-  //create_user_notification("icon.png", 2000, "Mark's laptop");
+  teleport_server_remove_peer (priv->server, peer);
 }
 
 GSettings *
@@ -312,16 +386,18 @@ teleport_app_startup (GApplication *application) {
   /* ListStore to store peers */
   priv->peer_list = g_list_store_new (TELEPORT_TYPE_PEER);
 
+  /* TODO: randomize the server port */
+  priv->server = teleport_server_new (3000);
+  g_signal_connect_swapped (priv->server, "recived_file", G_CALLBACK (recived_file_cb), self);
+
   /* Add dummy devie */
-  dummy_peer = teleport_peer_new("Dummy Device", "127.0.0.1", 3002);
+  dummy_peer = teleport_peer_new("Dummy Device", "192.168.1.45", 3000);
   teleport_app_add_peer (self, dummy_peer);
 
   /* window */
   window = teleport_window_new (self);
   teleport_window_bind_device_list (window, priv->peer_list);
   priv->window = GTK_WIDGET (window);
-
-  teleport_server_run();
 
   watch_for_avahi_service (self);
 }
@@ -424,6 +500,7 @@ teleport_app_quit (GSimpleAction *simple,
   TeleportAppPrivate *priv = teleport_app_get_instance_private (TELEPORT_APP (user_data));
 
   gtk_widget_destroy (priv->window);
+  g_hash_table_destroy (priv->files);
 }
 
 TeleportApp *
@@ -441,6 +518,19 @@ teleport_app_init (TeleportApp *app) {
 
   priv->settings = g_settings_new ("com.frac_tion.teleport");
   init_settings (priv->settings);
+
+  priv->files = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
 }
 
 
+
+void
+teleport_app_send_file (TeleportApp *self,
+                        TeleportFile *file,
+                        TeleportPeer *device)
+{
+  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
+
+  teleport_server_add_file (priv->server, file);
+  teleport_file_send (file, device);
+}

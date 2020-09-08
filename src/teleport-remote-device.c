@@ -18,8 +18,9 @@
 
 #include <gtk/gtk.h>
 #include "teleport-remote-device.h"
+#include "teleport-app.h"
 #include "teleport-peer.h"
-#include "teleport-server.h"
+#include "teleport-file.h"
 
 enum {
   TARGET_INT32,
@@ -128,56 +129,61 @@ teleport_remote_device_class_init (TeleportRemoteDeviceClass *klass)
 static void
 open_file_picker (GtkButton *btn,
                   TeleportPeer *device) {
-  GtkFileChooserNative *dialog;
+  g_autoptr (GtkFileChooserNative) dialog = NULL;
+  g_autoptr (GFile) source_file = NULL;
+  g_autoptr (GFileInfo) file_info = NULL;
+  g_autoptr (GError) error = NULL;
+  g_autofree gchar* source_path = NULL;
+  TeleportFile *file;
   GtkWidget *window;
-  GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-  gint res;
-  g_print("Open file chooser for submitting a file to %s with Address %s\n",
-          teleport_peer_get_name (device),
-          teleport_peer_get_ip (device));
 
   window = gtk_widget_get_toplevel (GTK_WIDGET (btn));
-  if (gtk_widget_is_toplevel (window))
-    {
-      dialog =  gtk_file_chooser_native_new ("Open File",
-                                             GTK_WINDOW(window),
-                                             action,
-                                             ("_Open"),
-                                             ("_Cancel"));
+  if (gtk_widget_is_toplevel (window)) {
+    dialog =  gtk_file_chooser_native_new ("Open File",
+                                           GTK_WINDOW(window),
+                                           GTK_FILE_CHOOSER_ACTION_OPEN,
+                                           ("_Open"),
+                                           ("_Cancel"));
 
-      res = gtk_native_dialog_run (GTK_NATIVE_DIALOG (dialog));
-      if (res == GTK_RESPONSE_ACCEPT)
-        {
-          gchar *filename;
-          GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-          filename = gtk_file_chooser_get_filename (chooser);
-          g_print("Choosen file is %s\n", filename);
-          g_object_unref (dialog);
-          teleport_server_add_route (g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), filename, teleport_peer_get_ip (device));
-          g_free (filename);
-        }
-      else
-        {
-          g_object_unref (dialog);
-        }
+    if (gtk_native_dialog_run (GTK_NATIVE_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
+      source_file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+      g_print ("Source file %s\n", g_file_get_basename (source_file));
+      file_info = g_file_query_info (source_file,
+                                     "standard::display-name,standard::size",
+                                     G_FILE_QUERY_INFO_NONE,
+                                     NULL,
+                                     &error);
+      if (error != NULL)
+        g_warning ("Couldn't query file info: %s", error->message);
+
+      source_path = g_file_get_path (source_file);
+      file = teleport_file_new (source_path,
+                                g_file_info_get_display_name (file_info),
+                                g_file_info_get_size (file_info));
+      teleport_app_send_file (TELEPORT_APP (g_application_get_default ()), file, device);
     }
+  }
 }
 
 static void 
 send_file_to_device (gchar *uri, gpointer data)
 {
+  /*
   TeleportPeer *device = TELEPORT_PEER (data);
   GFile *file = g_file_new_for_uri (uri);
   gchar *filename  = NULL;
   if (g_file_query_exists (file, NULL)) {
     filename = g_file_get_path (file);
-    teleport_server_add_route (g_compute_checksum_for_string (G_CHECKSUM_SHA256, filename,  -1), g_strdup(filename), teleport_peer_get_ip (device));
+    teleport_file_send (teleport_file_new ("asdasd", "dfsdfsdf", 10),
+                              device);
+    teleport_app_send_file (TELEPORT_APP (g_application_get_default ()), file, device);
     g_free (filename);
   }
   else {
     g_print ("File doesn't exist: %s\n", uri);
   }
   g_object_unref(file);
+  */
 }
 
 

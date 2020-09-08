@@ -30,16 +30,9 @@ G_DECLARE_FINAL_TYPE (TeleportWindow,
                       WINDOW, 
                       GtkApplicationWindow)
 
-TeleportWindow     *teleport_window_new             (TeleportApp       *);
+TeleportWindow     *teleport_window_new             (TeleportApp       *app);
 void               teleport_window_bind_device_list (TeleportWindow    *self,
                                                      GListStore        *list);
-void               teleport_window_open             (TeleportWindow    *,
-                                                     GFile             *);
-void               update_remote_device_list        (TeleportWindow    *,
-                                                     TeleportPeer      *);
-void               update_remote_device_list_remove (TeleportWindow    *,
-                                                     TeleportPeer      *);
-
 void               teleport_show_no_device_message  (TeleportWindow *,
                                                      gboolean);
 void               teleport_show_no_avahi_message   (TeleportWindow *,

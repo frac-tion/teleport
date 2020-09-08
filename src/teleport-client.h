@@ -36,6 +36,5 @@ void teleport_peer_set_ip (TeleportPeer             *self,
 guint teleport_peer_get_port (TeleportPeer          *self);
 void teleport_peer_set_port  (TeleportPeer          *self,
                               guint                 port);
-gchar *teleport_peer_get_incoming_address (TeleportPeer *self);
 
 #endif /* __TELEPORT_PEER_H */

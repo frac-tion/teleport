@@ -210,3 +210,9 @@ teleport_peer_get_port (TeleportPeer *self)
 
   return self->port;
 }
+
+gchar *
+teleport_peer_get_incoming_address (TeleportPeer *self)
+{
+  return g_strdup_printf ("http://%s:%d/incoming", self->ip, self->port);
+}

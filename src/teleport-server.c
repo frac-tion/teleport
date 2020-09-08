@@ -1,6 +1,6 @@
 /* teleport-server.c
  *
- * Copyright 2017 Julian Sparber <julian@sparber.com>
+ * Copyright 2020 Julian Sparber <julian@sparber.net>
  *
  * Teleport is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,33 +23,79 @@
 #include <glib/gstdio.h>
 
 #include "teleport-server.h"
-#include "teleport-get.h"
+#include "teleport-file.h"
 #include "teleport-app.h"
 
-static int port;
-static SoupServer *glob_server;
-//static const char *tls_cert_file, *tls_key_file;
+struct _TeleportServer {
+  SoupServer parent;
+
+  GHashTable *send_files;
+  GHashTable *devices;
+};
+
+enum {                       
+  RECIVED_FILE, N_SIGNALS
+};
+
+static gint signals [N_SIGNALS];
+
+G_DEFINE_TYPE (TeleportServer, teleport_server, SOUP_TYPE_SERVER)
 
 static void
-do_get (SoupServer *server, SoupMessage *msg, const char *path)
+finished_cb (TeleportFile *file,
+             SoupMessage  *msg)
 {
-  GStatBuf st;
+  /* TODO: remove file from send_files hash table */
+  /* teleport_file_set_status (file, TELEPORT_FILE_COMPLETED); */
+  teleport_file_set_progress (file, 100);
+}
 
-  if (g_stat (path, &st) == -1) {
-    if (errno == EPERM)
-      soup_message_set_status (msg, SOUP_STATUS_FORBIDDEN);
-    else if (errno == ENOENT)
-      soup_message_set_status (msg, SOUP_STATUS_NOT_FOUND);
-    else
-      soup_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR);
-    return;
-  }
+static void
+start_sending_cb (TeleportFile *file,
+                  SoupMessage  *msg)
+{
+  /* teleport_file_set_status (file, TELEPORT_FILE_STARTED); */
+  teleport_file_set_progress (file, 0);
+}
 
+static void
+update_progress_cb (TeleportFile *file,
+                    SoupBuffer   *chunk,
+                    SoupMessage  *msg)
+{
+  guint progress;
+
+  progress = teleport_file_get_progress (file) + (chunk->length / 100) * teleport_file_get_size (file);
+  teleport_file_set_progress (file, progress);
+}
+
+static void
+file_request_cb (TeleportServer *self,
+                 SoupMessage *msg,
+                 const char *path,
+                 GHashTable *query,
+                 SoupClientContext *context,
+                 gpointer data)
+{
   if (msg->method == SOUP_METHOD_GET) {
     GMappedFile *mapping;
-    SoupBuffer *buffer;
+    SoupBuffer *buffer = NULL;
+    gchar *key;
+    TeleportFile *file;
 
-    mapping = g_mapped_file_new (path, FALSE, NULL);
+    key = g_strrstr (path, "/") + 1;
+    file = g_hash_table_lookup (self->send_files, key);
+
+    if (!TELEPORT_IS_FILE (file)) {
+      soup_message_set_status (msg, SOUP_STATUS_NOT_FOUND);
+      return;
+    }
+
+    g_signal_connect_swapped (msg, "finished", G_CALLBACK (finished_cb), file);
+    g_signal_connect_swapped (msg, "starting", G_CALLBACK (start_sending_cb), file);
+    g_signal_connect_swapped (msg, "wrote-body-data", G_CALLBACK (update_progress_cb), file);
+
+    mapping = g_mapped_file_new (teleport_file_get_source_path (file), FALSE, NULL);
     if (!mapping) {
       soup_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR);
       return;
@@ -59,194 +105,137 @@ do_get (SoupServer *server, SoupMessage *msg, const char *path)
                                          g_mapped_file_get_length (mapping),
                                          mapping, (GDestroyNotify)g_mapped_file_unref);
     soup_message_body_append_buffer (msg->response_body, buffer);
-    soup_buffer_free (buffer);
-  } else /* msg->method == SOUP_METHOD_HEAD */ {
-    char *length;
-
-    /* We could just use the same code for both GET and
-     * HEAD (soup-message-server-io.c will fix things up).
-     * But we'll optimize and avoid the extra I/O.
-     */
-    length = g_strdup_printf ("%lu", (gulong)st.st_size);
-    soup_message_headers_append (msg->response_headers,
-                                 "Content-Length", length);
-    g_free (length);
-  }
-
-  soup_message_set_status (msg, SOUP_STATUS_OK);
-}
-
-static void 
-handle_incoming_file(const char *hash,
-                     const char *filename,
-                     const int size,
-                     const char *origin) {
-  GVariantBuilder *builder;
-  GVariant *value;
-
-  g_print("Got a new file form %s with size:%d with title: %s\n", origin, size, filename);
-  builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-  g_variant_builder_add (builder, "s", origin);
-  g_variant_builder_add (builder,
-                         "s",
-                         g_strdup_printf("http://%s:%d/transfer/%s",
-                                         origin,
-                                         port,
-                                         hash)),
-                        g_variant_builder_add (builder, "s", filename);
-  value = g_variant_new ("as", builder);
-  g_variant_builder_unref (builder);
-
-  // create_user_notification startes the download
-  // if the user wants to save the file
-  create_user_notification(filename, size, origin, value);
-}
-
-static void
-server_callback (SoupServer *server, SoupMessage *msg,
-                 const char *path, GHashTable *query,
-                 SoupClientContext *context, gpointer data)
-{
-  char *file_path;
-  SoupMessageHeadersIter iter;
-  GString * response;
-  const char *name, *value, *token, *size, *file_name, *origin_addr;
-
-  origin_addr = soup_client_context_get_host (context);
-
-  g_print ("%s %s HTTP/1.%d\n", msg->method, path,
-           soup_message_get_http_version (msg));
-  soup_message_headers_iter_init (&iter, msg->request_headers);
-  while (soup_message_headers_iter_next (&iter, &name, &value))
-    g_print ("%s: %s\n", name, value);
-  if (msg->request_body->length)
-    g_print ("%s\n", msg->request_body->data);
-
-  if (data != NULL) {
-    g_print("File to share %s\n", (char *)data);
-    file_path = g_strdup(data);
-    response = g_string_new("{\"error\": false, \"message\": \"Success\"}");
-  }
-  else {
-    file_path = NULL;
-    if (query != NULL) {
-      token = g_hash_table_lookup (query, "token");
-      size = g_hash_table_lookup (query, "size");
-      file_name = g_hash_table_lookup (query, "name");
-
-      if (token != NULL && size != NULL && file_name != NULL) {
-        g_print("Token: %s, Size: %s, Name: %s\n", token, size, file_name);
-        response = g_string_new("{\"error\": false, \"message\": \"Success\"}");
-        //handle_incoming_file(token, file_name, g_ascii_strtoull (size, NULL, 0), origin_addr);
-      }
-      else 
-        response = g_string_new("{\"error\": true, \"message\": \"query malformed\"}");
-    }
-    else {
-      g_print("No query passed");
-      response = g_string_new("{\"error\": true, \"message\": \"No query passed\"}");
-    }
-  }
-
-  if (g_strcmp0(path, "/") == 0) {
-  }
-
-  if (msg->method == SOUP_METHOD_GET || msg->method == SOUP_METHOD_HEAD) {
-    if (file_path != NULL)
-      do_get (server, msg, file_path);
-    else {
-      soup_message_set_response (msg, "application/json",
-                                 SOUP_MEMORY_TAKE,
-                                 response->str, response->len);
-      soup_message_set_status (msg, SOUP_STATUS_OK);
-      g_print("Handle response\n");
-    }
-  }
-  else
+    soup_message_set_status (msg, SOUP_STATUS_OK);
+  } else {
     soup_message_set_status (msg, SOUP_STATUS_NOT_IMPLEMENTED);
-
-  if (file_path != NULL)
-    g_free (file_path);
-  if (response != NULL)
-    g_string_free (response, FALSE);
-  g_print ("  -> %d %s\n\n", msg->status_code, msg->reason_phrase);
+  }
 }
 
 static void
-remove_server_route (SoupServer *server, const gchar *path)
+incoming_files_cb (TeleportServer *self,
+                   SoupMessage *msg,
+                   const char *path,
+                   GHashTable *query,
+                   SoupClientContext *context,
+                   gpointer data)
 {
-  soup_server_remove_handler (server, path);
-  g_print ("Route %s has expired, removing it\n", path);
-}
+  TeleportFile *file;
+  TeleportPeer *peer;
+  g_autofree gchar *source_host = NULL;
+  g_autofree gchar *source_path = NULL;
 
-static gboolean
-do_server_timeout (gpointer user_data)
-{
-  gchar *path = user_data;
-  remove_server_route(glob_server, path);
-  g_free(path);
-  return FALSE;
-}
+  if (msg->method == SOUP_METHOD_POST) {
+    soup_message_set_status (msg, SOUP_STATUS_OK);
 
-int
-teleport_server_add_route (gchar *name,
-                           gchar *file_to_send,
-                           gchar *destination) {
-  GFile *file;
-  GFileInfo *fileInfo;
-  gchar *path;
+    file = teleport_file_new_from_serialized (msg->request_body->data);
 
-  path = g_strdup_printf("/transfer/%s", name);
-  soup_server_add_handler (glob_server, path,
-                           server_callback, g_strdup(file_to_send), NULL);
+    source_host = g_strdup_printf ("%s", soup_client_context_get_host (context));
+    /* TODO: The sender should already set the correct source path */
+    source_path = g_strdup_printf ("http://%s:3000/transfer/%s",
+                                   source_host,
+                                   teleport_file_get_id (file));
+    teleport_file_set_source_path (file, source_path);
 
-  /* send notification of available file to the client */
-  /* getting file size */
-  file = g_file_new_for_path(file_to_send);
-  fileInfo = g_file_query_info(file,
-                               "standard::display-name,standard::size",
-                               G_FILE_QUERY_INFO_NONE,
-                               NULL,
-                               NULL);
-
-  teleport_get_do_client_notify(g_strdup_printf("http://%s:%d/?token=%s&size=%jd&name=%s\n",
-                                                destination,
-                                                port,
-                                                name,
-                                                g_file_info_get_size(fileInfo),
-                                                g_file_info_get_display_name(fileInfo)));
-
-  /* Add timeout of 2 min which removes the route again */
-  g_timeout_add_seconds (2 * 60, do_server_timeout, path);
-
-  g_object_unref(fileInfo);
-  g_object_unref(file);
-  return 0;
-}
-
-int
-teleport_server_run (void) {
-  GSList *uris, *u;
-  char *str;
-  //GTlsCertificate *cert;
-  GError *error = NULL;
-
-  port = 3000;
-  glob_server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "teleport-httpd ",
-                                 NULL);
-  soup_server_listen_all (glob_server, port, 0, &error);
-
-  soup_server_add_handler (glob_server, NULL,
-                           server_callback, NULL, NULL);
-
-  uris = soup_server_get_uris (glob_server);
-  for (u = uris; u; u = u->next) {
-    str = soup_uri_to_string (u->data, FALSE);
-    g_print ("Listening on %s\n", str);
-    g_free (str);
-    soup_uri_free (u->data);
+    /* TODO: this should contain also the port */
+    peer = g_hash_table_lookup (self->devices, source_host);
+    if (TELEPORT_IS_PEER (peer) && TELEPORT_IS_FILE (file))
+      g_signal_emit (self, signals[RECIVED_FILE], 0, peer, file);
+    else
+      g_warning ("Recived file offer but couldn't find the origin device or something while parsing went wrong");
+  } else {
+    soup_message_set_status (msg, SOUP_STATUS_NOT_IMPLEMENTED);
   }
-  g_slist_free (uris);
+}
 
-  return 0;
+static void
+teleport_server_finalize (GObject *object)
+{
+  TeleportServer *self = TELEPORT_SERVER (object);
+  g_hash_table_destroy (self->send_files);
+  g_hash_table_destroy (self->devices);
+
+  G_OBJECT_CLASS (teleport_server_parent_class)->finalize (object);
+} 
+
+static void
+teleport_server_class_init (TeleportServerClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->finalize = teleport_server_finalize;
+
+  signals[RECIVED_FILE] = g_signal_new ("recived_file",
+                                         G_TYPE_OBJECT,
+                                         G_SIGNAL_RUN_LAST,
+                                         0,
+                                         NULL /* accumulator */,
+                                         NULL /* accumulator data */,
+                                         NULL /* C marshaller */,
+                                         G_TYPE_NONE /* return_type */,
+                                         2,
+                                         TELEPORT_TYPE_PEER,
+                                         TELEPORT_TYPE_FILE);
+}
+
+static void
+teleport_server_init (TeleportServer *self)
+{
+  self->send_files = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+  self->devices = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+}
+
+TeleportServer *
+teleport_server_new (guint port) {
+  TeleportServer *self;
+  g_autoptr(GError) error = NULL;
+  
+  self = g_object_new (TELEPORT_TYPE_SERVER,
+                              SOUP_SERVER_SERVER_HEADER, "teleport-httpd ",
+                              NULL);
+
+  /* add handler for incoming files */
+  soup_server_add_handler (SOUP_SERVER (self),
+                           "/incoming",
+                           (SoupServerCallback) incoming_files_cb,
+                           NULL, NULL);
+
+  /* add handler for sent files */
+  soup_server_add_handler (SOUP_SERVER (self),
+                           "/transfer",
+                           (SoupServerCallback) file_request_cb,
+                           NULL, NULL);
+
+  if (!soup_server_listen_all (SOUP_SERVER (self), port, 0, &error))
+    g_warning ("Couldn't start http server: %s", error->message);
+
+  return self;
+}
+
+void
+teleport_server_add_file (TeleportServer *self,
+                          TeleportFile *file)
+{
+  g_hash_table_insert (self->send_files, g_strdup (teleport_file_get_id (file)), file);
+}
+
+void
+teleport_server_add_peer (TeleportServer *self,
+                          TeleportPeer *device)
+{
+  g_return_if_fail (TELEPORT_IS_SERVER (self));
+  g_return_if_fail (TELEPORT_IS_PEER (device));
+
+  g_hash_table_insert (self->devices,
+                       g_strdup (teleport_peer_get_ip (device)),
+                       g_object_ref (device));
+}
+
+void
+teleport_server_remove_peer (TeleportServer *self,
+                             TeleportPeer *device)
+{
+  g_return_if_fail (TELEPORT_IS_SERVER (self));
+  g_return_if_fail (TELEPORT_IS_PEER (device));
+
+  g_hash_table_remove (self->devices, g_strdup (teleport_peer_get_ip (device)));
 }
