@@ -21,10 +21,17 @@
 
 #include <gtk/gtk.h>
 
-#include "teleport-peer.h"
-
 #define TELEPORT_TYPE_FILE teleport_file_get_type ()
 G_DECLARE_FINAL_TYPE (TeleportFile, teleport_file, TELEPORT, FILE, GObject)
+
+typedef enum {
+  TELEPORT_FILE_STATE_UNKNOWN = -1,
+  TELEPORT_FILE_STATE_NEW = 0,
+  TELEPORT_FILE_STATE_TRANSFAIR,
+  TELEPORT_FILE_STATE_FINISH,
+  TELEPORT_FILE_STATE_REJECT,
+  TELEPORT_FILE_STATE_ERROR
+} TeleportFileState;
 
 TeleportFile *teleport_file_new (const gchar *source_path,
                                  const gchar *destination_path,
@@ -45,12 +52,10 @@ gint64 teleport_file_get_size (TeleportFile *self);
 gfloat teleport_file_get_progress (TeleportFile *self);
 void teleport_file_set_progress (TeleportFile *self,
                                  gfloat progress);
-
+TeleportFileState teleport_file_get_state (TeleportFile *self);
+void teleport_file_set_state (TeleportFile *self,
+                              TeleportFileState state);
 void teleport_file_download (TeleportFile *file,
                              gchar *download_directory);
-void teleport_file_send (TeleportFile *file,
-                         TeleportPeer *destination);
-
-
 
 #endif /* __TELEPORT_FILE_H */

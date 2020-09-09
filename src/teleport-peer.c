@@ -17,6 +17,8 @@
  */
 
 #include <gtk/gtk.h>
+#include <libsoup/soup.h>
+
 #include "teleport-peer.h"
 
 struct _TeleportPeer
@@ -26,6 +28,8 @@ struct _TeleportPeer
   gchar *name;
   gchar *ip;
   guint port;
+
+  GListStore *files;
 };
 
 enum {
@@ -137,7 +141,7 @@ teleport_peer_init (TeleportPeer *self)
   self->name = NULL;
   self->ip = NULL;
   self->port = 0;
-
+  self->files = g_list_store_new (TELEPORT_TYPE_FILE);
 }
 
 TeleportPeer *
@@ -215,4 +219,54 @@ gchar *
 teleport_peer_get_incoming_address (TeleportPeer *self)
 {
   return g_strdup_printf ("http://%s:%d/incoming", self->ip, self->port);
+}
+
+static void
+send_file_cb (SoupSession *session,
+              SoupMessage *msg,
+              TeleportFile *file)
+{
+  g_print ("File was actually send\n");
+}
+
+void
+teleport_peer_send_file (TeleportPeer *destination,
+                         TeleportFile *file)
+{
+  SoupSession *session;
+  SoupMessage *msg;
+  g_autofree gchar *data = NULL; 
+
+  session = g_object_new (SOUP_TYPE_SESSION,
+                          SOUP_SESSION_ADD_FEATURE_BY_TYPE,
+                          SOUP_TYPE_CONTENT_DECODER,
+                          SOUP_SESSION_USER_AGENT,
+                          "teleport",
+                          SOUP_SESSION_ACCEPT_LANGUAGE_AUTO,
+                          TRUE,
+                          NULL);
+
+  msg = soup_message_new ("POST", teleport_peer_get_incoming_address (destination));
+  data = teleport_file_serialize (file);
+  g_print ("Data: %s\n%s\n", data, teleport_peer_get_incoming_address (destination));
+  soup_message_set_request (msg,
+                            "application/json",
+                            SOUP_MEMORY_COPY,
+                            data,
+                            strlen (data));
+  soup_message_set_flags (msg, SOUP_MESSAGE_NO_REDIRECT);
+  soup_session_queue_message (session, g_object_ref (msg), (SoupSessionCallback) send_file_cb, file);
+}
+
+void
+teleport_peer_add_file (TeleportPeer *self,
+                        TeleportFile *file)
+{
+  g_list_store_append (self->files, file);
+}
+
+GListStore *
+teleport_peer_get_files (TeleportPeer *self)
+{
+  return self->files;
 }

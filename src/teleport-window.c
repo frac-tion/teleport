@@ -43,8 +43,19 @@ struct _TeleportWindow
 G_DEFINE_TYPE (TeleportWindow, teleport_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static void
+number_of_files_changed_cb (GListModel *list,
+                            guint       position,
+                            guint       removed,
+                            guint       added,
+                            TeleportWindow *self)
+{
+  gtk_widget_set_visible (self->remote_no_devices,
+                          g_list_model_get_item (list, 0) == NULL);
+}
+
+static void
 change_download_directory_cb (GtkWidget *widget,
-			      gpointer user_data) {
+                              gpointer user_data) {
   GSettings *settings;
   gchar * newDownloadDir;
   settings = (GSettings *)user_data;
@@ -94,7 +105,6 @@ teleport_window_init (TeleportWindow *self)
   GSettings *settings = teleport_app_get_settings (TELEPORT_APP (app));
 
 
-  g_type_ensure (HDY_TYPE_COLUMN);
   gtk_widget_init_template (GTK_WIDGET (self));
 
   builder = gtk_builder_new_from_resource ("/com/frac_tion/teleport/settings.ui");
@@ -180,21 +190,18 @@ teleport_window_bind_device_list (TeleportWindow *self,
                          (GtkListBoxCreateWidgetFunc) teleport_remote_device_new,
                          NULL,
                          NULL);
+
+  g_signal_connect (list,
+                    "items-changed",
+                    G_CALLBACK (number_of_files_changed_cb),
+                    self);
+  number_of_files_changed_cb (G_LIST_MODEL (list), 0, 0, 0, self);
 }
 
 TeleportWindow *
 teleport_window_new (TeleportApp *app)
 {
   return g_object_new (TELEPORT_WINDOW_TYPE, "application", app, NULL);
-}
-
-void
-teleport_show_no_device_message (TeleportWindow *self, gboolean show)
-{
-  if (show)
-    gtk_widget_show (self->remote_no_devices);
-  else
-    gtk_widget_hide (self->remote_no_devices);
 }
 
 void

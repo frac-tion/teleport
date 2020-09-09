@@ -20,6 +20,7 @@
 #define __TELEPORT_PEER_H
 
 #include <gtk/gtk.h>
+#include "teleport-file.h"
 
 #define TELEPORT_TYPE_PEER teleport_peer_get_type ()
 G_DECLARE_FINAL_TYPE (TeleportPeer, teleport_peer, TELEPORT, PEER, GObject)
@@ -37,5 +38,10 @@ guint teleport_peer_get_port (TeleportPeer          *self);
 void teleport_peer_set_port  (TeleportPeer          *self,
                               guint                 port);
 gchar *teleport_peer_get_incoming_address (TeleportPeer *self);
+void teleport_peer_add_file (TeleportPeer *self,
+                             TeleportFile *file);
+void teleport_peer_send_file (TeleportPeer *self,
+                             TeleportFile *file);
+GListStore *teleport_peer_get_files (TeleportPeer *self);
 
 #endif /* __TELEPORT_PEER_H */

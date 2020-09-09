@@ -1,6 +1,6 @@
-/* teleport-remote-device.c
+/* teleport-file-row.c
  *
- * Copyright 2017 Julian Sparber <julian@sparber.com>
+ * Copyright 2020 Julian Sparber <julian@sparber.net>
  *
  * Teleport is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -14,27 +14,23 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
-#ifndef TELEPORT_REMOTE_DEVICE_H
-#define TELEPORT_REMOTE_DEVICE_H
+#ifndef TELEPORT_FILE_ROW_H
+#define TELEPORT_FILE_ROW_H
 
-#define HANDY_USE_UNSTABLE_API
-#include <handy.h>
-#include "teleport-peer.h"
+#include <gtk/gtk.h>
+#include "teleport-file.h"
 
 G_BEGIN_DECLS
 
-#define TELEPORT_TYPE_REMOTE_DEVICE (teleport_remote_device_get_type())
+#define TELEPORT_TYPE_FILE_ROW (teleport_file_row_get_type())
+G_DECLARE_FINAL_TYPE (TeleportFileRow, teleport_file_row, TELEPORT, FILE_ROW, GtkListBoxRow)
 
-G_DECLARE_FINAL_TYPE (TeleportRemoteDevice, teleport_remote_device, TELEPORT, REMOTE_DEVICE, GtkListBoxRow)
-
-GtkWidget *teleport_remote_device_new      (TeleportPeer         *);
-
-TeleportPeer *teleport_remote_device_get_peer (TeleportRemoteDevice            *);
-void    teleport_remote_device_set_peer (TeleportRemoteDevice *, TeleportPeer  *);
-
-
+TeleportFileRow *teleport_file_row_new      (TeleportFile    *file);
+TeleportFile    *teleport_file_row_get_file (TeleportFileRow *self);
+void             teleport_file_row_set_file (TeleportFileRow *self,
+                                             TeleportFile    *file);
 G_END_DECLS
 
-#endif /* TELEPORT_REMOTE_DEVICE_H */
+#endif /* TELEPORT_FILE_ROW_H */

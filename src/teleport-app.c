@@ -17,6 +17,8 @@
  */
 
 #include <gtk/gtk.h>
+#define HANDY_USE_UNSTABLE_API
+#include <handy.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -65,8 +67,8 @@ static const GActionEntry app_entries[] =
     { "save", save_file_callback, "s", NULL, NULL },
     { "decline", do_nothing_callback, "s", NULL, NULL },
     { "do-nothing", do_nothing_callback, "s", NULL, NULL },
-    { "open-file", open_file_callback, "as", NULL, NULL },
-    { "open-folder", open_folder_callback, "as", NULL, NULL },
+    { "open-file", open_file_callback, "s", NULL, NULL },
+    { "open-folder", open_folder_callback, "s", NULL, NULL },
     { "about", teleport_app_show_about },
     { "quit",   teleport_app_quit }
 };
@@ -153,7 +155,6 @@ on_avahi_appeared (GDBusConnection *connection,
 {
   TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
 
-  teleport_show_no_device_message (TELEPORT_WINDOW (priv->window), TRUE);
   teleport_publish_run (teleport_get_device_name (self));
   g_signal_connect (teleport_app_get_settings (self), "changed", G_CALLBACK (restart_avahi_publish_server), self);
   teleport_browser_run_avahi_service ();
@@ -167,7 +168,6 @@ on_avahi_vanished (GDBusConnection *connection,
 {
   TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
 
-  teleport_show_no_device_message (TELEPORT_WINDOW (priv->window), FALSE);
   teleport_show_no_avahi_message (TELEPORT_WINDOW (priv->window), TRUE);
   g_signal_connect (teleport_app_get_settings(self), "changed", G_CALLBACK (restart_avahi_publish_server), NULL);
 }
@@ -274,16 +274,8 @@ open_file_callback (GSimpleAction *simple,
                     GVariant      *parameter,
                     gpointer       user_data)
 {
-  const gchar *path;
-  g_print("Open file\n %s%s",
-          g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
-          g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
-
-  path = g_strdup_printf("%s/%s",
-                         g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
-                         g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
-
-  gtk_show_uri_on_window (NULL, g_filename_to_uri(path, NULL, NULL), GDK_CURRENT_TIME, NULL);
+  g_print ("TODO: open file");
+  //gtk_show_uri_on_window (NULL, g_filename_to_uri(path, NULL, NULL), GDK_CURRENT_TIME, NULL);
 }
 
 static void
@@ -298,6 +290,7 @@ recived_file_cb (TeleportApp *self,
            g_format_size (teleport_file_get_size (file)));
 
 
+  teleport_peer_add_file (peer, file);
   create_user_notification (self, file, peer);
 }
 
@@ -376,6 +369,8 @@ teleport_app_startup (GApplication *application) {
 
   gtk_application_set_accels_for_action (GTK_APPLICATION (application), "app.quit", quit_accels);
 
+  hdy_init ();
+
   /* CSS style */
   provider = gtk_css_provider_new ();
   gtk_css_provider_load_from_resource (provider,
@@ -391,7 +386,7 @@ teleport_app_startup (GApplication *application) {
   g_signal_connect_swapped (priv->server, "recived_file", G_CALLBACK (recived_file_cb), self);
 
   /* Add dummy devie */
-  dummy_peer = teleport_peer_new("Dummy Device", "192.168.1.45", 3000);
+  dummy_peer = teleport_peer_new("Dummy Device", "192.168.43.168", 3000);
   teleport_app_add_peer (self, dummy_peer);
 
   /* window */
@@ -532,5 +527,5 @@ teleport_app_send_file (TeleportApp *self,
   TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
 
   teleport_server_add_file (priv->server, file);
-  teleport_file_send (file, device);
+  teleport_peer_send_file (device, file);
 }

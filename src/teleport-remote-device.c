@@ -17,10 +17,13 @@
  */
 
 #include <gtk/gtk.h>
+#define HANDY_USE_UNSTABLE_API
+#include <handy.h>
 #include "teleport-remote-device.h"
 #include "teleport-app.h"
 #include "teleport-peer.h"
 #include "teleport-file.h"
+#include "teleport-file-row.h"
 
 enum                                                                            
 {                                                                               
@@ -37,14 +40,27 @@ struct _TeleportRemoteDevice
 {
   GtkListBoxRow  parent;
 
-  GtkWidget 	*device_name;
+  GtkWidget     *name_label;
   GtkWidget 	*send_btn;
+  GtkWidget     *files_revealer;
+  GtkWidget     *files;
 
   /* data */
   TeleportPeer  *peer;
 };
 
 G_DEFINE_TYPE (TeleportRemoteDevice, teleport_remote_device, GTK_TYPE_LIST_BOX_ROW)
+
+static void
+number_of_files_changed_cb (GListModel *list,
+               guint       position,
+               guint       removed,
+               guint       added,
+               TeleportRemoteDevice *self)
+{
+  gtk_revealer_set_reveal_child (GTK_REVEALER (self->files_revealer),
+                                 g_list_model_get_item (list, 0) != NULL);
+}
 
 static void
 teleport_remote_device_get_property (GObject    *object,
@@ -117,8 +133,10 @@ teleport_remote_device_class_init (TeleportRemoteDeviceClass *klass)
                                                          G_PARAM_READWRITE));
 
   gtk_widget_class_set_template_from_resource (widget_class, "/com/frac_tion/teleport/remote_list.ui");
-  gtk_widget_class_bind_template_child (widget_class, TeleportRemoteDevice, device_name);
+  gtk_widget_class_bind_template_child (widget_class, TeleportRemoteDevice, name_label);
   gtk_widget_class_bind_template_child (widget_class, TeleportRemoteDevice, send_btn);
+  gtk_widget_class_bind_template_child (widget_class, TeleportRemoteDevice, files_revealer);
+  gtk_widget_class_bind_template_child (widget_class, TeleportRemoteDevice, files);
 }
 
 static void
@@ -211,6 +229,7 @@ teleport_remote_device_init (TeleportRemoteDevice *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
+
   gtk_drag_dest_set (GTK_WIDGET (self),
                      GTK_DEST_DEFAULT_MOTION | GTK_DEST_DEFAULT_HIGHLIGHT,
                      entries,
@@ -267,6 +286,7 @@ void
 teleport_remote_device_set_peer (TeleportRemoteDevice *self,
                                  TeleportPeer         *peer)
 {
+  GListModel *list;
   g_return_if_fail (TELEPORT_IS_REMOTE_DEVICE (self));
 
   if (peer == self->peer)
@@ -278,7 +298,20 @@ teleport_remote_device_set_peer (TeleportRemoteDevice *self,
 
   g_object_bind_property (peer,
                           "name",
-                          self->device_name,
+                          self->name_label,
                           "label",
                           G_BINDING_SYNC_CREATE);
+
+  list = G_LIST_MODEL (teleport_peer_get_files (self->peer));
+  gtk_list_box_bind_model (GTK_LIST_BOX (self->files),
+                           list,
+                           (GtkListBoxCreateWidgetFunc) teleport_file_row_new,
+                           NULL,
+                           NULL);
+
+  g_signal_connect (list,
+                            "items-changed",
+                            G_CALLBACK (number_of_files_changed_cb),
+                            self);
+  number_of_files_changed_cb (list, 0, 0, 0, self);
 }

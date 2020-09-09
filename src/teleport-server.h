@@ -20,6 +20,7 @@
 #define __TELEPORT_SERVER_H
 
 #include <libsoup/soup.h>
+#include "teleport-peer.h"
 #include "teleport-file.h"
 
 #define TELEPORT_TYPE_SERVER teleport_server_get_type ()

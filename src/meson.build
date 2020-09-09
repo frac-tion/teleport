@@ -1,6 +1,6 @@
-
 headers = files(
   'teleport-remote-device.h',
+  'teleport-file-row.h',
   'teleport-browser.h',
   'teleport-file.h',
   'teleport-publish.h',
@@ -12,13 +12,13 @@ headers = files(
 
 install_headers(headers, subdir: meson.project_name())
 
-
 ################
 # Source files #
 ################
 
 sources = files(
   'teleport-remote-device.c',
+  'teleport-file-row.c',
   'teleport-browser.c',
   'teleport-file.c',
   'teleport-publish.c',
@@ -37,15 +37,6 @@ sources += gnome.compile_resources(
 #  dependencies: plugins_confs,
         export: true
 )
-
-#enum = 'teleport-enum-types'
-
-#sources += gnome.mkenums(
-#        enum,
-#     sources: enum_headers,
-#  c_template: enum + '.c.template',
-#  h_template: enum + '.h.template'
-#)
 
 incs = [
   top_inc,
@@ -76,6 +67,10 @@ ldflags = [ '-Wl,--export-dynamic' ]
 #  endforeach
 #endif
 
+gnome = import('gnome')
+sources += gnome.mkenums_simple('enum-types',
+  sources: headers,
+)
 
 ###############
 # teleport #
@@ -92,25 +87,3 @@ teleport = executable(
               install: true,
           install_dir: teleport_bindir
 )
-
-
-###################
-# Private library #
-###################
-
-libteleport = shared_library(
-                'teleport',
-              sources: sources,
-              version: libversion,
-            soversion: soversion,
-  include_directories: incs,
-         dependencies: teleport_deps,
-               c_args: cflags
-)
-
-libteleport_dep = declare_dependency(
-            link_with: libteleport,
-  include_directories: src_inc,
-         dependencies: teleport_deps
-)
-

@@ -22,6 +22,7 @@
 
 #include "teleport-file.h"
 #include "teleport-peer.h"
+#include "enum-types.h"
 
 struct _TeleportFile {
   GObject parent;
@@ -33,6 +34,8 @@ struct _TeleportFile {
   gint64 size;
 
   gfloat progress;
+  
+  TeleportFileState state;
 
   /* Files is only set when this TeleportFile is a dicontary */ 
   /* TODO: allow sending files GList *subfiles; */
@@ -45,6 +48,7 @@ enum {
   PROP_DESTINATION_PATH,
   PROP_SIZE,
   PROP_PROGRESS,
+  PROP_STATE,
   PROP_LAST_PROP,
 };
 static GParamSpec *props[PROP_LAST_PROP];
@@ -76,6 +80,9 @@ teleport_file_set_property (GObject      *object,
   case PROP_PROGRESS:
     teleport_file_set_progress (self, g_value_get_float (value));
     break;
+  case PROP_STATE:
+    teleport_file_set_state (self, g_value_get_enum (value));
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
     break;
@@ -105,6 +112,9 @@ teleport_file_get_property (GObject    *object,
     break;
   case PROP_PROGRESS:
     g_value_set_float (value, teleport_file_get_progress (self));
+    break;
+  case PROP_STATE:
+    g_value_set_enum (value, teleport_file_get_state (self));
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -164,6 +174,14 @@ teleport_file_class_init (TeleportFileClass *klass)
                       "Progress",
                       "The download or upload progress",
                       0, 1.0, 0,
+                      G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+
+  props[PROP_STATE] =
+   g_param_spec_enum ("state",
+                      "State",
+                      "The state of this file",
+                      TELEPORT_TYPE_FILE_STATE,
+                      TELEPORT_FILE_STATE_NEW,
                       G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   g_object_class_install_properties (object_class, PROP_LAST_PROP, props);
@@ -306,6 +324,28 @@ teleport_file_set_progress (TeleportFile *self, gfloat progress)
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_PROGRESS]);
 }
 
+TeleportFileState
+teleport_file_get_state (TeleportFile *self)
+{
+  g_return_val_if_fail (TELEPORT_IS_FILE (self), TELEPORT_FILE_STATE_UNKNOWN);
+
+  return self->state;
+}
+
+void
+teleport_file_set_state (TeleportFile *self,
+                         TeleportFileState state)
+{
+  g_return_if_fail (TELEPORT_IS_FILE (self));
+
+  if (self->state == state)
+    return;
+  
+  self->state = state;
+  
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_STATE]);
+}
+
 static void
 got_chunk_cb (SoupMessage  *msg,
               SoupBuffer  *chunk,
@@ -352,6 +392,9 @@ get_file_cb (SoupSession *session,
   if (SOUP_STATUS_IS_SUCCESSFUL (msg->status_code)) {
     teleport_file_set_progress (file, 1.0);
     g_print ("Finished downloading file: %s\n", soup_status_get_phrase (msg->status_code));
+    teleport_file_set_state (file, TELEPORT_FILE_STATE_FINISH);
+  } else {
+    teleport_file_set_state (file, TELEPORT_FILE_STATE_ERROR);
   }
 }
 
@@ -368,6 +411,8 @@ teleport_file_download (TeleportFile *file, gchar *download_folder)
   io_stream = g_file_create_readwrite (destination_file, G_FILE_CREATE_PRIVATE, NULL, &error);
   if (error != NULL) {
     g_warning ("Couldn't create file: %s", error->message);
+    /* TODO: show error to user and allow overriding files or rename */
+    teleport_file_set_state (file, TELEPORT_FILE_STATE_ERROR);
     return;
   }
 
@@ -383,42 +428,6 @@ teleport_file_download (TeleportFile *file, gchar *download_folder)
   g_signal_connect (msg, "got-body", G_CALLBACK (got_body_cb), io_stream);
   g_signal_connect_swapped (msg, "got-chunk", G_CALLBACK (progress_cb), file);
 
+  teleport_file_set_state (file, TELEPORT_FILE_STATE_TRANSFAIR);
   soup_session_queue_message (session, msg, (SoupSessionCallback) get_file_cb, file);
-}
-
-static void
-send_file_cb (SoupSession *session,
-              SoupMessage *msg,
-              TeleportFile *file)
-{
-  g_print ("File was actually send\n");
-}
-
-void
-teleport_file_send (TeleportFile *file,
-                    TeleportPeer *destination)
-{
-  SoupSession *session;
-  SoupMessage *msg;
-  g_autofree gchar *data = NULL; 
-
-  session = g_object_new (SOUP_TYPE_SESSION,
-                          SOUP_SESSION_ADD_FEATURE_BY_TYPE,
-                          SOUP_TYPE_CONTENT_DECODER,
-                          SOUP_SESSION_USER_AGENT,
-                          "teleport",
-                          SOUP_SESSION_ACCEPT_LANGUAGE_AUTO,
-                          TRUE,
-                          NULL);
-
-  msg = soup_message_new ("POST", teleport_peer_get_incoming_address (destination));
-  data = teleport_file_serialize (file);
-  g_print ("Data: %s\n%s\n", data, teleport_peer_get_incoming_address (destination));
-  soup_message_set_request (msg,
-                            "application/json",
-                            SOUP_MEMORY_COPY,
-                            data,
-                            strlen (data));
-  soup_message_set_flags (msg, SOUP_MESSAGE_NO_REDIRECT);
-  soup_session_queue_message (session, g_object_ref (msg), (SoupSessionCallback) send_file_cb, file);
 }

@@ -150,7 +150,7 @@ glib_dep = dependency('glib-2.0', version: '>= 2.43.4')
 json_glib_dep = dependency('json-glib-1.0', version: '>= 1.4.4')
 gtk_dep = dependency('gtk+-3.0', version: '>= 3.22.0')
 
-libhandy_dep = dependency('libhandy-0.0', version: '>= 0.0.9', required: false)
+libhandy_dep = dependency('libhandy-1.0', version: '>= 0.90.0', required: false)
 if not libhandy_dep.found()
   libhandy = subproject(
     'libhandy',
@@ -158,7 +158,6 @@ if not libhandy_dep.found()
       'examples=false',
       'glade_catalog=disabled',
       'introspection=disabled',
-      'static=true',
       'tests=false',
       'vapi=false',
     ]
