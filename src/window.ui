@@ -98,14 +98,15 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="activatable">false</property>
+                                <style>
+                                  <class name="device-row"/>
+                                </style>
                                 <child>
                                   <object class="GtkGrid" id="this-device-grid">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="row_spacing">0</property>
                                     <property name="column_spacing">16</property>
-                                    <property name="margin">12</property>
-                                    <property name="margin_start">16</property>
                                     <child>
                                       <object class="GtkLabel" id="this_device_name_label">
                                         <property name="visible">True</property>

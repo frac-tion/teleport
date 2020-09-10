@@ -386,7 +386,7 @@ teleport_app_startup (GApplication *application) {
   g_signal_connect_swapped (priv->server, "recived_file", G_CALLBACK (recived_file_cb), self);
 
   /* Add dummy devie */
-  dummy_peer = teleport_peer_new("Dummy Device", "192.168.43.168", 3000);
+  dummy_peer = teleport_peer_new("Dummy Device", "192.168.1.57", 3000);
   teleport_app_add_peer (self, dummy_peer);
 
   /* window */

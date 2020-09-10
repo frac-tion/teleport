@@ -13,3 +13,7 @@ frame, list, border {
   caret-color: #4A90D9;
 	border-radius: 4px;
 }
+
+.device-row, .file-row {
+  margin-left: 12px; margin-right: 12px; min-height: 50px;
+}

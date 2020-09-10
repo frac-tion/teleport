@@ -12,6 +12,9 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="spacing">6</property>
+        <style>
+          <class name="file-row"/>
+        </style>
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
@@ -70,6 +73,9 @@
                     <property name="halign">center</property>
                     <property name="valign">center</property>
                     <property name="action_name">app.save</property>
+                    <style>
+                      <class name="list-button"/>
+                    </style>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -86,6 +92,9 @@
                     <property name="halign">center</property>
                     <property name="valign">center</property>
                     <property name="action_name">app.decline</property>
+                    <style>
+                      <class name="list-button"/>
+                    </style>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -106,6 +115,9 @@
                 <property name="halign">center</property>
                 <property name="valign">center</property>
                 <property name="action_name">app.cancel-download</property>
+                <style>
+                  <class name="list-button"/>
+                </style>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
@@ -123,6 +135,7 @@
               <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="spacing">6</property>
                 <child>
                   <object class="GtkButton" id="open_button">
                     <property name="label" translatable="yes">Open file</property>
@@ -132,6 +145,9 @@
                     <property name="halign">center</property>
                     <property name="valign">center</property>
                     <property name="action_name">app.open-file</property>
+                    <style>
+                      <class name="list-button"/>
+                    </style>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -148,6 +164,9 @@
                     <property name="halign">center</property>
                     <property name="valign">center</property>
                     <property name="action_name">app.dismiss</property>
+                    <style>
+                      <class name="list-button"/>
+                    </style>
                   </object>
                   <packing>
                     <property name="expand">False</property>

@@ -6,6 +6,9 @@
     <property name="can_focus">False</property>
     <property name="activatable">False</property>
     <property name="selectable">False</property>
+    <style>
+      <class name="expander"/>
+    </style>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
@@ -16,6 +19,9 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="expand">True</property>
+            <style>
+              <class name="device-row"/>
+            </style>
             <child>
               <object class="GtkLabel" id="name_label">
                 <property name="visible">True</property>
@@ -30,6 +36,9 @@
                 <property name="visible">True</property>
                 <property name="valign">center</property>
                 <property name="label" translatable="yes">Send File</property>
+                <style>
+                  <class name="list-button"/>
+                </style>
               </object>
               <packing>
                 <property name="pack_type">end</property>
@@ -44,6 +53,9 @@
               <object class="GtkListBox" id="files">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <style>
+                  <class name="nested"/>
+                </style>
               </object>
             </child>
           </object>
