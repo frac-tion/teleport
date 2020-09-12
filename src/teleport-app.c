@@ -27,8 +27,7 @@
 #include "teleport-app.h"
 #include "teleport-peer.h"
 #include "teleport-window.h"
-#include "teleport-browser.h"
-#include "teleport-publish.h"
+#include "teleport-avahi.h"
 #include "teleport-server.h"
 
 
@@ -75,20 +74,18 @@ static const GActionEntry app_entries[] =
 
 static gint signalIds [N_SIGNALS];
 
-typedef struct
-{
+struct _TeleportApp {
+  GtkApplication        parent;
+
   GSettings      *settings;
   GtkWidget      *window;
   TeleportServer *server;
+  TeleportAvahi  *avahi;
   GListStore     *peer_list;
   GHashTable     *files;
-} TeleportAppPrivate;
-
-struct _TeleportApp {
-  GtkApplication        parent;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION)
+G_DEFINE_TYPE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION)
 
 static void
 create_user_notification (TeleportApp *self,
@@ -96,11 +93,8 @@ create_user_notification (TeleportApp *self,
                           TeleportPeer *device)
 {
   g_autoptr (GNotification) notification;
-  TeleportAppPrivate *priv;
   GVariant *target;
   const gchar *notification_id;
-
-  priv = teleport_app_get_instance_private (self);
 
   notification = g_notification_new ("Teleport");
   notification_id = teleport_file_get_id (file);
@@ -116,19 +110,18 @@ create_user_notification (TeleportApp *self,
   g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
   g_application_send_notification (G_APPLICATION (self), notification_id, notification);
-  g_hash_table_insert (priv->files, g_strdup (notification_id), file);
+  g_hash_table_insert (self->files, g_strdup (notification_id), file);
 }
 
 /*
 void
 create_finished_notification (const char *origin, const int filesize, const char *filename, GVariant *target) {
   GNotification *notification = g_notification_new ("Teleport");
-  TeleportAppPrivate *priv = mainApplication->priv;
 
   g_notification_set_body (notification,
                            g_strdup_printf("Transfer of %s from %s is complete", 
                                            filename,
-                                           teleport_peer_get_name_by_addr (priv->peerList, origin)));
+                                           teleport_peer_get_name_by_addr (self->peerList, origin)));
   g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
   g_notification_add_button_with_target_value (notification, "Show in folder", "app.open-folder", target);
   g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
@@ -139,64 +132,17 @@ create_finished_notification (const char *origin, const int filesize, const char
 */
  
 static void
-restart_avahi_publish_server (GSettings    *settings,
-                              gchar        *key,
-                              gpointer     *data) {
-  if (g_strcmp0 (key, "device-name") == 0) {
-    teleport_publish_update (teleport_get_device_name(TELEPORT_APP(data)));
-  }
-}
-
-static void
-on_avahi_appeared (GDBusConnection *connection,
-                  const gchar     *name,
-                  const gchar     *name_owner,
-                  TeleportApp     *self)
-{
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
-
-  teleport_publish_run (teleport_get_device_name (self));
-  g_signal_connect (teleport_app_get_settings (self), "changed", G_CALLBACK (restart_avahi_publish_server), self);
-  teleport_browser_run_avahi_service ();
-  teleport_show_no_avahi_message (TELEPORT_WINDOW (priv->window), FALSE);
-}
-
-static void
-on_avahi_vanished (GDBusConnection *connection,
-                  const gchar     *name,
-                  TeleportApp     *self)
-{
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
-
-  teleport_show_no_avahi_message (TELEPORT_WINDOW (priv->window), TRUE);
-  g_signal_connect (teleport_app_get_settings(self), "changed", G_CALLBACK (restart_avahi_publish_server), NULL);
-}
-
-static void
-watch_for_avahi_service (TeleportApp *application) {
-    g_bus_watch_name (G_BUS_TYPE_SYSTEM,
-                                 "org.freedesktop.Avahi",
-                                 G_BUS_NAME_WATCHER_FLAGS_NONE,
-                                 (GBusNameAppearedCallback) on_avahi_appeared,
-                                 (GBusNameVanishedCallback) on_avahi_vanished,
-                                 application,
-                                 NULL);
-}
-
-static void
 save_file_callback (GSimpleAction *simple,
                     GVariant      *parameter,
                     gpointer       user_data) {
   TeleportApp *self;
-  TeleportAppPrivate *priv;
   TeleportFile *file;
   g_autofree gchar *download_directory = NULL;
   const gchar *file_id;
 
   self = TELEPORT_APP (user_data);
-  priv = teleport_app_get_instance_private (self);
   file_id = g_variant_get_string (parameter, NULL);
-  file = g_hash_table_lookup (priv->files, file_id);
+  file = g_hash_table_lookup (self->files, file_id);
 
   if (TELEPORT_IS_FILE (file)) {
     g_print ("The file will be downloaded and saved.\n");
@@ -296,27 +242,18 @@ recived_file_cb (TeleportApp *self,
 
 void
 teleport_app_add_peer (TeleportApp *self, TeleportPeer *peer) {
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
-
-  g_list_store_append (priv->peer_list, peer);
-  teleport_server_add_peer (priv->server, peer);
+  g_list_store_append (self->peer_list, peer);
+  teleport_server_add_peer (self->server, peer);
 }
 
 void
 teleport_app_remove_peer (TeleportApp *self, TeleportPeer *peer) {
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
   guint position = 0;
 
-  if (g_list_store_find (priv->peer_list, peer, &position))
-    g_list_store_remove (priv->peer_list, position);
+  if (g_list_store_find (self->peer_list, peer, &position))
+    g_list_store_remove (self->peer_list, position);
 
-  teleport_server_remove_peer (priv->server, peer);
-}
-
-GSettings *
-teleport_app_get_settings (TeleportApp *self) {
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
-  return priv->settings;
+  teleport_server_remove_peer (self->server, peer);
 }
 
 static void
@@ -340,21 +277,20 @@ init_settings (GSettings *settings) {
   }
 }
 
-gchar * 
-teleport_get_device_name (TeleportApp *self) {
-  return g_settings_get_string (teleport_app_get_settings (self), "device-name");
+static gchar * 
+get_device_name (TeleportApp *self) {
+  return g_settings_get_string (self->settings, "device-name");
 }
 
 gchar * 
 teleport_get_download_directory (TeleportApp *self) 
 {
-  return g_settings_get_string (teleport_app_get_settings (self), "download-dir");
+  return g_settings_get_string (self->settings, "download-dir");
 }
 
 static void
 teleport_app_startup (GApplication *application) {
   TeleportApp *self = TELEPORT_APP (application);
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
   g_autoptr(GtkCssProvider) provider = NULL;
   TeleportWindow *window;
   TeleportPeer *dummy_peer;
@@ -379,11 +315,22 @@ teleport_app_startup (GApplication *application) {
                                              GTK_STYLE_PROVIDER (provider),
                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
   /* ListStore to store peers */
-  priv->peer_list = g_list_store_new (TELEPORT_TYPE_PEER);
+  self->peer_list = g_list_store_new (TELEPORT_TYPE_PEER);
 
   /* TODO: randomize the server port */
-  priv->server = teleport_server_new (3000);
-  g_signal_connect_swapped (priv->server, "recived_file", G_CALLBACK (recived_file_cb), self);
+  self->server = teleport_server_new (3000);
+  self->avahi = teleport_avahi_new (get_device_name (self), 3000);
+  g_signal_connect_swapped (self->server, "recived_file", G_CALLBACK (recived_file_cb), self);
+  g_signal_connect_swapped (self->avahi, "new-device", G_CALLBACK (teleport_app_add_peer), self);
+  g_signal_connect_swapped (self->avahi,
+                            "device-disappeared",
+                            G_CALLBACK (teleport_app_remove_peer),
+                            self);
+  g_settings_bind (self->settings,
+                   "device-name",
+                   self->avahi,
+                   "name",
+                   G_SETTINGS_BIND_GET);
 
   /* Add dummy devie */
   dummy_peer = teleport_peer_new("Dummy Device", "192.168.1.57", 3000);
@@ -391,30 +338,28 @@ teleport_app_startup (GApplication *application) {
 
   /* window */
   window = teleport_window_new (self);
-  teleport_window_bind_device_list (window, priv->peer_list);
-  priv->window = GTK_WIDGET (window);
+  teleport_window_bind_device_list (window, self->peer_list);
+  self->window = GTK_WIDGET (window);
 
-  watch_for_avahi_service (self);
+  teleport_avahi_start (self->avahi);
 }
 
 static void
 teleport_app_activate (GApplication *application) {
   TeleportApp *self = TELEPORT_APP (application);
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
 
-  gtk_widget_show (priv->window);
-  gtk_window_present (GTK_WINDOW (priv->window));
+  gtk_widget_show (self->window);
+  gtk_window_present (GTK_WINDOW (self->window));
 }
 
 static void
 teleport_app_finalize (GObject *object)
 {
   TeleportApp *self = TELEPORT_APP (object);
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
 
-  g_clear_object (&priv->settings);
-  g_clear_object (&priv->peer_list);
-  g_clear_object (&priv->window);
+  g_clear_object (&self->settings);
+  g_clear_object (&self->peer_list);
+  g_clear_object (&self->window);
 
   G_OBJECT_CLASS (teleport_app_parent_class)->finalize (object);
 }
@@ -444,7 +389,7 @@ teleport_app_show_about (GSimpleAction *simple,
                          GVariant      *parameter,
                          gpointer       user_data)
 {
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (TELEPORT_APP(user_data));
+  TeleportApp *self = TELEPORT_APP (user_data);
   char *copyright;
   GDateTime *date;
   int created_year = 2017;
@@ -472,7 +417,7 @@ teleport_app_show_about (GSimpleAction *simple,
                                      "The Telport authors"), created_year, g_date_time_get_year (date));
     }
 
-  gtk_show_about_dialog (GTK_WINDOW (priv->window),
+  gtk_show_about_dialog (GTK_WINDOW (self->window),
                          "program-name", ("Teleport"),
                          "version", VERSION,
                          "copyright", copyright,
@@ -486,16 +431,24 @@ teleport_app_show_about (GSimpleAction *simple,
   g_date_time_unref (date);
 }
 
+static void
+teleport_app_init (TeleportApp *self) {
+  self->settings = g_settings_new ("com.frac_tion.teleport");
+  init_settings (self->settings);
+
+  self->avahi = NULL;
+  self->files = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+}
 
 static void
 teleport_app_quit (GSimpleAction *simple,
                    GVariant      *parameter,
                    gpointer       user_data)
 {
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (TELEPORT_APP (user_data));
+  TeleportApp *self = TELEPORT_APP (user_data);
 
-  gtk_widget_destroy (priv->window);
-  g_hash_table_destroy (priv->files);
+  gtk_widget_destroy (self->window);
+  g_hash_table_destroy (self->files);
 }
 
 TeleportApp *
@@ -507,25 +460,17 @@ teleport_app_new (void)
                        NULL);
 }
 
-static void
-teleport_app_init (TeleportApp *app) {
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (app);
-
-  priv->settings = g_settings_new ("com.frac_tion.teleport");
-  init_settings (priv->settings);
-
-  priv->files = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+GSettings *
+teleport_app_get_settings (TeleportApp *self)
+{
+  return self->settings;
 }
-
-
 
 void
 teleport_app_send_file (TeleportApp *self,
                         TeleportFile *file,
                         TeleportPeer *device)
 {
-  TeleportAppPrivate *priv = teleport_app_get_instance_private (self);
-
-  teleport_server_add_file (priv->server, file);
+  teleport_server_add_file (self->server, file);
   teleport_peer_send_file (device, file);
 }

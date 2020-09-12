@@ -173,6 +173,7 @@ teleport_deps = [
   dependency('gio-2.0', version: '>= 2.43.4'),
   dependency('libsoup-2.4'),
   dependency('avahi-client'),
+  dependency('avahi-gobject'),
   cc.find_library('m', required: true)
 ]
 

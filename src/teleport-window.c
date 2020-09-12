@@ -104,7 +104,6 @@ teleport_window_init (TeleportWindow *self)
   GApplication *app = g_application_get_default ();
   GSettings *settings = teleport_app_get_settings (TELEPORT_APP (app));
 
-
   gtk_widget_init_template (GTK_WIDGET (self));
 
   builder = gtk_builder_new_from_resource ("/com/frac_tion/teleport/settings.ui");
