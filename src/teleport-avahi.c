@@ -35,6 +35,7 @@ struct _TeleportAvahi
   GaEntryGroup *entry_group;
   GaServiceBrowser *browser;
   GHashTable *devices;
+  guint watcher_id;
 
   gchar *name;
   guint16 port;
@@ -175,6 +176,9 @@ teleport_avahi_browse (TeleportAvahi *self)
 
   g_return_if_fail (TELEPORT_IS_AVAHI (self));
 
+  if (self->client == NULL)
+    return;
+
   g_object_get (self->client,
                 "state", &state,
                 NULL);
@@ -205,6 +209,9 @@ teleport_avahi_publish (TeleportAvahi *self)
   GaClientState state;
 
   g_return_if_fail (TELEPORT_IS_AVAHI (self));
+
+  if (self->client == NULL)
+    return;
 
   g_object_get (self->client,
                 "state", &state,
@@ -270,6 +277,59 @@ client_state_changed_cb (GaClient *client,
 }
 
 static void
+on_avahi_appeared (GDBusConnection *connection,
+                  const gchar      *name,
+                  const gchar      *name_owner,
+                  TeleportAvahi    *self)
+{
+  g_autoptr (GError) error = NULL;
+
+  self->client = ga_client_new (GA_CLIENT_FLAG_NO_FLAGS);
+  g_signal_connect (self->client, "state-changed", G_CALLBACK (client_state_changed_cb), self);
+
+  ga_client_start (self->client, &error);
+
+  if (error != NULL) {
+    g_warning ("Couldn't connect to Avahi service: %s", error->message);
+    g_clear_object (&self->client);
+    if (error->code == AVAHI_ERR_NO_DAEMON) {
+      set_state (self, TELEPORT_AVAHI_STATE_NO_DEAMON);
+    }
+    return;
+  }
+
+  set_state (self, TELEPORT_AVAHI_STATE_NEW);
+
+}
+
+static void
+cleanup_client_data (TeleportAvahi *self)
+{
+  g_clear_object (&self->client);
+  g_clear_object (&self->entry_group);
+  g_clear_object (&self->browser);
+}
+
+static gboolean
+device_remove_cb (gpointer key,
+                  TeleportPeer *peer,
+                  TeleportAvahi *self)
+{
+  g_signal_emit (self, signals[DEVICE_DISAPPEARED], 0, peer);
+  return TRUE;
+}
+
+static void
+on_avahi_vanished (GDBusConnection *connection,
+                   const gchar      *name,
+                   TeleportAvahi    *self)
+{
+  cleanup_client_data (self);
+  g_hash_table_foreach_remove (self->devices, (GHRFunc) device_remove_cb, self);
+  set_state (self, TELEPORT_AVAHI_STATE_NO_DEAMON);
+}
+
+static void
 teleport_avahi_set_property (GObject      *object,
                             guint         property_id,
                             const GValue *value,
@@ -315,9 +375,8 @@ teleport_avahi_dispose (GObject *object)
 {
   TeleportAvahi *self = TELEPORT_AVAHI (object);
 
-  g_clear_object (&self->client);
-  g_clear_object (&self->entry_group);
-  g_clear_object (&self->browser);
+  g_bus_unwatch_name (self->watcher_id);
+  cleanup_client_data (self);
   g_hash_table_destroy (self->devices);
   g_clear_pointer (&self->name, g_free);
 
@@ -381,12 +440,12 @@ teleport_avahi_class_init (TeleportAvahiClass *klass)
 static void
 teleport_avahi_init (TeleportAvahi *self)
 {
-  self->client = ga_client_new (GA_CLIENT_FLAG_NO_FAIL); 
-  g_signal_connect (self->client, "state-changed", G_CALLBACK (client_state_changed_cb), self);
+  self->client = NULL;
   self->entry_group = NULL;
   self->browser = NULL;
   self->name = NULL;
   self->devices = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+
 }
 
 TeleportAvahi *
@@ -402,20 +461,13 @@ teleport_avahi_new (const gchar *name,
 void
 teleport_avahi_start (TeleportAvahi *self)
 {
-  g_autoptr (GError) error = NULL;
-
-  ga_client_start (self->client, &error);
-
-  if (error != NULL) {
-    g_warning ("Couldn't connect to Avahi service: %s", error->message);
-    g_clear_object (&self->client);
-    if (error->code == AVAHI_ERR_NO_DAEMON) {
-      set_state (self, TELEPORT_AVAHI_STATE_NO_DEAMON);
-    }
-    return;
-  }
-
-  set_state (self, TELEPORT_AVAHI_STATE_NEW);
+  self->watcher_id = g_bus_watch_name (G_BUS_TYPE_SYSTEM,
+                                       "org.freedesktop.Avahi",
+                                       G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                       (GBusNameAppearedCallback) on_avahi_appeared,
+                                       (GBusNameVanishedCallback) on_avahi_vanished,
+                                       self,
+                                       NULL);
 }
 
 void
