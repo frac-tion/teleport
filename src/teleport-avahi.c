@@ -72,6 +72,7 @@ set_state (TeleportAvahi *self,
   self->state = state;
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_STATE]);
 }
+
 static void
 service_resolver_found_cb (GaServiceResolver *resolver,
                            AvahiIfIndex instance,
@@ -344,6 +345,9 @@ teleport_avahi_set_property (GObject      *object,
   case PROP_PORT:
     self->port = g_value_get_uint (value);
     break;
+  case PROP_STATE:
+    self->state = g_value_get_enum (value);
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
     break;
@@ -364,6 +368,9 @@ teleport_avahi_get_property (GObject    *object,
     break;
   case PROP_PORT:
     g_value_set_uint (value, self->port);
+    break;
+  case PROP_STATE:
+    g_value_set_enum (value, teleport_avahi_get_state (self));
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -488,4 +495,12 @@ teleport_avahi_set_name (TeleportAvahi *self,
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_NAME]);
 
   teleport_avahi_publish (self);
+}
+
+TeleportAvahiState
+teleport_avahi_get_state (TeleportAvahi *self)
+{
+  g_return_val_if_fail (TELEPORT_IS_AVAHI (self), TELEPORT_AVAHI_STATE_UNKNOWN);
+
+  return self->state;
 }

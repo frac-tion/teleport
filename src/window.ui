@@ -209,7 +209,6 @@
                             </attributes>
                           </object>
                         </child>
-
                       </object>
                     </child>
                     <child>
@@ -229,109 +228,80 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="selection_mode">none</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkFrame" id="remote_no_avahi">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="shadow_type">in</property>
-                            <child>
-                              <object class="GtkListBox">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="selection_mode">none</property>
-                                <child>
-                                  <object class="GtkListBoxRow">
+                                <child type="placeholder">
+                                  <object class="GtkStack" id="remote_devices_stack">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="activatable">False</property>
-                                    <property name="selectable">False</property>
+                                    <property name="homogeneous">False</property>
                                     <child>
-                                      <object class="GtkAlignment">
+                                      <object class="GtkBox">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="top_padding">50</property>
-                                        <property name="bottom_padding">50</property>
+                                        <property name="spacing">20</property>
+                                        <property name="margin_top">24</property>
+                                        <property name="margin_bottom">24</property>
+                                        <property name="orientation">vertical</property>
                                         <child>
-                                          <object class="GtkBox">
+                                          <object class="GtkLabel">
                                             <property name="visible">True</property>
-                                            <property name="spacing">20</property>
-                                            <property name="orientation">vertical</property>
-                                            <child>
-                                              <object class="GtkLabel">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="max-width-chars">40</property>
-                                                <property name="halign">center</property>
-                                                <property name="wrap">True</property>
-                                                <property name="justify">center</property>
-                                                <property name="label">The Avahi daemon is not running. You can run this command to start it now:</property>
-                                              </object>
-                                            </child>
-                                            <child>
-                                              <object class="GtkEntry">
-                                                <property name="visible">True</property>
-                                                <property name="halign">center</property>
-                                                <property name="editable">False</property>
-                                                <property name="text">systemctl start avahi-daemon</property>
-                                              </object>
-                                            </child>
+                                            <property name="can_focus">False</property>
+                                            <property name="label">Searching for other devices...</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkSpinner">
+                                            <property name="visible">True</property>
+                                            <property name="active">True</property>
                                           </object>
                                         </child>
                                       </object>
+                                      <packing>
+                                        <property name="name">normal</property>
+                                      </packing>
                                     </child>
-                                  </object>
-                                </child>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkFrame" id="remote_no_devices">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="shadow_type">in</property>
-                            <child>
-                              <object class="GtkListBox">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="selection_mode">none</property>
-                                <child>
-                                  <object class="GtkListBoxRow">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="activatable">False</property>
-                                    <property name="selectable">False</property>
                                     <child>
-                                      <object class="GtkAlignment">
+                                      <object class="GtkBox">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="top_padding">50</property>
-                                        <property name="bottom_padding">50</property>
+                                        <property name="spacing">20</property>
+                                        <property name="margin_top">24</property>
+                                        <property name="margin_bottom">24</property>
+                                        <property name="orientation">vertical</property>
                                         <child>
-                                          <object class="GtkBox">
+                                          <object class="GtkLabel">
                                             <property name="visible">True</property>
-                                            <property name="spacing">20</property>
-                                            <property name="orientation">vertical</property>
-                                            <child>
-                                              <object class="GtkLabel">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="label">Searching for other devices...</property>
-                                              </object>
-                                            </child>
-                                            <child>
-                                              <object class="GtkSpinner">
-                                                <property name="visible">True</property>
-                                                <property name="active">True</property>
-                                              </object>
-                                            </child>
+                                            <property name="can_focus">False</property>
+                                            <property name="max-width-chars">40</property>
+                                            <property name="halign">center</property>
+                                            <property name="wrap">True</property>
+                                            <property name="justify">center</property>
+                                            <property name="label">The Avahi daemon is not running. You can run this command to start it now:</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkEntry">
+                                            <property name="visible">True</property>
+                                            <property name="halign">center</property>
+                                            <property name="editable">False</property>
+                                            <property name="text">systemctl start avahi-daemon</property>
                                           </object>
                                         </child>
                                       </object>
+                                      <packing>
+                                        <property name="name">no-avahi-daemon</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="max-width-chars">40</property>
+                                        <property name="halign">center</property>
+                                        <property name="wrap">True</property>
+                                        <property name="justify">center</property>
+                                        <property name="label">Can't look for other devices, because there wasa problem with the Avahi daemon.</property>
+                                      </object>
+                                      <packing>
+                                        <property name="name">unknown-error</property>
+                                      </packing>
                                     </child>
                                   </object>
                                 </child>
@@ -343,7 +313,6 @@
                     </child>
                   </object>
                 </child>
-
               </object>
             </child>
           </object>
@@ -355,7 +324,6 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="show_close_button">True</property>
-        <property name="decoration_layout">:close</property>
         <property name="title" translatable="yes">Teleport</property>
         <child>
           <object class="GtkSwitch" id="visible-on-network-switch">

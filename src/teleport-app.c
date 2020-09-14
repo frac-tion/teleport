@@ -57,10 +57,6 @@ static void teleport_app_quit           (GSimpleAction        *simple,
                                          GVariant             *parameter,
                                          gpointer              user_data);
 
-enum {
-  NOTIFY_USER, NOTIFY_FINISED, N_SIGNALS
-};
-
 static const GActionEntry app_entries[] =
 {
     { "save", save_file_callback, "s", NULL, NULL },
@@ -72,13 +68,11 @@ static const GActionEntry app_entries[] =
     { "quit",   teleport_app_quit }
 };
 
-static gint signalIds [N_SIGNALS];
-
 struct _TeleportApp {
   GtkApplication        parent;
 
   GSettings      *settings;
-  GtkWidget      *window;
+  TeleportWindow *window;
   TeleportServer *server;
   TeleportAvahi  *avahi;
   GListStore     *peer_list;
@@ -240,13 +234,36 @@ recived_file_cb (TeleportApp *self,
   create_user_notification (self, file, peer);
 }
 
-void
+static void
+avahi_state_changed_cb (TeleportApp *self)
+{
+  TeleportAvahiState state = teleport_avahi_get_state (self->avahi);
+
+  /* TODO: handle all errors separatly */
+  switch (state) {
+  case TELEPORT_AVAHI_STATE_UNKNOWN:
+  case TELEPORT_AVAHI_STATE_ERROR:
+  case TELEPORT_AVAHI_STATE_NAME_COLLISION:
+    teleport_window_set_view (self->window, "unknown-error");
+    break;
+  case TELEPORT_AVAHI_STATE_NEW:
+  case TELEPORT_AVAHI_STATE_RUNNING:
+    teleport_window_set_view (self->window, "normal");
+    break;
+    break;
+  case TELEPORT_AVAHI_STATE_NO_DEAMON:
+    teleport_window_set_view (self->window, "no-avahi-daemon");
+    break;
+  }
+}
+
+static void
 teleport_app_add_peer (TeleportApp *self, TeleportPeer *peer) {
   g_list_store_append (self->peer_list, peer);
   teleport_server_add_peer (self->server, peer);
 }
 
-void
+static void
 teleport_app_remove_peer (TeleportApp *self, TeleportPeer *peer) {
   guint position = 0;
 
@@ -292,7 +309,6 @@ static void
 teleport_app_startup (GApplication *application) {
   TeleportApp *self = TELEPORT_APP (application);
   g_autoptr(GtkCssProvider) provider = NULL;
-  TeleportWindow *window;
   TeleportPeer *dummy_peer;
   const gchar *quit_accels[] = { "<Primary>q", NULL };
 
@@ -321,6 +337,7 @@ teleport_app_startup (GApplication *application) {
   self->server = teleport_server_new (3000);
   self->avahi = teleport_avahi_new (get_device_name (self), 3000);
   g_signal_connect_swapped (self->server, "recived_file", G_CALLBACK (recived_file_cb), self);
+  g_signal_connect_swapped (self->avahi, "notify::state", G_CALLBACK (avahi_state_changed_cb), self);
   g_signal_connect_swapped (self->avahi, "new-device", G_CALLBACK (teleport_app_add_peer), self);
   g_signal_connect_swapped (self->avahi,
                             "device-disappeared",
@@ -337,9 +354,8 @@ teleport_app_startup (GApplication *application) {
   teleport_app_add_peer (self, dummy_peer);
 
   /* window */
-  window = teleport_window_new (self);
-  teleport_window_bind_device_list (window, self->peer_list);
-  self->window = GTK_WIDGET (window);
+  self->window = teleport_window_new (self);
+  teleport_window_bind_device_list (self->window, self->peer_list);
 
   teleport_avahi_start (self->avahi);
 }
@@ -348,7 +364,7 @@ static void
 teleport_app_activate (GApplication *application) {
   TeleportApp *self = TELEPORT_APP (application);
 
-  gtk_widget_show (self->window);
+  gtk_widget_show (GTK_WIDGET (self->window));
   gtk_window_present (GTK_WINDOW (self->window));
 }
 
@@ -360,6 +376,7 @@ teleport_app_finalize (GObject *object)
   g_clear_object (&self->settings);
   g_clear_object (&self->peer_list);
   g_clear_object (&self->window);
+  g_hash_table_destroy (self->files);
 
   G_OBJECT_CLASS (teleport_app_parent_class)->finalize (object);
 }
@@ -371,17 +388,6 @@ teleport_app_class_init (TeleportAppClass *class)
   G_APPLICATION_CLASS (class)->activate = teleport_app_activate;
 
   G_OBJECT_CLASS (class)->finalize = teleport_app_finalize;
-
-  signalIds[NOTIFY_USER] = g_signal_new ("notify_user",
-                                         G_TYPE_OBJECT,
-                                         G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-                                         0,
-                                         NULL /* accumulator */,
-                                         NULL /* accumulator data */,
-                                         NULL /* C marshaller */,
-                                         G_TYPE_NONE /* return_type */,
-                                         1,
-                                         G_TYPE_STRING);
 }
 
 static void
@@ -447,8 +453,7 @@ teleport_app_quit (GSimpleAction *simple,
 {
   TeleportApp *self = TELEPORT_APP (user_data);
 
-  gtk_widget_destroy (self->window);
-  g_hash_table_destroy (self->files);
+  gtk_widget_destroy (GTK_WIDGET (self->window));
 }
 
 TeleportApp *
@@ -463,6 +468,7 @@ teleport_app_new (void)
 GSettings *
 teleport_app_get_settings (TeleportApp *self)
 {
+  g_return_val_if_fail (TELEPORT_IS_APP (self), NULL);
   return self->settings;
 }
 

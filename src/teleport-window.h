@@ -35,5 +35,5 @@ void               teleport_window_bind_device_list (TeleportWindow    *self,
                                                      GListStore        *list);
 void               teleport_show_no_avahi_message   (TeleportWindow *,
                                                      gboolean);
-
+void teleport_window_set_view (TeleportWindow *self, const gchar *view);
 #endif /* __TELEPORT_WINDOW_H */

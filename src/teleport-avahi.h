@@ -37,5 +37,6 @@ TeleportAvahi* teleport_avahi_new (const gchar *name, guint16 port);
 
 void teleport_avahi_start (TeleportAvahi *self);
 void teleport_avahi_set_name (TeleportAvahi *self, const gchar *name);
+TeleportAvahiState teleport_avahi_get_state (TeleportAvahi *self);
 
 #endif /* __TELEPORT_AVAHI_H */
