@@ -31,13 +31,13 @@ struct _TeleportWindow
 {
   GtkApplicationWindow parent;
 
-  GtkWidget *gears;
   GtkStack  *this_device_stack;
   GtkButton *this_device_submit_button;
   GtkWidget *this_device_name_label;
   GtkEntry  *this_device_name_entry;
   GtkWidget *remote_devices_stack;
   GtkWidget *remote_devices;
+  GtkFileChooserButton *settings_download_directory;
 };
 
 G_DEFINE_TYPE (TeleportWindow, teleport_window, GTK_TYPE_APPLICATION_WINDOW)
@@ -45,7 +45,7 @@ G_DEFINE_TYPE (TeleportWindow, teleport_window, GTK_TYPE_APPLICATION_WINDOW)
 static GSettings *
 get_settings (TeleportWindow *self)
 {
-  TeleportApp *app = TELEPORT_APP (gtk_window_get_application (GTK_WINDOW (self)));
+  TeleportApp *app = TELEPORT_APP (g_application_get_default());
   return teleport_app_get_settings (app);
 }
 
@@ -114,22 +114,15 @@ update_download_directory (GSettings    *settings,
 }
 
 static void
-teleport_window_init (TeleportWindow *self)
+teleport_window_constructed (GObject *object)
 {
-  g_autoptr (GtkBuilder) builder = NULL;
-  GtkWidget *menu;
-  GtkFileChooser *download_directory;
-  GApplication *app = g_application_get_default ();
-  GSettings *settings = teleport_app_get_settings (TELEPORT_APP (app));
+  TeleportWindow *self;
+  GSettings *settings;
 
-  gtk_widget_init_template (GTK_WIDGET (self));
+  G_OBJECT_CLASS (teleport_window_parent_class)->constructed (object);
 
-  builder = gtk_builder_new_from_resource ("/com/frac_tion/teleport/settings.ui");
-  menu = GTK_WIDGET (gtk_builder_get_object (builder, "settings"));
-  download_directory = GTK_FILE_CHOOSER (gtk_builder_get_object (builder, 
-                                                                 "settings_download_directory"));
-
-  gtk_menu_button_set_popover (GTK_MENU_BUTTON (self->gears), menu);
+  self = TELEPORT_WINDOW (object);
+  settings = get_settings (self);
 
   g_settings_bind (settings,
                    "device-name",
@@ -137,29 +130,44 @@ teleport_window_init (TeleportWindow *self)
                    "label",
                    G_SETTINGS_BIND_GET);
 
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (download_directory),
-                                       g_settings_get_string(settings,
-                                                             "download-dir"));
+  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (self->settings_download_directory),
+                                       g_settings_get_string(settings, "download-dir"));
 
-  g_signal_connect (download_directory, "file-set", G_CALLBACK (change_download_directory_cb), settings);
-  g_signal_connect (settings, "changed", G_CALLBACK (update_download_directory), download_directory);
+  g_signal_connect (self->settings_download_directory,
+                    "file-set",
+                    G_CALLBACK (change_download_directory_cb),
+                    settings);
+
+  g_signal_connect (settings,
+                    "changed",
+                    G_CALLBACK (update_download_directory),
+                    self->settings_download_directory);
+}
+
+static void
+teleport_window_init (TeleportWindow *self)
+{
+  gtk_widget_init_template (GTK_WIDGET (self));
 }
 
 static void
 teleport_window_class_init (TeleportWindowClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->constructed = teleport_window_constructed;
 
   gtk_widget_class_set_template_from_resource (widget_class,
                                                "/com/frac_tion/teleport/window.ui");
 
-  gtk_widget_class_bind_template_child (widget_class, TeleportWindow, gears);
   gtk_widget_class_bind_template_child (widget_class, TeleportWindow, this_device_name_label);
   gtk_widget_class_bind_template_child (widget_class, TeleportWindow, this_device_name_entry);
   gtk_widget_class_bind_template_child (widget_class, TeleportWindow, this_device_submit_button);
   gtk_widget_class_bind_template_child (widget_class, TeleportWindow, this_device_stack);
   gtk_widget_class_bind_template_child (widget_class, TeleportWindow, remote_devices);
   gtk_widget_class_bind_template_child (widget_class, TeleportWindow, remote_devices_stack);
+  gtk_widget_class_bind_template_child (widget_class, TeleportWindow, settings_download_directory);
   gtk_widget_class_bind_template_callback (widget_class, edit_clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, edit_submit_clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, edit_device_name_changed_cb);
