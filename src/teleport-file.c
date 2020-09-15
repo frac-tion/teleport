@@ -37,6 +37,9 @@ struct _TeleportFile {
   
   TeleportFileState state;
 
+  SoupSession *session;
+  SoupMessage *msg;
+
   /* Files is only set when this TeleportFile is a dicontary */ 
   /* TODO: allow sending files GList *subfiles; */
 };
@@ -393,19 +396,24 @@ get_file_cb (SoupSession *session,
     teleport_file_set_progress (file, 1.0);
     g_print ("Finished downloading file: %s\n", soup_status_get_phrase (msg->status_code));
     teleport_file_set_state (file, TELEPORT_FILE_STATE_FINISH);
+  } else if (msg->status_code == SOUP_STATUS_CANCELLED) {
+    teleport_file_set_state (file, TELEPORT_FILE_STATE_CANCELLED);
   } else {
     teleport_file_set_state (file, TELEPORT_FILE_STATE_ERROR);
   }
+
+  g_clear_object (&file->msg);
 }
 
 void
-teleport_file_download (TeleportFile *file, gchar *download_folder)
+teleport_file_download (TeleportFile *file, SoupSession *session, gchar *download_folder)
 {
-  g_autoptr (SoupSession) session = NULL; 
-  SoupMessage *msg = NULL;
   g_autoptr (GError) error = NULL;
   g_autoptr (GFile) destination_file = NULL;
   GFileIOStream *io_stream = NULL;
+
+  g_return_if_fail (TELEPORT_IS_FILE (file));
+  g_return_if_fail (SOUP_IS_SESSION (session));
 
   destination_file = g_file_new_build_filename (download_folder, teleport_file_get_destination_path (file), NULL);
   io_stream = g_file_create_readwrite (destination_file, G_FILE_CREATE_PRIVATE, NULL, &error);
@@ -416,18 +424,29 @@ teleport_file_download (TeleportFile *file, gchar *download_folder)
     return;
   }
 
-  session = soup_session_new ();
-
-  msg = soup_message_new ("GET", teleport_file_get_source_path (file));
-  soup_message_set_flags (msg, SOUP_MESSAGE_NO_REDIRECT);
-  soup_message_body_set_accumulate (msg->response_body, FALSE);
+  file->msg = soup_message_new ("GET", teleport_file_get_source_path (file));
+  soup_message_set_flags (file->msg, SOUP_MESSAGE_NO_REDIRECT);
+  soup_message_body_set_accumulate (file->msg->response_body, FALSE);
 
   teleport_file_set_progress (file, 0.0);
 
-  g_signal_connect (msg, "got-chunk", G_CALLBACK (got_chunk_cb), io_stream);
-  g_signal_connect (msg, "got-body", G_CALLBACK (got_body_cb), io_stream);
-  g_signal_connect_swapped (msg, "got-chunk", G_CALLBACK (progress_cb), file);
+  g_signal_connect (file->msg, "got-chunk", G_CALLBACK (got_chunk_cb), io_stream);
+  g_signal_connect (file->msg, "got-body", G_CALLBACK (got_body_cb), io_stream);
+  g_signal_connect_swapped (file->msg, "got-chunk", G_CALLBACK (progress_cb), file);
 
   teleport_file_set_state (file, TELEPORT_FILE_STATE_TRANSFAIR);
-  soup_session_queue_message (session, msg, (SoupSessionCallback) get_file_cb, file);
+  soup_session_queue_message (session, g_object_ref (file->msg), (SoupSessionCallback) get_file_cb, file);
+}
+
+void
+teleport_file_cancel_transfer (TeleportFile *file, SoupSession *session)
+{
+  g_return_if_fail (TELEPORT_IS_FILE (file));
+  g_return_if_fail (SOUP_IS_SESSION (session));
+
+  if (file->msg != NULL) {
+    soup_session_cancel_message (session,
+                                 file->msg,
+                                 SOUP_STATUS_CANCELLED);
+  }
 }

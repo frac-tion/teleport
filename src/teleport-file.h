@@ -20,6 +20,7 @@
 #define __TELEPORT_FILE_H
 
 #include <gtk/gtk.h>
+#include <libsoup/soup.h>
 
 #define TELEPORT_TYPE_FILE teleport_file_get_type ()
 G_DECLARE_FINAL_TYPE (TeleportFile, teleport_file, TELEPORT, FILE, GObject)
@@ -30,6 +31,7 @@ typedef enum {
   TELEPORT_FILE_STATE_TRANSFAIR,
   TELEPORT_FILE_STATE_FINISH,
   TELEPORT_FILE_STATE_REJECT,
+  TELEPORT_FILE_STATE_CANCELLED,
   TELEPORT_FILE_STATE_ERROR
 } TeleportFileState;
 
@@ -56,6 +58,9 @@ TeleportFileState teleport_file_get_state (TeleportFile *self);
 void teleport_file_set_state (TeleportFile *self,
                               TeleportFileState state);
 void teleport_file_download (TeleportFile *file,
+                             SoupSession  *session,
                              gchar *download_directory);
+void teleport_file_cancel_transfer (TeleportFile *file,
+                                    SoupSession  *session);
 
 #endif /* __TELEPORT_FILE_H */

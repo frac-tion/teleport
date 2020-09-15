@@ -43,11 +43,13 @@ static void open_file_callback          (GSimpleAction *simple,
                                          GVariant      *parameter,
                                          gpointer       user_data);
 
+static void cancel_download_callback    (GSimpleAction *simple,
+                                         GVariant      *parameter,
+                                         gpointer       user_data);
 
 static void open_folder_callback        (GSimpleAction        *simple,
                                          GVariant             *parameter,
                                          gpointer              user_data);
-
 
 static void teleport_app_show_about     (GSimpleAction        *simple,
                                          GVariant             *parameter,
@@ -62,6 +64,7 @@ static const GActionEntry app_entries[] =
     { "save", save_file_callback, "s", NULL, NULL },
     { "decline", do_nothing_callback, "s", NULL, NULL },
     { "do-nothing", do_nothing_callback, "s", NULL, NULL },
+    { "cancel-download", cancel_download_callback, "s", NULL, NULL },
     { "open-file", open_file_callback, "s", NULL, NULL },
     { "open-folder", open_folder_callback, "s", NULL, NULL },
     { "about", teleport_app_show_about },
@@ -77,6 +80,8 @@ struct _TeleportApp {
   TeleportAvahi  *avahi;
   GListStore     *peer_list;
   GHashTable     *files;
+
+  SoupSession    *soup_session;
 };
 
 G_DEFINE_TYPE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION)
@@ -124,6 +129,23 @@ create_finished_notification (const char *origin, const int filesize, const char
   g_object_unref (notification);
 }
 */
+
+static void cancel_download_callback    (GSimpleAction *simple,
+                                         GVariant      *parameter,
+                                         gpointer       user_data)
+{
+  TeleportApp *self;
+  TeleportFile *file;
+  const gchar *file_id;
+
+  self = TELEPORT_APP (user_data);
+  file_id = g_variant_get_string (parameter, NULL);
+  file = g_hash_table_lookup (self->files, file_id);
+
+  if (TELEPORT_IS_FILE (file)) {
+    teleport_file_cancel_transfer (file, self->soup_session);
+  }
+}
  
 static void
 save_file_callback (GSimpleAction *simple,
@@ -141,7 +163,7 @@ save_file_callback (GSimpleAction *simple,
   if (TELEPORT_IS_FILE (file)) {
     g_print ("The file will be downloaded and saved.\n");
     download_directory = teleport_get_download_directory (self);
-    teleport_file_download (file, download_directory);
+    teleport_file_download (file, self->soup_session, download_directory);
   }
 }
 
@@ -336,6 +358,7 @@ teleport_app_startup (GApplication *application) {
   /* TODO: randomize the server port */
   self->server = teleport_server_new (3000);
   self->avahi = teleport_avahi_new (get_device_name (self), 3000);
+  self->soup_session = soup_session_new ();
   g_signal_connect_swapped (self->server, "recived_file", G_CALLBACK (recived_file_cb), self);
   g_signal_connect_swapped (self->avahi, "notify::state", G_CALLBACK (avahi_state_changed_cb), self);
   g_signal_connect_swapped (self->avahi, "new-device", G_CALLBACK (teleport_app_add_peer), self);
@@ -350,7 +373,7 @@ teleport_app_startup (GApplication *application) {
                    G_SETTINGS_BIND_GET);
 
   /* Add dummy devie */
-  dummy_peer = teleport_peer_new("Dummy Device", "192.168.1.57", 3000);
+  dummy_peer = teleport_peer_new("Dummy Device", "127.0.0.1", 3000);
   teleport_app_add_peer (self, dummy_peer);
 
   /* window */
@@ -376,6 +399,7 @@ teleport_app_finalize (GObject *object)
   g_clear_object (&self->settings);
   g_clear_object (&self->peer_list);
   g_clear_object (&self->window);
+  g_clear_object (&self->soup_session);
   g_hash_table_destroy (self->files);
 
   G_OBJECT_CLASS (teleport_app_parent_class)->finalize (object);

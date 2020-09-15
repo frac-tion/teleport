@@ -17,3 +17,8 @@ frame, list, border {
 .device-row, .file-row {
   margin-left: 12px; margin-right: 12px; min-height: 50px;
 }
+
+button.circular {
+ min-height: 24px;
+ min-width: 24px;
+}
