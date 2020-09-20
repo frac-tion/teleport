@@ -71,11 +71,15 @@ update_state_cb (TeleportFileRow *self,
     gtk_widget_hide (self->progressbar);
     label = g_strdup_printf ("Ready \"%s\"", teleport_file_get_destination_path (file));
     break;
+  case TELEPORT_FILE_STATE_CANCELLED:
+    gtk_stack_set_visible_child_name (GTK_STACK (self->button_stack), "finished_download");
+    gtk_widget_hide (self->progressbar);
+    label = g_strdup_printf ("Download for \"%s\" was cancelled", teleport_file_get_destination_path (file));
+    break;
   case TELEPORT_FILE_STATE_REJECT:
   case TELEPORT_FILE_STATE_ERROR:
   case TELEPORT_FILE_STATE_UNKNOWN:
   default:
-    gtk_widget_hide (GTK_WIDGET (self));
     g_print ("State is something wrong\n");
     break;
   }
