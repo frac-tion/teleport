@@ -1,4 +1,4 @@
-include: 'https://gitlab.gnome.org/GNOME/citemplates/raw/master/flatpak/flatpak_ci_initiative.yml'
+include: 'https://gitlab.gnome.org/GNOME/citemplates/-/raw/master/flatpak/flatpak_ci_initiative.yml'
 
 variables:
   GIT_SUBMODULE_STRATEGY: normal
@@ -76,16 +76,6 @@ flatpak:master:
         # are passed except the config-args because we build it ourselves
         MESON_ARGS: "-Dtracing=true -Dprofile=development"
         APP_ID: "com.frac_tion.teleport"
-
-review:
-    extends: .review
-    stage: review
-    dependencies:
-        - flatpak:master
-
-stop_review:
-    extends: .stop_review
-    stage: review
 
 flatpak:nightly:
     extends: .publish_nightly
