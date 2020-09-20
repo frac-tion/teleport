@@ -30,8 +30,8 @@ It's still early days, but we have exciting plans for the future. While Teleport
   pacman -S base-devel libsoup avahi gtk3 meson
   git clone https://gitlab.gnome.org/jsparber/teleport
   cd teleport
-  ./configure
-  sudo make install
+  meson _build
+  sudo ninja -C _build install
   teleport # or ./_build/src/teleport
 ```
 #### Ubuntu
@@ -39,9 +39,8 @@ It's still early days, but we have exciting plans for the future. While Teleport
   apt install pkg-config libsoup2.4-dev libavahi-client3 libavahi-client-dev libgtk-3-dev meson
   git clone https://gitlab.gnome.org/jsparber/teleport
   cd teleport
-  ./configure
-  make
-  sudo make install
+  meson _build
+  sudo ninja -C _build install
   teleport # or ./_build/src/teleport
 ```
 
