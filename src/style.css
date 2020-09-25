@@ -14,11 +14,37 @@ frame, list, border {
 	border-radius: 4px;
 }
 
+row {
+  padding: 0px;
+}
+
 .device-row, .file-row {
-  margin-left: 12px; margin-right: 12px; min-height: 50px;
+  padding: 0px 12px;
+  min-height: 60px;
+}
+
+.file-row {
+ border-style: solid; border-width: 1px 0px 0px 0px;
+}
+
+row:not(:last-child):not(.file-row) {
+  margin-bottom: 12px;
+}
+
+row.file-row:last-child {
+   border-bottom-left-radius: 8px;
+   -gtk-outline-bottom-left-radius: 7px;
+   border-bottom-right-radius: 8px;
+   -gtk-outline-bottom-right-radius: 7px;
+}
+
+row:not(.file-row) {
+  border-width: 1px;
+  border-radius: 8px;
+  -gtk-outline-radius: 7px;
 }
 
 button.circular {
- min-height: 24px;
- min-width: 24px;
+  min-height: 24px;
+  min-width: 24px;
 }

@@ -32,14 +32,14 @@ struct _TeleportFileRow
 {
   GtkListBoxRow  parent;
 
+  GtkWidget     *button_revealer;
   GtkWidget 	*button_stack;
   GtkWidget 	*file_label;
   GtkWidget 	*progressbar;
   GtkWidget 	*save_button;
-  GtkWidget     *decline_button;
-  GtkWidget     *cancel_button;
+  GtkWidget     *abort_button;
   GtkWidget     *open_button;
-  GtkWidget     *dismiss_button;
+  GtkWidget     *rename_button;
 
   /* data */
   TeleportFile  *file;
@@ -53,37 +53,44 @@ update_state_cb (TeleportFileRow *self,
                  TeleportFile *file)
 {
   g_autofree gchar *label = NULL;
+  GtkWidget *button = NULL;
+  gboolean show_progressbar = FALSE;
 
   g_print ("Update_file state \n");
 
   switch (teleport_file_get_state (file)) {
   case TELEPORT_FILE_STATE_NEW:
-    gtk_stack_set_visible_child_name (GTK_STACK (self->button_stack), "incoming_file");
+    button = self->save_button;
     label = g_strdup_printf ("Received \"%s\"", teleport_file_get_destination_path (file));
     break;
   case TELEPORT_FILE_STATE_TRANSFAIR:
-    gtk_stack_set_visible_child_name (GTK_STACK (self->button_stack), "download_progress");
-    gtk_widget_show (self->progressbar);
+    show_progressbar = TRUE;
     label = g_strdup_printf ("Downloading \"%s\"", teleport_file_get_destination_path (file));
     break;
   case TELEPORT_FILE_STATE_FINISH:
-    gtk_stack_set_visible_child_name (GTK_STACK (self->button_stack), "finished_download");
-    gtk_widget_hide (self->progressbar);
+    button = self->open_button;
     label = g_strdup_printf ("Ready \"%s\"", teleport_file_get_destination_path (file));
     break;
   case TELEPORT_FILE_STATE_CANCELLED:
-    gtk_stack_set_visible_child_name (GTK_STACK (self->button_stack), "finished_download");
-    gtk_widget_hide (self->progressbar);
     label = g_strdup_printf ("Download for \"%s\" was cancelled", teleport_file_get_destination_path (file));
+    break;
+  case TELEPORT_FILE_STATE_EXISTS_ALREADY:
+    button = self->rename_button;
+    label = g_strdup_printf ("The file \"%s\" exists already", teleport_file_get_destination_path (file));
     break;
   case TELEPORT_FILE_STATE_REJECT:
   case TELEPORT_FILE_STATE_ERROR:
   case TELEPORT_FILE_STATE_UNKNOWN:
   default:
     g_print ("State is something wrong\n");
+    label = g_strdup_printf ("Something went terrible wrong with file \"%s\"", teleport_file_get_destination_path (file));
     break;
   }
+
   gtk_label_set_text (GTK_LABEL (self->file_label), label);
+  gtk_revealer_set_reveal_child (GTK_REVEALER (self->button_revealer), button != NULL);
+  gtk_stack_set_visible_child (GTK_STACK (self->button_stack), button);
+  gtk_widget_set_visible (self->progressbar, show_progressbar);
 }
 
 static void
@@ -153,13 +160,13 @@ teleport_file_row_class_init (TeleportFileRowClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/com/frac_tion/teleport/file_row.ui");
   gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, button_stack);
+  gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, button_revealer);
   gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, file_label);
   gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, progressbar);
   gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, save_button);
-  gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, decline_button);
-  gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, cancel_button);
+  gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, rename_button);
+  gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, abort_button);
   gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, open_button);
-  gtk_widget_class_bind_template_child (widget_class, TeleportFileRow, dismiss_button);
 }
 
 static void
@@ -206,16 +213,13 @@ teleport_file_row_set_file (TeleportFileRow *self,
   gtk_actionable_set_action_target (GTK_ACTIONABLE (self->save_button),
                                     "s",
                                     teleport_file_get_id (self->file));
-  gtk_actionable_set_action_target (GTK_ACTIONABLE (self->decline_button),
-                                    "s",
-                                    teleport_file_get_id (self->file));
-  gtk_actionable_set_action_target (GTK_ACTIONABLE (self->cancel_button),
+  gtk_actionable_set_action_target (GTK_ACTIONABLE (self->rename_button),
                                     "s",
                                     teleport_file_get_id (self->file));
   gtk_actionable_set_action_target (GTK_ACTIONABLE (self->open_button),
                                     "s",
                                     teleport_file_get_id (self->file));
-  gtk_actionable_set_action_target (GTK_ACTIONABLE (self->dismiss_button),
+  gtk_actionable_set_action_target (GTK_ACTIONABLE (self->abort_button),
                                     "s",
                                     teleport_file_get_id (self->file));
 

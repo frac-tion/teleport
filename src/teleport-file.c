@@ -419,8 +419,7 @@ teleport_file_download (TeleportFile *file, SoupSession *session, gchar *downloa
   io_stream = g_file_create_readwrite (destination_file, G_FILE_CREATE_PRIVATE, NULL, &error);
   if (error != NULL) {
     g_warning ("Couldn't create file: %s", error->message);
-    /* TODO: show error to user and allow overriding files or rename */
-    teleport_file_set_state (file, TELEPORT_FILE_STATE_ERROR);
+    teleport_file_set_state (file, TELEPORT_FILE_STATE_EXISTS_ALREADY);
     return;
   }
 

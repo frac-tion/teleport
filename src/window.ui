@@ -2,97 +2,128 @@
 <interface>
   <requires lib="gtk" version="3.22"/>
   <requires lib="libhandy" version="1.0"/>
-  <template class="TeleportWindow" parent="GtkApplicationWindow">
+  <template class="TeleportWindow" parent="HdyApplicationWindow">
     <property name="title" translatable="yes">Teleport</property>
     <property name="default_width">650</property>
     <property name="default_height">500</property>
     <child>
-      <object class="GtkAdjustment" id="adjustment1">
-        <property name="lower">-1</property>
-        <property name="upper">1</property>
-      </object>
-      <object class="GtkAdjustment" id="adjustment11">
-        <property name="lower">-1</property>
-        <property name="upper">1</property>
-      </object>
-      <object class="GtkAdjustment" id="adjustment4">
-        <property name="lower">100</property>
-        <property name="upper">1000</property>
-        <property name="value">400</property>
-        <property name="step_increment">100</property>
-        <property name="page_increment">100</property>
-      </object>
-      <object class="GtkScrolledWindow" id="scrolled-window">
+      <object class="GtkBox">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="shadow_type">none</property>
-        <property name="hscrollbar_policy">never</property>
+        <property name="orientation">vertical</property>
         <child>
-          <object class="HdyClamp">
+          <object class="HdyHeaderBar" id="header">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="maximum-size">600</property>
+            <property name="show_close_button">True</property>
+            <property name="title" translatable="yes">Teleport</property>
             <child>
-              <object class="GtkBox" id="general-container">
+              <object class="GtkSwitch" id="visible-on-network-switch">
+                <property name="visible">False</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="pack_type">end</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="visible-on-network-label">
+                <property name="visible">False</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Visible on network</property>
+              </object>
+              <packing>
+                <property name="pack_type">end</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkMenuButton" id="gears">
+                <property name="visible">True</property>
+                <property name="direction">none</property>
+                <property name="use-popover">True</property>
+                <property name="popover">settings</property>
+                <style>
+                  <class name="image-button"/>
+                </style>
+              </object>
+              <packing>
+                <property name="pack-type">end</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scrolled-window">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="expand">True</property>
+            <property name="shadow_type">none</property>
+            <property name="hscrollbar_policy">never</property>
+            <child>
+              <object class="HdyClamp">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="margin_top">12</property>
-                <property name="margin_bottom">12</property>
-                <property name="margin_left">24</property>
-                <property name="margin_right">24</property>
-                <property name="orientation">vertical</property>
+                <property name="maximum-size">600</property>
                 <child>
-                  <object class="GtkFrame" id="general-frame">
+                  <object class="GtkBox" id="general-container">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="shadow_type">in</property>
                     <property name="margin_top">12</property>
                     <property name="margin_bottom">12</property>
-                    <property name="shadow_type">none</property>
-                    <child type="label">
-                      <object class="GtkBox">
-                        <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
-                        <child>
-                          <object class="GtkLabel" id="this-device-label">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="halign">start</property>
-                            <property name="label" translatable="yes">This device</property>
-                            <attributes>
-                              <attribute name="weight" value="bold"/>
-                            </attributes>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="halign">start</property>
-                            <property name="margin_top">6</property>
-                            <property name="label" translatable="yes">How your device appears to others</property>
-                            <style>
-                              <class name="dim-label"/>
-                            </style>
-                            <attributes>
-                              <attribute name="scale" value="0.9"/>
-                            </attributes>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="margin_left">24</property>
+                    <property name="margin_right">24</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkFrame" id="general-frame-listbox">
+                      <object class="GtkFrame" id="general-frame">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="margin_top">6</property>
-                        <property name="margin_bottom">6</property>
                         <property name="shadow_type">in</property>
+                        <property name="margin_top">12</property>
+                        <property name="margin_bottom">12</property>
+                        <property name="shadow_type">none</property>
+                        <child type="label">
+                          <object class="GtkBox">
+                            <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkLabel" id="this-device-label">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="halign">start</property>
+                                <property name="label" translatable="yes">This device</property>
+                                <attributes>
+                                  <attribute name="weight" value="bold"/>
+                                </attributes>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="halign">start</property>
+                                <property name="margin_top">6</property>
+                                <property name="label" translatable="yes">How your device appears to others</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                                <attributes>
+                                  <attribute name="scale" value="0.9"/>
+                                </attributes>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
                         <child>
                           <object class="GtkListBox" id="this-device-listbox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="selection_mode">none</property>
+                            <property name="margin_top">6</property>
+                            <style>
+                              <class name="content"/>
+                            </style>
                             <child>
                               <object class="GtkListBoxRow" id="this-device-row">
                                 <property name="visible">True</property>
@@ -135,7 +166,7 @@
                                               <object class="GtkImage">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
-                                                <property name="icon_name">edit-symbolic</property>
+                                                <property name="icon_name">document-edit-symbolic</property>
                                               </object>
                                             </child>
                                           </object>
@@ -199,65 +230,61 @@
                         </child>
                       </object>
                     </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkFrame" id="remote-devices-frame">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="margin_top">12</property>
-                    <property name="margin_bottom">12</property>
-                    <property name="shadow_type">none</property>
-                    <property name="label_yalign">0.45</property>
-                    <child type="label">
-                      <object class="GtkBox">
-                        <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
-                        <child>
-                          <object class="GtkLabel" id="remote-devices-network-label">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="xalign">0</property>
-                            <property name="label" translatable="yes">Other devices on the local network</property>
-                            <attributes>
-                              <attribute name="weight" value="bold"/>
-                            </attributes>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="halign">start</property>
-                            <property name="margin_top">6</property>
-                            <property name="label" translatable="yes">Drag and drop files on devices to send them</property>
-                            <style>
-                              <class name="dim-label"/>
-                            </style>
-                            <attributes>
-                              <attribute name="scale" value="0.9"/>
-                            </attributes>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
                     <child>
-                      <object class="GtkBox">
+                      <object class="GtkFrame" id="remote-devices-frame">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="spacing">6</property>
-                        <property name="margin_top">6</property>
-                        <property name="orientation">vertical</property>
+                        <property name="margin_top">12</property>
+                        <property name="margin_bottom">12</property>
+                        <property name="shadow_type">none</property>
+                        <property name="label_yalign">0.45</property>
+                        <child type="label">
+                          <object class="GtkBox">
+                            <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkLabel" id="remote-devices-network-label">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">Other devices on the local network</property>
+                                <attributes>
+                                  <attribute name="weight" value="bold"/>
+                                </attributes>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="halign">start</property>
+                                <property name="margin_top">6</property>
+                                <property name="label" translatable="yes">Drag and drop files on devices to send them</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                                <attributes>
+                                  <attribute name="scale" value="0.9"/>
+                                </attributes>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
                         <child>
-                          <object class="GtkFrame">
+                          <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="shadow_type">in</property>
+                            <property name="spacing">6</property>
+                            <property name="margin_top">6</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <object class="GtkListBox" id="remote_devices">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="selection_mode">none</property>
+                                <style>
+                                  <class name="content"/>
+                                </style>
                                 <child type="placeholder">
                                   <object class="GtkStack" id="remote_devices_stack">
                                     <property name="visible">True</property>
@@ -346,50 +373,6 @@
               </object>
             </child>
           </object>
-        </child>
-      </object>
-    </child>
-    <child type="titlebar">
-      <object class="GtkHeaderBar" id="header">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="show_close_button">True</property>
-        <property name="title" translatable="yes">Teleport</property>
-        <child>
-          <object class="GtkSwitch" id="visible-on-network-switch">
-            <property name="visible">False</property>
-            <property name="can_focus">False</property>
-          </object>
-          <packing>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="visible-on-network-label">
-            <property name="visible">False</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Visible on network</property>
-          </object>
-          <packing>
-            <property name="pack_type">end</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkMenuButton" id="gears">
-            <property name="visible">True</property>
-            <property name="direction">none</property>
-            <property name="use-popover">True</property>
-            <property name="popover">settings</property>
-            <style>
-              <class name="image-button"/>
-            </style>
-          </object>
-          <packing>
-            <property name="pack-type">end</property>
-            <property name="position">0</property>
-          </packing>
         </child>
       </object>
     </child>
@@ -646,5 +629,4 @@
       </object>
     </child>
   </object>
-
 </interface>

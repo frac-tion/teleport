@@ -29,7 +29,7 @@
 
 struct _TeleportWindow
 {
-  GtkApplicationWindow parent;
+  HdyApplicationWindow parent;
 
   GtkStack  *this_device_stack;
   GtkButton *this_device_submit_button;
@@ -40,7 +40,7 @@ struct _TeleportWindow
   GtkFileChooserButton *settings_download_directory;
 };
 
-G_DEFINE_TYPE (TeleportWindow, teleport_window, GTK_TYPE_APPLICATION_WINDOW)
+G_DEFINE_TYPE (TeleportWindow, teleport_window, HDY_TYPE_APPLICATION_WINDOW)
 
 static GSettings *
 get_settings (TeleportWindow *self)

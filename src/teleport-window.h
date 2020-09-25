@@ -28,7 +28,7 @@ G_DECLARE_FINAL_TYPE (TeleportWindow,
                       teleport_window, 
                       TELEPORT, 
                       WINDOW, 
-                      GtkApplicationWindow)
+                      HdyApplicationWindow)
 
 TeleportWindow     *teleport_window_new             (TeleportApp       *app);
 void               teleport_window_bind_device_list (TeleportWindow    *self,

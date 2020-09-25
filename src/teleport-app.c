@@ -64,7 +64,7 @@ static const GActionEntry app_entries[] =
     { "save", save_file_callback, "s", NULL, NULL },
     { "decline", do_nothing_callback, "s", NULL, NULL },
     { "do-nothing", do_nothing_callback, "s", NULL, NULL },
-    { "cancel-download", cancel_download_callback, "s", NULL, NULL },
+    { "abort-file", cancel_download_callback, "s", NULL, NULL },
     { "open-file", open_file_callback, "s", NULL, NULL },
     { "open-folder", open_folder_callback, "s", NULL, NULL },
     { "about", teleport_app_show_about },
@@ -373,7 +373,13 @@ teleport_app_startup (GApplication *application) {
                    G_SETTINGS_BIND_GET);
 
   /* Add dummy devie */
-  dummy_peer = teleport_peer_new("Dummy Device", "127.0.0.1", 3000);
+  dummy_peer = teleport_peer_new("Angela's Laptop", "127.0.0.1", 3000);
+  teleport_app_add_peer (self, dummy_peer);
+
+  dummy_peer = teleport_peer_new("Julian's Librem5", "127.0.0.1", 3000);
+  teleport_app_add_peer (self, dummy_peer);
+
+  dummy_peer = teleport_peer_new("Paolo's Thinkpad", "127.0.0.1", 3000);
   teleport_app_add_peer (self, dummy_peer);
 
   /* window */
