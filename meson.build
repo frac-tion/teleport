@@ -150,20 +150,17 @@ glib_dep = dependency('glib-2.0', version: '>= 2.43.4')
 json_glib_dep = dependency('json-glib-1.0', version: '>= 1.4.4')
 gtk_dep = dependency('gtk+-3.0', version: '>= 3.22.0')
 
-libhandy_dep = dependency('libhandy-1.0', version: '>= 0.90.0', required: false)
-if not libhandy_dep.found()
-  libhandy = subproject(
-    'libhandy',
-    default_options: [
-      'examples=false',
-      'glade_catalog=disabled',
-      'introspection=disabled',
-      'tests=false',
-      'vapi=false',
+libhandy_dep = dependency('libhandy-1',
+  version: '>=1.0.0',
+  fallback: ['libhandy', 'libhandy_dep'],
+  default_options: [
+    'examples=false',
+    'glade_catalog=disabled',
+    'introspection=disabled',
+    'tests=false',
+    'vapi=false',
     ]
   )
-  libhandy_dep = libhandy.get_variable('libhandy_dep')
-endif
 
 teleport_deps = [
   glib_dep,
