@@ -190,8 +190,8 @@ teleport_server_new (guint port) {
   g_autoptr(GError) error = NULL;
   
   self = g_object_new (TELEPORT_TYPE_SERVER,
-                              SOUP_SERVER_SERVER_HEADER, "teleport-httpd ",
-                              NULL);
+                       SOUP_SERVER_SERVER_HEADER, "teleport-httpd ",
+                       NULL);
 
   /* add handler for incoming files */
   soup_server_add_handler (SOUP_SERVER (self),

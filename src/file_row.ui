@@ -54,7 +54,6 @@
             <property name="position">0</property>
           </packing>
         </child>
-
         <child>
           <object class="GtkRevealer" id="button_revealer">
             <property name="visible">True</property>
@@ -88,19 +87,10 @@
                     <property name="halign">center</property>
                     <property name="valign">center</property>
                     <property name="action_name">app.open-file</property>
+                    <style>
+                      <class name="list-button"/>
+                    </style>
                   </object>
-                </child>
-                <child>
-                  <object class="GtkButton" id="rename_button">
-                    <property name="label" translatable="yes">Rename file</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="halign">center</property>
-                    <property name="valign">center</property>
-                    <property name="action_name">app.rename-file</property>
-                  </object>
-
                 </child>
               </object>
             </child>
@@ -126,7 +116,7 @@
               <object class="GtkImage">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="icon_name">process-stop-symbolic</property>
+                <property name="icon_name">edit-delete-symbolic</property>
               </object>
             </child>
           </object>

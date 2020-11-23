@@ -35,10 +35,6 @@ static void save_file_callback          (GSimpleAction *simple,
                                          GVariant      *parameter,
                                          gpointer       user_data);
 
-static void do_nothing_callback         (GSimpleAction *simple,
-                                         GVariant      *parameter,
-                                         gpointer       user_data);
-
 static void open_file_callback          (GSimpleAction *simple,
                                          GVariant      *parameter,
                                          gpointer       user_data);
@@ -62,8 +58,6 @@ static void teleport_app_quit           (GSimpleAction        *simple,
 static const GActionEntry app_entries[] =
 {
     { "save", save_file_callback, "s", NULL, NULL },
-    { "decline", do_nothing_callback, "s", NULL, NULL },
-    { "do-nothing", do_nothing_callback, "s", NULL, NULL },
     { "abort-file", cancel_download_callback, "s", NULL, NULL },
     { "open-file", open_file_callback, "s", NULL, NULL },
     { "open-folder", open_folder_callback, "s", NULL, NULL },
@@ -87,9 +81,8 @@ struct _TeleportApp {
 G_DEFINE_TYPE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION)
 
 static void
-create_user_notification (TeleportApp *self,
-                          TeleportFile *file,
-                          TeleportPeer *device)
+incoming_file_notification (TeleportFile *file,
+                            TeleportPeer *device)
 {
   g_autoptr (GNotification) notification;
   GVariant *target;
@@ -104,35 +97,37 @@ create_user_notification (TeleportApp *self,
                                            teleport_file_get_destination_path(file),
                                            g_format_size (teleport_file_get_size(file))));
 
-  g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
-  g_notification_add_button_with_target_value (notification, "Decline", "app.decline", target);
+  g_notification_add_button_with_target_value (notification, "Decline", "app.abort-file", target);
   g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
-  g_application_send_notification (G_APPLICATION (self), notification_id, notification);
-  g_hash_table_insert (self->files, g_strdup (notification_id), file);
+  g_application_send_notification (g_application_get_default (), notification_id, notification);
 }
 
-/*
-void
-create_finished_notification (const char *origin, const int filesize, const char *filename, GVariant *target) {
-  GNotification *notification = g_notification_new ("Teleport");
+static void
+file_ready_notification (TeleportFile *file,
+                         TeleportPeer *device)
+{
+  g_autoptr (GNotification) notification;
+  GVariant *target;
+  const gchar *notification_id;
 
+  notification = g_notification_new ("Teleport");
+  notification_id = teleport_file_get_id (file);
+  target = g_variant_new_string (notification_id);
   g_notification_set_body (notification,
                            g_strdup_printf("Transfer of %s from %s is complete", 
-                                           filename,
-                                           teleport_peer_get_name_by_addr (self->peerList, origin)));
-  g_notification_set_default_action_and_target_value (notification, "app.do-nothing", target);
+                                           teleport_peer_get_name(device),
+                                           teleport_peer_get_name(device)));
   g_notification_add_button_with_target_value (notification, "Show in folder", "app.open-folder", target);
   g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
-  g_application_send_notification ((GApplication *) mainApplication, NULL, notification);
-  g_object_unref (notification);
+  g_application_send_notification (g_application_get_default (), notification_id, notification);
 }
-*/
 
-static void cancel_download_callback    (GSimpleAction *simple,
-                                         GVariant      *parameter,
-                                         gpointer       user_data)
+static void
+cancel_download_callback (GSimpleAction *simple,
+                          GVariant      *parameter,
+                          gpointer       user_data)
 {
   TeleportApp *self;
   TeleportFile *file;
@@ -146,7 +141,7 @@ static void cancel_download_callback    (GSimpleAction *simple,
     teleport_file_cancel_transfer (file, self->soup_session);
   }
 }
- 
+
 static void
 save_file_callback (GSimpleAction *simple,
                     GVariant      *parameter,
@@ -168,76 +163,58 @@ save_file_callback (GSimpleAction *simple,
 }
 
 static void
-do_nothing_callback (GSimpleAction *simple,
-                     GVariant      *parameter,
-                     gpointer       user_data) {
-  g_print ("No action\n");
-}
-
-static void
 open_folder_callback (GSimpleAction *simple,
                       GVariant      *parameter,
                       gpointer       user_data)
 {
-  GDBusProxy      *proxy;
-  GVariant        *retval;
-  GVariantBuilder *builder;
-  const gchar     *uri;
-  GError **error = NULL;
-  const gchar     *path;
+  TeleportApp *self;
+  g_autofree gchar *download_directory = NULL;
 
-  path = g_strdup_printf("%s/%s",
-                         g_variant_get_string (g_variant_get_child_value (parameter, 3), NULL),
-                         g_variant_get_string (g_variant_get_child_value (parameter, 2), NULL));
+  self = TELEPORT_APP (user_data);
 
-  uri = g_filename_to_uri (path, NULL, error);
-  g_debug ("Show file: %s", uri);
+  download_directory = teleport_get_download_directory (self);
 
-  proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SESSION,
-                                         G_DBUS_PROXY_FLAGS_NONE,
-                                         NULL,
-                                         "org.freedesktop.FileManager1",
-                                         "/org/freedesktop/FileManager1",
-                                         "org.freedesktop.FileManager1",
-                                         NULL, error);
-
-  if (!proxy) {
-    g_prefix_error (error,
-                    ("Connecting to org.freedesktop.FileManager1 failed: "));
-  }
-  else {
-
-    builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-    g_variant_builder_add (builder, "s", uri);
-
-    retval = g_dbus_proxy_call_sync (proxy,
-                                     "ShowItems",
-                                     g_variant_new ("(ass)",
-                                                    builder,
-                                                    ""),
-                                     G_DBUS_CALL_FLAGS_NONE,
-                                     -1, NULL, error);
-
-    g_variant_builder_unref (builder);
-    g_object_unref (proxy);
-
-    if (!retval)
-      {
-        g_prefix_error (error, ("Calling ShowItems failed: "));
-      }
-    else
-      g_variant_unref (retval);
-  }
+  gtk_show_uri_on_window (GTK_WINDOW (self->window),
+                          g_filename_to_uri (download_directory, NULL, NULL),
+                          gtk_get_current_event_time (),
+                          NULL);
 }
-
 
 static void
 open_file_callback (GSimpleAction *simple,
                     GVariant      *parameter,
                     gpointer       user_data)
 {
-  g_print ("TODO: open file");
-  //gtk_show_uri_on_window (NULL, g_filename_to_uri(path, NULL, NULL), GDK_CURRENT_TIME, NULL);
+  TeleportApp *self;
+  TeleportFile *file;
+  g_autofree gchar *download_directory = NULL;
+  g_autofree gchar *file_path = NULL;
+  g_autofree gchar *file_uri = NULL;
+  const gchar *file_id;
+
+  self = TELEPORT_APP (user_data);
+  file_id = g_variant_get_string (parameter, NULL);
+  file = g_hash_table_lookup (self->files, file_id);
+
+  if (TELEPORT_IS_FILE (file)) {
+    download_directory = teleport_get_download_directory (self);
+    file_path = g_build_filename (download_directory, teleport_file_get_destination_path (file), NULL);
+    file_uri = g_filename_to_uri (file_path, NULL, NULL);
+
+    gtk_show_uri_on_window (GTK_WINDOW (self->window),
+                            file_uri,
+                            gtk_get_current_event_time (),
+                            NULL);
+  }
+}
+
+static void
+file_state_cb (TeleportFile *file,
+               GParamSpec *pspec,
+               TeleportPeer *device) {
+  /* TODO: show notification for errors */
+  if (teleport_file_get_state (file) == TELEPORT_FILE_STATE_FINISH)
+    file_ready_notification (file, device);
 }
 
 static void
@@ -251,9 +228,10 @@ recived_file_cb (TeleportApp *self,
            teleport_file_get_destination_path (file),
            g_format_size (teleport_file_get_size (file)));
 
-
   teleport_peer_add_file (peer, file);
-  create_user_notification (self, file, peer);
+  g_hash_table_insert (self->files, g_strdup (teleport_file_get_id(file)), file);
+  incoming_file_notification (file, peer);
+  g_signal_connect (file, "notify::state", G_CALLBACK (file_state_cb), peer);
 }
 
 static void
