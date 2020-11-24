@@ -426,7 +426,6 @@ get_file_cb (SoupSession *session,
 {
   if (SOUP_STATUS_IS_SUCCESSFUL (msg->status_code)) {
     teleport_file_set_progress (file, 1.0);
-    g_print ("Finished downloading file: %s\n", soup_status_get_phrase (msg->status_code));
     teleport_file_set_state (file, TELEPORT_FILE_STATE_FINISH);
   } else if (msg->status_code == SOUP_STATUS_CANCELLED) {
     teleport_file_set_state (file, TELEPORT_FILE_STATE_CANCELLED);

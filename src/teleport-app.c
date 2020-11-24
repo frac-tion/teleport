@@ -114,7 +114,6 @@ save_file_callback (GSimpleAction *simple,
   file = g_hash_table_lookup (self->files, file_id);
 
   if (TELEPORT_IS_FILE (file)) {
-    g_print ("The file will be downloaded and saved.\n");
     download_directory = teleport_get_download_directory (self);
     teleport_file_download (file, self->soup_session, download_directory);
   }
@@ -172,11 +171,6 @@ recived_file_cb (TeleportApp *self,
                  TeleportFile *file,
                  TeleportServer *server)
 {
-  g_print ("%s is sending %s (%s)\n",
-           teleport_peer_get_name (peer),
-           teleport_file_get_destination_path (file),
-           g_format_size (teleport_file_get_size (file)));
-
   g_hash_table_insert (self->files, g_strdup (teleport_file_get_id(file)), file);
   teleport_peer_add_file (peer, file);
 }
@@ -223,14 +217,13 @@ teleport_app_remove_peer (TeleportApp *self, TeleportPeer *peer) {
 static void
 init_settings (GSettings *settings) {
   if (g_settings_get_user_value (settings, "download-dir") == NULL) {
-    g_print ("Download dir set to XDG DOWNLOAD directory\n");
     if (g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD) != NULL) {
       g_settings_set_string (settings,
                              "download-dir",
                              g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD));
     }
     else {
-      g_print ("Error: XDG DOWNLOAD is not set.\n");
+      g_warning ("Error: XDG DOWNLOAD is not set.");
     }
   }
 

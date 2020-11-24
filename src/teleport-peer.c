@@ -303,7 +303,7 @@ send_file_cb (SoupSession *session,
               SoupMessage *msg,
               TeleportFile *file)
 {
-  g_print ("File was actually send\n");
+  g_debug ("File was offered to remote device.");
 }
 
 void
@@ -325,7 +325,7 @@ teleport_peer_send_file (TeleportPeer *destination,
 
   msg = soup_message_new ("POST", teleport_peer_get_incoming_address (destination));
   data = teleport_file_serialize (file);
-  g_print ("Data: %s\n%s\n", data, teleport_peer_get_incoming_address (destination));
+  g_debug ("Will offer file to %s: %s", teleport_peer_get_incoming_address (destination), data);
   soup_message_set_request (msg,
                             "application/json",
                             SOUP_MEMORY_COPY,

@@ -56,8 +56,6 @@ update_state_cb (TeleportFileRow *self,
   GtkWidget *button = NULL;
   gboolean show_progressbar = FALSE;
 
-  g_print ("Update_file state \n");
-
   switch (teleport_file_get_state (file)) {
   case TELEPORT_FILE_STATE_NEW:
     button = self->save_button;
@@ -82,7 +80,6 @@ update_state_cb (TeleportFileRow *self,
   case TELEPORT_FILE_STATE_ERROR:
   case TELEPORT_FILE_STATE_UNKNOWN:
   default:
-    g_print ("State is something wrong\n");
     label = g_strdup_printf ("Something went terrible wrong with file \"%s\"", teleport_file_get_destination_path (file));
     break;
   }

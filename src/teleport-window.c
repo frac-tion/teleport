@@ -56,7 +56,6 @@ change_download_directory_cb (GtkWidget *widget,
   g_autofree gchar *newDownloadDir;
 
   newDownloadDir = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget));
-  g_print ("Change download directory\n");
   g_settings_set_string (settings,
                          "download-dir",
                          newDownloadDir);
