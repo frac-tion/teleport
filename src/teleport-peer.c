@@ -45,6 +45,83 @@ static GParamSpec *props[PROP_LAST_PROP];
 G_DEFINE_TYPE (TeleportPeer, teleport_peer, G_TYPE_OBJECT)
 
 static void
+incoming_file_notification (TeleportPeer *self,
+                            TeleportFile *file)
+{
+  g_autoptr (GNotification) notification;
+  GVariant *target;
+  const gchar *notification_id;
+
+  notification = g_notification_new ("Teleport");
+  notification_id = teleport_file_get_id (file);
+  target = g_variant_new_string (notification_id);
+  g_notification_set_body (notification,
+                           g_strdup_printf ("%s is sending %s (%s)",
+                                           teleport_peer_get_name (self),
+                                           teleport_file_get_destination_path (file),
+                                           g_format_size (teleport_file_get_size (file))));
+
+  g_notification_add_button_with_target_value (notification, "Decline", "app.abort-file", target);
+  g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
+  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
+  g_application_send_notification (g_application_get_default (), notification_id, notification);
+}
+
+static void
+file_ready_notification (TeleportPeer *self,
+                         TeleportFile *file)
+{
+  g_autoptr (GNotification) notification;
+  GVariant *target;
+  const gchar *notification_id;
+
+  notification = g_notification_new ("Teleport");
+  notification_id = teleport_file_get_id (file);
+  target = g_variant_new_string (notification_id);
+  g_notification_set_body (notification,
+                           g_strdup_printf ("Transfer of %s from %s is complete",
+                                            teleport_file_get_destination_path (file),
+                                            teleport_peer_get_name (self)));
+  g_notification_add_button_with_target_value (notification, "Show in folder", "app.open-folder", target);
+  g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
+  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
+  g_application_send_notification (g_application_get_default (), notification_id, notification);
+}
+
+static void
+file_state_changed_cb (TeleportPeer *self,
+                       GParamSpec   *pspec,
+                       TeleportFile *file)
+{
+  const gchar *notification_id;
+  notification_id = teleport_file_get_id (file);
+
+  switch (teleport_file_get_state (file)) {
+  case TELEPORT_FILE_STATE_TRANSFAIR:
+    g_application_withdraw_notification (g_application_get_default (), notification_id);
+    break;
+  case TELEPORT_FILE_STATE_FINISH:
+    file_ready_notification (self, file);
+    break;
+  case TELEPORT_FILE_STATE_REJECT:
+  case TELEPORT_FILE_STATE_CANCELLED:
+    teleport_peer_remove_file (self, file);
+    break;
+  case TELEPORT_FILE_STATE_UNKNOWN:
+  case TELEPORT_FILE_STATE_NEW:
+    break;
+  case TELEPORT_FILE_STATE_DESTINATION_ERROR:
+    g_debug ("The file exists already in the download folder: %s",
+              teleport_file_get_destination_path (file));
+    break;
+  case TELEPORT_FILE_STATE_ERROR:
+    g_warning ("There has been an error with a file: %s",
+               teleport_file_get_destination_path (file));
+    break;
+  }
+}
+
+static void
 teleport_peer_set_property (GObject      *object,
                             guint         property_id,
                             const GValue *value,
@@ -263,6 +340,18 @@ teleport_peer_add_file (TeleportPeer *self,
                         TeleportFile *file)
 {
   g_list_store_append (self->files, file);
+  g_signal_connect_swapped (file, "notify::state", G_CALLBACK (file_state_changed_cb), self);
+  incoming_file_notification (self, file);
+}
+
+void
+teleport_peer_remove_file (TeleportPeer *self,
+                           TeleportFile *file)
+{
+  guint position = 0;
+
+  if (g_list_store_find (self->files, file, &position))
+    g_list_store_remove (self->files, position);
 }
 
 GListStore *

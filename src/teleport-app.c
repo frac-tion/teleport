@@ -81,50 +81,6 @@ struct _TeleportApp {
 G_DEFINE_TYPE (TeleportApp, teleport_app, GTK_TYPE_APPLICATION)
 
 static void
-incoming_file_notification (TeleportFile *file,
-                            TeleportPeer *device)
-{
-  g_autoptr (GNotification) notification;
-  GVariant *target;
-  const gchar *notification_id;
-
-  notification = g_notification_new ("Teleport");
-  notification_id = teleport_file_get_id (file);
-  target = g_variant_new_string (notification_id);
-  g_notification_set_body (notification,
-                           g_strdup_printf("%s is sending %s (%s)",
-                                           teleport_peer_get_name(device),
-                                           teleport_file_get_destination_path(file),
-                                           g_format_size (teleport_file_get_size(file))));
-
-  g_notification_add_button_with_target_value (notification, "Decline", "app.abort-file", target);
-  g_notification_add_button_with_target_value (notification, "Save", "app.save", target);
-  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
-  g_application_send_notification (g_application_get_default (), notification_id, notification);
-}
-
-static void
-file_ready_notification (TeleportFile *file,
-                         TeleportPeer *device)
-{
-  g_autoptr (GNotification) notification;
-  GVariant *target;
-  const gchar *notification_id;
-
-  notification = g_notification_new ("Teleport");
-  notification_id = teleport_file_get_id (file);
-  target = g_variant_new_string (notification_id);
-  g_notification_set_body (notification,
-                           g_strdup_printf("Transfer of %s from %s is complete", 
-                                           teleport_peer_get_name(device),
-                                           teleport_peer_get_name(device)));
-  g_notification_add_button_with_target_value (notification, "Show in folder", "app.open-folder", target);
-  g_notification_add_button_with_target_value (notification, "Open", "app.open-file", target);
-  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
-  g_application_send_notification (g_application_get_default (), notification_id, notification);
-}
-
-static void
 cancel_download_callback (GSimpleAction *simple,
                           GVariant      *parameter,
                           gpointer       user_data)
@@ -139,6 +95,8 @@ cancel_download_callback (GSimpleAction *simple,
 
   if (TELEPORT_IS_FILE (file)) {
     teleport_file_cancel_transfer (file, self->soup_session);
+  } else {
+    g_warning ("Couldn't cancel download of file: %s", file_id);
   }
 }
 
@@ -209,15 +167,6 @@ open_file_callback (GSimpleAction *simple,
 }
 
 static void
-file_state_cb (TeleportFile *file,
-               GParamSpec *pspec,
-               TeleportPeer *device) {
-  /* TODO: show notification for errors */
-  if (teleport_file_get_state (file) == TELEPORT_FILE_STATE_FINISH)
-    file_ready_notification (file, device);
-}
-
-static void
 recived_file_cb (TeleportApp *self,
                  TeleportPeer *peer,
                  TeleportFile *file,
@@ -228,10 +177,8 @@ recived_file_cb (TeleportApp *self,
            teleport_file_get_destination_path (file),
            g_format_size (teleport_file_get_size (file)));
 
-  teleport_peer_add_file (peer, file);
   g_hash_table_insert (self->files, g_strdup (teleport_file_get_id(file)), file);
-  incoming_file_notification (file, peer);
-  g_signal_connect (file, "notify::state", G_CALLBACK (file_state_cb), peer);
+  teleport_peer_add_file (peer, file);
 }
 
 static void

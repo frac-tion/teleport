@@ -40,6 +40,8 @@ void teleport_peer_set_port  (TeleportPeer          *self,
 gchar *teleport_peer_get_incoming_address (TeleportPeer *self);
 void teleport_peer_add_file (TeleportPeer *self,
                              TeleportFile *file);
+void teleport_peer_remove_file (TeleportPeer *self,
+                                TeleportFile *file);
 void teleport_peer_send_file (TeleportPeer *self,
                              TeleportFile *file);
 GListStore *teleport_peer_get_files (TeleportPeer *self);

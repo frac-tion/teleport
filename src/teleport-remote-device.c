@@ -178,6 +178,7 @@ open_file_picker (TeleportRemoteDevice *self)
                                            ("_Open"),
                                            ("_Cancel"));
 
+    /* TODO: don't use gtk_native_dialog_run */
     if (gtk_native_dialog_run (GTK_NATIVE_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
       source_file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
       send_file_to_device (teleport_remote_device_get_peer (self), source_file);

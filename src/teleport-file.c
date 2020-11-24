@@ -59,6 +59,38 @@ static GParamSpec *props[PROP_LAST_PROP];
 G_DEFINE_TYPE (TeleportFile, teleport_file, G_TYPE_OBJECT)
 
 static void
+file_dialog_response_cb (TeleportFile *file,
+                         int response_id,
+                         GtkDialog *dialog)
+{
+  g_autofree gchar *destination_file = NULL;
+  if (response_id == GTK_RESPONSE_ACCEPT) {
+    destination_file = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+    teleport_file_set_destination_path (file, destination_file);
+    g_action_group_activate_action (G_ACTION_GROUP (g_application_get_default ()),
+                                    "app.save",
+                                    g_variant_new_string (teleport_file_get_id (file)));
+  }
+  gtk_native_dialog_destroy (GTK_NATIVE_DIALOG (dialog));
+}
+
+static void
+use_custom_file_name (TeleportFile *file)
+{
+  GtkFileChooserNative *dialog = NULL;
+  GtkApplication *app = GTK_APPLICATION (g_application_get_default ());
+
+  dialog =  gtk_file_chooser_native_new ("Select new destination",
+                                         gtk_application_get_active_window (app),
+                                         GTK_FILE_CHOOSER_ACTION_SAVE,
+                                         ("_Save"),
+                                         ("_Cancel"));
+
+  g_signal_connect_swapped (dialog, "response", G_CALLBACK (file_dialog_response_cb), file);
+  gtk_native_dialog_show (GTK_NATIVE_DIALOG (dialog));
+}
+
+static void
 teleport_file_set_property (GObject      *object,
                             guint         property_id,
                             const GValue *value,
@@ -418,9 +450,10 @@ teleport_file_download (TeleportFile *file, SoupSession *session, gchar *downloa
   destination_file = g_file_new_build_filename (download_folder, teleport_file_get_destination_path (file), NULL);
   io_stream = g_file_create_readwrite (destination_file, G_FILE_CREATE_PRIVATE, NULL, &error);
   if (error != NULL) {
-    g_warning ("Couldn't create file: %s", error->message);
-    /* TODO: handle simple issues automaticaly e.g. rename file */
+    g_debug ("Couldn't create file: %s", error->message);
+    /* TODO: handle simple issues automaticaly e.g. by rename file */
     teleport_file_set_state (file, TELEPORT_FILE_STATE_DESTINATION_ERROR);
+    use_custom_file_name (file);
     return;
   }
 
@@ -448,5 +481,7 @@ teleport_file_cancel_transfer (TeleportFile *file, SoupSession *session)
     soup_session_cancel_message (session,
                                  file->msg,
                                  SOUP_STATUS_CANCELLED);
+  } else {
+    teleport_file_set_state (file, TELEPORT_FILE_STATE_CANCELLED);
   }
 }

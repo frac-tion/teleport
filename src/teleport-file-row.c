@@ -46,28 +46,6 @@ struct _TeleportFileRow
 
 G_DEFINE_TYPE (TeleportFileRow, teleport_file_row, GTK_TYPE_LIST_BOX_ROW)
 
-static void
-use_custom_file_name (TeleportFileRow *self)
-{
-  g_autoptr (GtkFileChooserNative) dialog = NULL;
-  g_autoptr (GFile) source_file = NULL;
-  g_autofree gchar *destination_file = NULL;
-  GtkWidget *window;
-
-  window = gtk_widget_get_toplevel (GTK_WIDGET (self));
-  if (gtk_widget_is_toplevel (window)) {
-    dialog =  gtk_file_chooser_native_new ("Select destination",
-                                           GTK_WINDOW (window),
-                                           GTK_FILE_CHOOSER_ACTION_SAVE,
-                                           ("_Save"),
-                                           ("_Cancel"));
-
-    if (gtk_native_dialog_run (GTK_NATIVE_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
-      destination_file = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-      teleport_file_set_destination_path (self->file, destination_file);
-    }
-  }
-}
 
 static void
 update_state_cb (TeleportFileRow *self,
@@ -86,8 +64,9 @@ update_state_cb (TeleportFileRow *self,
     label = g_strdup_printf ("Received \"%s\"", teleport_file_get_destination_path (file));
     break;
   case TELEPORT_FILE_STATE_DESTINATION_ERROR:
-    use_custom_file_name (self);
-    /* The missing break is intentional so that the progressbar is shown */
+    button = self->save_button;
+    label = g_strdup_printf ("File \"%s\" already exists", teleport_file_get_destination_path (file));
+    break;
   case TELEPORT_FILE_STATE_TRANSFAIR:
     show_progressbar = TRUE;
     label = g_strdup_printf ("Downloading \"%s\"", teleport_file_get_destination_path (file));
