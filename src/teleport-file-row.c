@@ -80,7 +80,7 @@ update_state_cb (TeleportFileRow *self,
   case TELEPORT_FILE_STATE_ERROR:
   case TELEPORT_FILE_STATE_UNKNOWN:
   default:
-    label = g_strdup_printf ("Something went terrible wrong with file \"%s\"", teleport_file_get_destination_path (file));
+    label = g_strdup_printf ("Something went wrong with file \"%s\"", teleport_file_get_destination_path (file));
     break;
   }
 
