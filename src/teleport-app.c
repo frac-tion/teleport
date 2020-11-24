@@ -249,7 +249,6 @@ static void
 teleport_app_startup (GApplication *application) {
   TeleportApp *self = TELEPORT_APP (application);
   g_autoptr(GtkCssProvider) provider = NULL;
-  TeleportPeer *dummy_peer;
   const gchar *quit_accels[] = { "<Primary>q", NULL };
 
   g_action_map_add_action_entries (G_ACTION_MAP (self),
@@ -289,16 +288,6 @@ teleport_app_startup (GApplication *application) {
                    self->avahi,
                    "name",
                    G_SETTINGS_BIND_GET);
-
-  /* Add dummy devie */
-  dummy_peer = teleport_peer_new("Angela's Laptop", "127.0.0.1", 3000);
-  teleport_app_add_peer (self, dummy_peer);
-
-  dummy_peer = teleport_peer_new("Julian's Librem5", "127.0.0.1", 3000);
-  teleport_app_add_peer (self, dummy_peer);
-
-  dummy_peer = teleport_peer_new("Paolo's Thinkpad", "127.0.0.1", 3000);
-  teleport_app_add_peer (self, dummy_peer);
 
   /* window */
   self->window = teleport_window_new (self);
