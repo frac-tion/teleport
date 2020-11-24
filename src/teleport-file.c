@@ -466,7 +466,7 @@ teleport_file_download (TeleportFile *file, SoupSession *session, gchar *downloa
   g_signal_connect (file->msg, "got-body", G_CALLBACK (got_body_cb), io_stream);
   g_signal_connect_swapped (file->msg, "got-chunk", G_CALLBACK (progress_cb), file);
 
-  teleport_file_set_state (file, TELEPORT_FILE_STATE_TRANSFAIR);
+  teleport_file_set_state (file, TELEPORT_FILE_STATE_TRANSFER);
   soup_session_queue_message (session, g_object_ref (file->msg), (SoupSessionCallback) get_file_cb, file);
 }
 

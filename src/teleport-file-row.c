@@ -65,7 +65,7 @@ update_state_cb (TeleportFileRow *self,
     button = self->save_button;
     label = g_strdup_printf ("File \"%s\" already exists", teleport_file_get_destination_path (file));
     break;
-  case TELEPORT_FILE_STATE_TRANSFAIR:
+  case TELEPORT_FILE_STATE_TRANSFER:
     show_progressbar = TRUE;
     label = g_strdup_printf ("Downloading \"%s\"", teleport_file_get_destination_path (file));
     break;

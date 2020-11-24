@@ -97,7 +97,7 @@ file_state_changed_cb (TeleportPeer *self,
   notification_id = teleport_file_get_id (file);
 
   switch (teleport_file_get_state (file)) {
-  case TELEPORT_FILE_STATE_TRANSFAIR:
+  case TELEPORT_FILE_STATE_TRANSFER:
     g_application_withdraw_notification (g_application_get_default (), notification_id);
     break;
   case TELEPORT_FILE_STATE_FINISH:
