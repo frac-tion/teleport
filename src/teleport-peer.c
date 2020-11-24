@@ -106,6 +106,7 @@ file_state_changed_cb (TeleportPeer *self,
   case TELEPORT_FILE_STATE_REJECT:
   case TELEPORT_FILE_STATE_CANCELLED:
     teleport_peer_remove_file (self, file);
+    g_application_withdraw_notification (g_application_get_default (), notification_id);
     break;
   case TELEPORT_FILE_STATE_UNKNOWN:
   case TELEPORT_FILE_STATE_NEW:
@@ -117,6 +118,7 @@ file_state_changed_cb (TeleportPeer *self,
   case TELEPORT_FILE_STATE_ERROR:
     g_warning ("There has been an error with a file: %s",
                teleport_file_get_destination_path (file));
+    g_application_withdraw_notification (g_application_get_default (), notification_id);
     break;
   }
 }
