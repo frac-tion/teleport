@@ -103,7 +103,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="halign">start</property>
-                                <property name="margin_top">6</property>
                                 <property name="label" translatable="yes">How your device appears to others</property>
                                 <style>
                                   <class name="dim-label"/>
@@ -258,7 +257,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="halign">start</property>
-                                <property name="margin_top">6</property>
                                 <property name="label" translatable="yes">Drag and drop files on devices to send them</property>
                                 <style>
                                   <class name="dim-label"/>

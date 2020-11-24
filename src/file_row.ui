@@ -109,7 +109,7 @@
             <property name="valign">center</property>
             <property name="action_name">app.abort-file</property>
             <style>
-              <class name="list-button"/>
+              <class name="flat"/>
               <class name="circular"/>
             </style>
             <child>
