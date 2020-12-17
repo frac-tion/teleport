@@ -21,6 +21,7 @@
 #include <libsoup/soup.h>
 
 #include "teleport-file.h"
+#include "teleport-file-utils.h"
 #include "teleport-peer.h"
 #include "enum-types.h"
 
@@ -439,21 +440,33 @@ get_file_cb (SoupSession *session,
 void
 teleport_file_download (TeleportFile *file, SoupSession *session, gchar *download_folder)
 {
-  g_autoptr (GError) error = NULL;
-  g_autoptr (GFile) destination_file = NULL;
   GFileIOStream *io_stream = NULL;
 
   g_return_if_fail (TELEPORT_IS_FILE (file));
   g_return_if_fail (SOUP_IS_SESSION (session));
 
-  destination_file = g_file_new_build_filename (download_folder, teleport_file_get_destination_path (file), NULL);
-  io_stream = g_file_create_readwrite (destination_file, G_FILE_CREATE_PRIVATE, NULL, &error);
-  if (error != NULL) {
-    g_debug ("Couldn't create file: %s", error->message);
-    /* TODO: handle simple issues automaticaly e.g. by rename file */
-    teleport_file_set_state (file, TELEPORT_FILE_STATE_DESTINATION_ERROR);
-    use_custom_file_name (file);
-    return;
+  while (io_stream == NULL) {
+    g_autoptr (GError) error = NULL;
+    g_autoptr (GFile) destination_file = NULL;
+    destination_file = g_file_new_build_filename (download_folder,
+                                                  teleport_file_get_destination_path (file),
+                                                  NULL);
+    io_stream = g_file_create_readwrite (destination_file,
+                                         G_FILE_CREATE_PRIVATE,
+                                         NULL,
+                                         &error);
+    if (error != NULL) {
+      if (error->code == G_IO_ERROR_EXISTS) {
+        g_autofree gchar *new_path = NULL;
+        new_path = teleport_file_utils_get_incremented_name (teleport_file_get_destination_path (file));
+        teleport_file_set_destination_path (file, new_path);
+      } else {
+        g_debug ("Couldn't create file: %s", error->message);
+        teleport_file_set_state (file, TELEPORT_FILE_STATE_DESTINATION_ERROR);
+        use_custom_file_name (file);
+        return;
+      }
+    }
   }
 
   file->msg = soup_message_new ("GET", teleport_file_get_source_path (file));

@@ -276,6 +276,7 @@ teleport_app_startup (GApplication *application) {
   self->server = teleport_server_new (3000);
   self->avahi = teleport_avahi_new (get_device_name (self), 3000);
   self->soup_session = soup_session_new ();
+
   g_signal_connect_swapped (self->server, "recived_file", G_CALLBACK (recived_file_cb), self);
   g_signal_connect_swapped (self->avahi, "notify::state", G_CALLBACK (avahi_state_changed_cb), self);
   g_signal_connect_swapped (self->avahi, "new-device", G_CALLBACK (teleport_app_add_peer), self);
