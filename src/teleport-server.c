@@ -45,17 +45,17 @@ static void
 finished_cb (TeleportFile *file,
              SoupMessage  *msg)
 {
-  /* TODO: remove file from send_files hash table */
-  /* teleport_file_set_status (file, TELEPORT_FILE_COMPLETED); */
-  teleport_file_set_progress (file, 100);
+  teleport_file_set_progress (file, 1.0);
+  teleport_file_set_state (file, TELEPORT_FILE_STATE_FINISH);
+  g_object_unref (file);
 }
 
 static void
 start_sending_cb (TeleportFile *file,
                   SoupMessage  *msg)
 {
-  /* teleport_file_set_status (file, TELEPORT_FILE_STARTED); */
   teleport_file_set_progress (file, 0);
+  teleport_file_set_state (file, TELEPORT_FILE_STATE_TRANSFER);
 }
 
 static void
@@ -80,11 +80,12 @@ file_request_cb (TeleportServer *self,
   if (msg->method == SOUP_METHOD_GET) {
     GMappedFile *mapping;
     SoupBuffer *buffer = NULL;
-    gchar *key;
-    TeleportFile *file;
+    gchar *lookup_key = NULL;
+    g_autofree gchar *key = NULL;
+    TeleportFile *file = NULL;
 
-    key = g_strrstr (path, "/") + 1;
-    file = g_hash_table_lookup (self->send_files, key);
+    lookup_key = g_strrstr (path, "/") + 1;
+    g_hash_table_steal_extended (self->send_files, lookup_key, (gpointer *) &key, (gpointer *) &file);
 
     if (!TELEPORT_IS_FILE (file)) {
       soup_message_set_status (msg, SOUP_STATUS_NOT_FOUND);
